@@ -46,19 +46,6 @@ class LocalDeviceAuthenticator implements DeviceAuthenticator {
       biometricOnly: false,
       // The prompt survives the settings screen the person may have to open.
       persistAcrossBackgrounding: true,
-      authMessages: const [
-        AndroidAuthMessages(
-          signInTitle: AppLockPrompts.reason,
-          biometricHint: '',
-          cancelButton: AppLockPrompts.cancel,
-        ),
-        IOSAuthMessages(
-          lockOut: AppLockPrompts.lockOut,
-          goToSettingsButton: AppLockPrompts.settings,
-          goToSettingsDescription: AppLockPrompts.settingsDescription,
-          cancelButton: AppLockPrompts.cancel,
-        ),
-      ],
     );
   }
 }
@@ -151,9 +138,4 @@ class AppLockController extends _$AppLockController {
 /// The words the cover and the system prompt show, so both say the same thing.
 abstract final class AppLockPrompts {
   static const reason = 'Unlock Anchor to read your notes';
-  static const cancel = 'Cancel';
-  static const lockOut = 'Too many attempts. Try again in a minute.';
-  static const settings = 'Open settings';
-  static const settingsDescription =
-      'Set a screen lock on this device to use the app lock.';
 }
