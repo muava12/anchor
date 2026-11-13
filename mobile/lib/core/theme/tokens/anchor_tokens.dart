@@ -328,12 +328,6 @@ abstract final class AnchorTokens {
   /// Letter spacing in em
   static const double headingH3Tracking = 0.0;
   /// A button being pressed
-  /// Behind a search match in a note.
-  static const Color searchHighlight = Color(0x33FFD54F);
-
-  /// Behind the match the arrows are on.
-  static const Color searchHighlightActive = Color(0x99FFB300);
-
   static const Duration motionDurationPress = Duration(milliseconds: 100);
   /// Hover and press feedback
   static const Duration motionDurationHover = Duration(milliseconds: 150);
@@ -552,6 +546,8 @@ class AnchorColors extends ThemeExtension<AnchorColors> {
     required this.statusWarnText,
     required this.statusWarnFill,
     required this.statusOnDanger,
+    required this.searchHighlight,
+    required this.searchHighlightActive,
     required this.blendAddedLine,
     required this.blendAddedWord,
     required this.blendRemovedLine,
@@ -626,6 +622,10 @@ class AnchorColors extends ThemeExtension<AnchorColors> {
   final Color statusWarnFill;
   /// Text on a red button
   final Color statusOnDanger;
+  /// Behind a search match in a note
+  final Color searchHighlight;
+  /// Behind the match the arrows are on
+  final Color searchHighlightActive;
   /// Percent of green behind an added line
   final double blendAddedLine;
   /// Percent of green behind an added word
@@ -701,6 +701,8 @@ class AnchorColors extends ThemeExtension<AnchorColors> {
     statusWarnText: Color(0xFF8A4B08),
     statusWarnFill: Color(0xFFFDECC8),
     statusOnDanger: Color(0xFFFFFFFF),
+    searchHighlight: Color(0x33FFD54F),
+    searchHighlightActive: Color(0x99FFB300),
     blendAddedLine: 14.0,
     blendAddedWord: 30.0,
     blendRemovedLine: 16.0,
@@ -788,6 +790,8 @@ class AnchorColors extends ThemeExtension<AnchorColors> {
     statusWarnText: Color(0xFFFCD49A),
     statusWarnFill: Color(0xFF4A3413),
     statusOnDanger: Color(0xFF111214),
+    searchHighlight: Color(0x3DFFD54F),
+    searchHighlightActive: Color(0x80FFC232),
     blendAddedLine: 14.0,
     blendAddedWord: 26.0,
     blendRemovedLine: 16.0,
@@ -876,6 +880,8 @@ class AnchorColors extends ThemeExtension<AnchorColors> {
     Color? statusWarnText,
     Color? statusWarnFill,
     Color? statusOnDanger,
+    Color? searchHighlight,
+    Color? searchHighlightActive,
     double? blendAddedLine,
     double? blendAddedWord,
     double? blendRemovedLine,
@@ -924,6 +930,8 @@ class AnchorColors extends ThemeExtension<AnchorColors> {
         statusWarnText: statusWarnText ?? this.statusWarnText,
         statusWarnFill: statusWarnFill ?? this.statusWarnFill,
         statusOnDanger: statusOnDanger ?? this.statusOnDanger,
+        searchHighlight: searchHighlight ?? this.searchHighlight,
+        searchHighlightActive: searchHighlightActive ?? this.searchHighlightActive,
         blendAddedLine: blendAddedLine ?? this.blendAddedLine,
         blendAddedWord: blendAddedWord ?? this.blendAddedWord,
         blendRemovedLine: blendRemovedLine ?? this.blendRemovedLine,
@@ -976,6 +984,8 @@ class AnchorColors extends ThemeExtension<AnchorColors> {
       statusWarnText: Color.lerp(statusWarnText, other.statusWarnText, t)!,
       statusWarnFill: Color.lerp(statusWarnFill, other.statusWarnFill, t)!,
       statusOnDanger: Color.lerp(statusOnDanger, other.statusOnDanger, t)!,
+      searchHighlight: Color.lerp(searchHighlight, other.searchHighlight, t)!,
+      searchHighlightActive: Color.lerp(searchHighlightActive, other.searchHighlightActive, t)!,
       blendAddedLine: lerpDouble(blendAddedLine, other.blendAddedLine, t)!,
       blendAddedWord: lerpDouble(blendAddedWord, other.blendAddedWord, t)!,
       blendRemovedLine: lerpDouble(blendRemovedLine, other.blendRemovedLine, t)!,

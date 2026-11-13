@@ -84,7 +84,7 @@ export function dartTokens({ dtcg, set, resolved, base, HEAD }) {
   const isThemed = (x) =>
     !x.deprecated &&
     !base.has(x.path) &&
-    /^(color\.(app|accent|check|status)\.|shadow\.|blend\.)/.test(x.path);
+    /^(color\.(app|accent|check|status|search)\.|shadow\.|blend\.)/.test(x.path);
   const fields = [...R.light.values()]
     .filter(isThemed)
     .map((x) => ({ name: camel(x.path.replace(/^color\./, "")), type: type(x), x }));

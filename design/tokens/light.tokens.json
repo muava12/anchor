@@ -236,7 +236,7 @@
           ],
           "hex": "#b02237"
         },
-        "$description": "The − sign and bar"
+        "$description": "The \u2212 sign and bar"
       },
       "warnText": {
         "$value": {
@@ -248,7 +248,7 @@
           ],
           "hex": "#8a4b08"
         },
-        "$description": "Warning labels, like “Not saved”"
+        "$description": "Warning labels, like \u201cNot saved\u201d"
       },
       "warnFill": {
         "$value": {
@@ -1845,6 +1845,35 @@
         "alpha": 0.05
       },
       "$deprecated": "Today's pattern color, kept only so the guidelines can show today's look."
+    },
+    "search": {
+      "$type": "color",
+      "highlight": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1.0,
+            0.8353,
+            0.3098
+          ],
+          "alpha": 0.2,
+          "hex": "#ffd54f"
+        },
+        "$description": "Behind a search match in a note"
+      },
+      "highlightActive": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1.0,
+            0.702,
+            0.0
+          ],
+          "alpha": 0.6,
+          "hex": "#ffb300"
+        },
+        "$description": "Behind the match the arrows are on"
+      }
     }
   },
   "shadow": {
