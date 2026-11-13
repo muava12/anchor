@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:anchor/app/app_bootstrap.dart';
+import 'package:anchor/core/storage/preferences_repository.dart';
 import 'package:anchor/core/theme/app_theme.dart';
 import 'package:anchor/features/settings/presentation/app_lock_controller.dart';
 import 'package:anchor/features/settings/presentation/app_lock_gate.dart';
@@ -8,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:mocktail/mocktail.dart';
 
 class _FakeAuthenticator implements DeviceAuthenticator {
   _FakeAuthenticator({this.succeeds = true, this.failure, this.holds = false});
@@ -45,14 +47,19 @@ class _FakeAuthenticator implements DeviceAuthenticator {
 AppBootstrap _bootstrap({required bool isLocked}) =>
     AppBootstrap(appLockEnabled: isLocked, userId: 'user-1');
 
+class _MockPreferences extends Mock implements PreferencesRepository {}
+
 ProviderContainer _container({
   required bool isLocked,
   required DeviceAuthenticator authenticator,
 }) {
+  final preferences = _MockPreferences();
+  when(() => preferences.setAppLockEnabled(any())).thenAnswer((_) async {});
   final container = ProviderContainer(
     overrides: [
       appBootstrapProvider.overrideWithValue(_bootstrap(isLocked: isLocked)),
       deviceAuthenticatorProvider.overrideWithValue(authenticator),
+      preferencesRepositoryProvider.overrideWithValue(preferences),
     ],
   );
   addTearDown(container.dispose);
@@ -170,6 +177,8 @@ void main() {
     expect(find.byType(AppLockScreen), findsNothing);
 
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    // A paused app draws no frame, so the cover shows on the way back.
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pump();
 
     expect(find.byType(AppLockScreen), findsOneWidget);

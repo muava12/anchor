@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -46,18 +44,14 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // Cover the notes the moment the app leaves the screen, so the switch to
     // another app does not show them.
+    // Covering on the way out means the switch to another app, and the
+    // thumbnail the system keeps, show the cover and not the note. The cover
+    // asks the device itself when it is built again on the way back.
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
       ref.read(appLockControllerProvider.notifier).lock();
     }
-    // A prompt the system threw away comes back when the person returns.
-    if (state == AppLifecycleState.resumed && _isLocked) {
-      unawaited(_unlock());
-    }
   }
-
-  bool get _isLocked =>
-      ref.read(appLockEnabledProvider) && ref.read(appLockControllerProvider);
 
   Future<void> _unlock() async {
     final problem = await ref.read(appLockControllerProvider.notifier).unlock();
