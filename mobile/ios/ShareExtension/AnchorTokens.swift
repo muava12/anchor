@@ -202,7 +202,7 @@ enum AnchorTokens {
     /// The top bar under the status bar
     static let densityDefaultBar: CGFloat = 52
     /// Line height of note text in the editor and versions
-    static let densityDefaultNoteLineHeight: CGFloat = 1.7
+    static let densityDefaultNoteLineHeight: CGFloat = 1.55
     static let densityDefaultPreviewMasonry: CGFloat = 6
     static let densityDefaultPreviewGrid: CGFloat = 4
     static let densityDefaultPreviewList: CGFloat = 2
@@ -218,7 +218,7 @@ enum AnchorTokens {
     /// The top bar under the status bar, as tall as its buttons
     static let densityCompactBar: CGFloat = 44
     /// Line height of note text in the editor and versions
-    static let densityCompactNoteLineHeight: CGFloat = 1.45
+    static let densityCompactNoteLineHeight: CGFloat = 1
     static let densityCompactPreviewMasonry: CGFloat = 4
     static let densityCompactPreviewGrid: CGFloat = 3
     static let densityCompactPreviewList: CGFloat = 1

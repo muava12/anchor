@@ -93,7 +93,7 @@ void main() {
       );
       expect(standard.control, AnchorTokens.sizeControlLarge);
       expect(standard.bar, AnchorTokens.sizeControlLarge);
-      expect(standard.noteLineHeight, AnchorTokens.typeBody.height);
+      expect(standard.noteLineHeight, 1.55);
       expect(
         [
           standard.previewMasonry,
@@ -120,7 +120,7 @@ void main() {
       );
       expect(compact.control, AnchorTokens.sizeControlMedium);
       expect(compact.bar, AnchorTokens.sizeControlMedium);
-      expect(compact.noteLineHeight, 1.45);
+      expect(compact.noteLineHeight, 1.0);
       expect(
         [
           compact.previewMasonry,

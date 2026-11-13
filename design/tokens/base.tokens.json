@@ -1372,7 +1372,7 @@
       },
       "noteLineHeight": {
         "$type": "number",
-        "$value": 1.7,
+        "$value": 1.55,
         "$description": "Line height of note text in the editor and versions"
       },
       "preview": {
@@ -1424,7 +1424,7 @@
       },
       "noteLineHeight": {
         "$type": "number",
-        "$value": 1.45,
+        "$value": 1.0,
         "$description": "Line height of note text in the editor and versions"
       },
       "preview": {
