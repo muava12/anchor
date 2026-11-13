@@ -22,7 +22,7 @@ class BackupWriter {
   }
 
   Future<void> addFile(File source, String name) async {
-    final bytes = await source.readBytes();
+    final bytes = await source.readAsBytes();
     _encoder.addArchiveFile(ArchiveFile(name, bytes.length, bytes));
   }
 

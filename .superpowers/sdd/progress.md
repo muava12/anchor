@@ -16,3 +16,5 @@ Task 2: complete (tests pass on box-03)
 Task 3: complete (5 tests pass on box-03)
   - cryptography resolves to 2.9.0; pubspec.lock updated from box-03.
   - decrypt now refuses a truncated file with BackupFormatException.
+Task 4: complete (14 backup tests pass, analyze clean on box-03)
+  - _attachmentsRoot now resolves a relative localPath, so the field is used.
