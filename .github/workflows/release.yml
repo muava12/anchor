@@ -58,6 +58,7 @@ jobs:
           if [ -n "$KEYSTORE_BASE64" ]; then
             echo "$KEYSTORE_BASE64" | base64 -d > android/app/upload-keystore.jks
           else
+            echo "::warning::No release keystore secret, so this APK is signed with a new key. Android refuses to install it over a build signed with another key; uninstall first, and set ANDROID_KEYSTORE_BASE64 to keep updates installable."
             keytool -genkeypair -v -keystore android/app/upload-keystore.jks \
               -alias anchor -keyalg RSA -keysize 2048 -validity 10000 \
               -storepass anchorfork -keypass anchorfork \
