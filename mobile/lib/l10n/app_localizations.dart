@@ -1222,6 +1222,42 @@ abstract class AppLocalizations {
   /// **'L'**
   String get textSizeLargeShort;
 
+  /// Label of the button in a note's top bar that opens the search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Search in this note'**
+  String get noteSearch;
+
+  /// Placeholder inside the note's search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Find in note'**
+  String get noteSearchHint;
+
+  /// Shown in the note's search bar when the query matches nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No results'**
+  String get noteSearchNoResults;
+
+  /// Label of the down arrow that moves to the next search match.
+  ///
+  /// In en, this message translates to:
+  /// **'Next match'**
+  String get noteSearchNext;
+
+  /// Label of the up arrow that moves to the previous search match.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous match'**
+  String get noteSearchPrevious;
+
+  /// Label of the button that closes the note's search.
+  ///
+  /// In en, this message translates to:
+  /// **'Close search'**
+  String get noteSearchClose;
+
   /// Switch in Settings for checklists in notes.
   ///
   /// In en, this message translates to:

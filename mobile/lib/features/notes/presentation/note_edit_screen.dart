@@ -35,6 +35,7 @@ import 'editor/editor_overlay.dart';
 import 'editor/editor_overlay_controller.dart';
 import 'editor/editor_palette.dart';
 import 'editor/line_kind.dart';
+import 'editor/note_search_controller.dart';
 import 'editor/rich_text_editor.dart';
 import 'note_actions.dart';
 import 'note_editor_controller.dart';
@@ -46,6 +47,7 @@ import 'widgets/note_attachments_strip.dart';
 import 'widgets/note_bar.dart';
 import 'widgets/note_header.dart';
 import 'widgets/note_more_sheet.dart';
+import 'widgets/note_search_bar.dart';
 import 'widgets/note_surface.dart';
 import 'widgets/read_only_bottom_bar.dart';
 import 'widgets/share_sheet.dart';
@@ -70,6 +72,11 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
   final _corrections = ScrollCorrections();
   late final _scrollOffset = ScrollOffset(_scroll, corrections: _corrections);
   final _titleHistory = UndoHistoryController();
+  late final NoteSearchController _search = NoteSearchController(
+    textOf: () =>
+        _editorKey.currentState?.controller.document.toPlainText() ?? '',
+  );
+  bool _isSearching = false;
   double _readOnlyBarHeight = 0;
   late final AnimationController _nudge = AnimationController(
     vsync: this,
@@ -114,6 +121,7 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _draft.addListener(_draftChanged);
+    _search.addListener(_searchChanged);
     _editorOverlay.addListener(_editorOverlayChanged);
     if (_openedAsNew) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -178,6 +186,20 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
     _leave();
   }
 
+  void _openSearch() => setState(() => _isSearching = true);
+
+  void _closeSearch() {
+    _search.clear();
+    setState(() => _isSearching = false);
+  }
+
+  void _searchChanged() {
+    setState(() {});
+    final range = _search.search.activeRange;
+    if (range == null) return;
+    _editorKey.currentState?.revealRange(range);
+  }
+
   void _back() {
     final navigator = Navigator.of(context);
     if (navigator.canPop()) {
@@ -227,6 +249,7 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
     _draft.removeListener(_draftChanged);
     _draft.title.removeListener(_updateEmptyNoteActions);
     _draft.dispose();
+    _search.dispose();
     _showsEmptyNoteActions.dispose();
     _editorOverlay.removeListener(_editorOverlayChanged);
     _editorOverlay.dispose();
@@ -534,7 +557,16 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
     final note = _draft.note;
     final isNew = _draft.isNew;
     final isTrashed = _draft.isTrashed;
-    final bar = NoteBar(
+    final bar = _isSearching
+        ? NoteSearchBar(
+            search: _search.search,
+            background: appearance.colors.bg,
+            onQueryChanged: _search.setQuery,
+            onNext: _search.next,
+            onPrevious: _search.previous,
+            onClose: _closeSearch,
+          )
+        : NoteBar(
       appearance: appearance,
       scrollOffset: _scrollOffset,
       reminder: note?.reminder,
@@ -546,6 +578,7 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
       onBackground: _showBackground,
       onReminder: _showReminder,
       onMore: isNew ? null : _showMore,
+      onSearch: _openSearch,
     );
 
     final content = Column(
@@ -700,6 +733,7 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
                     canEdit: !_isReadOnly,
                     scrollController: _scroll,
                     palette: palette,
+                    search: _search.search,
                     bottomInset: _editorOverlay.caretSpace,
                     sortChecklistItems: ref.watch(
                       editorPreferencesControllerProvider.select(

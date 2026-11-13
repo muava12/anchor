@@ -900,6 +900,30 @@
   "@textSizeLargeShort": {
     "description": "Letter shown for the large note text size."
   },
+  "noteSearch": "Search in this note",
+  "@noteSearch": {
+    "description": "Label of the button in a note's top bar that opens the search field."
+  },
+  "noteSearchHint": "Find in note",
+  "@noteSearchHint": {
+    "description": "Placeholder inside the note's search field."
+  },
+  "noteSearchNoResults": "No results",
+  "@noteSearchNoResults": {
+    "description": "Shown in the note's search bar when the query matches nothing."
+  },
+  "noteSearchNext": "Next match",
+  "@noteSearchNext": {
+    "description": "Label of the down arrow that moves to the next search match."
+  },
+  "noteSearchPrevious": "Previous match",
+  "@noteSearchPrevious": {
+    "description": "Label of the up arrow that moves to the previous search match."
+  },
+  "noteSearchClose": "Close search",
+  "@noteSearchClose": {
+    "description": "Label of the button that closes the note's search."
+  },
   "settingsMoveChecked": "Move checked items to the bottom",
   "@settingsMoveChecked": {
     "description": "Switch in Settings for checklists in notes."

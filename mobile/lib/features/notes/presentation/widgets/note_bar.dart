@@ -26,6 +26,7 @@ class NoteBar extends StatelessWidget {
     required this.onBackground,
     required this.onReminder,
     required this.onMore,
+    required this.onSearch,
   });
 
   final NoteAppearance appearance;
@@ -41,6 +42,8 @@ class NoteBar extends StatelessWidget {
 
   /// Null while the note is new and has nothing to act on yet.
   final VoidCallback? onMore;
+
+  final VoidCallback onSearch;
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +62,11 @@ class NoteBar extends StatelessWidget {
           onPressed: onHistory,
         )
       else ...[
+        BarButton(
+          icon: LucideIcons.search,
+          label: context.l10n.noteSearch,
+          onPressed: onSearch,
+        ),
         if (!isReadOnly)
           BarButton(
             icon: LucideIcons.palette,

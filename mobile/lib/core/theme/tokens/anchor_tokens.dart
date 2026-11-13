@@ -328,6 +328,12 @@ abstract final class AnchorTokens {
   /// Letter spacing in em
   static const double headingH3Tracking = 0.0;
   /// A button being pressed
+  /// Behind a search match in a note.
+  static const Color searchHighlight = Color(0x33FFD54F);
+
+  /// Behind the match the arrows are on.
+  static const Color searchHighlightActive = Color(0x99FFB300);
+
   static const Duration motionDurationPress = Duration(milliseconds: 100);
   /// Hover and press feedback
   static const Duration motionDurationHover = Duration(milliseconds: 150);

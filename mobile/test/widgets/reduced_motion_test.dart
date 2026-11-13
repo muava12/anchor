@@ -119,6 +119,7 @@ void main() {
             onBackground: () {},
             onReminder: () {},
             onMore: () {},
+            onSearch: () {},
           ),
         ),
       ),

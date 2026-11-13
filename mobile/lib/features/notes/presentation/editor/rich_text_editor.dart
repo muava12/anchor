@@ -32,6 +32,7 @@ import 'highlight_underlay.dart';
 import 'line_kind.dart';
 import 'list_markers.dart';
 import 'markdown_shortcuts.dart';
+import 'note_search.dart';
 import 'plain_insert_rule.dart';
 import 'slash_hint.dart';
 
@@ -58,6 +59,7 @@ class RichTextEditor extends StatefulWidget {
     this.isCheckedFolded = false,
     this.onCheckedFoldChanged,
     this.visibleArea,
+    this.search = const NoteSearch.empty(),
   });
 
   final String? initialContent;
@@ -78,6 +80,9 @@ class RichTextEditor extends StatefulWidget {
   final ValueChanged<EditorLink>? onLinkTap;
 
   final double bottomInset;
+
+  /// What the note screen is searching for. Painted, never written.
+  final NoteSearch search;
 
   final VoidCallback? onReadOnlyTap;
 
@@ -136,6 +141,29 @@ class RichTextEditorState extends State<RichTextEditor>
   double _caretScrollTarget = 0;
 
   QuillController get controller => _controller;
+
+  /// Scrolls so [range] is on screen, without touching the selection.
+  void revealRange(TextRange range) {
+    final render = _renderEditor;
+    final box = context.findRenderObject();
+    if (render == null || !render.attached || box is! RenderBox) return;
+    final rect = render.getLocalRectForCaret(
+      TextPosition(offset: range.start),
+    );
+    final offset = render.localToGlobal(rect.topLeft, ancestor: box).dy;
+    final position = widget.scrollController.hasClients
+        ? widget.scrollController.position
+        : null;
+    if (position == null) return;
+    widget.scrollController.animateTo(
+      (widget.scrollController.offset + offset - 120).clamp(
+        0.0,
+        position.maxScrollExtent,
+      ),
+      duration: context.motion(Spring.snappy.duration),
+      curve: Spring.snappy.curve,
+    );
+  }
 
   @visibleForTesting
   ChecklistDragController get checklistDrag => _drag;
@@ -872,6 +900,9 @@ class RichTextEditorState extends State<RichTextEditor>
                   isDragged: _isDragged,
                   typography: context.noteTypography,
                   textScaler: MediaQuery.textScalerOf(context),
+                  search: widget.search,
+                  searchFill: AnchorTokens.searchHighlight,
+                  searchActiveFill: AnchorTokens.searchHighlightActive,
                 ),
               ),
             ),

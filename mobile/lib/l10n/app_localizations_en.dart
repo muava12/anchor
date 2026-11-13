@@ -653,6 +653,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get textSizeLargeShort => 'L';
 
   @override
+  String get noteSearch => 'Search in this note';
+
+  @override
+  String get noteSearchHint => 'Find in note';
+
+  @override
+  String get noteSearchNoResults => 'No results';
+
+  @override
+  String get noteSearchNext => 'Next match';
+
+  @override
+  String get noteSearchPrevious => 'Previous match';
+
+  @override
+  String get noteSearchClose => 'Close search';
+
+  @override
   String get settingsMoveChecked => 'Move checked items to the bottom';
 
   @override

@@ -205,7 +205,9 @@ void main() {
     expect(dividersIn('Font'), findsNWidgets(2));
     await tester.drag(find.byType(Scrollable).first, const Offset(0, 400));
     await tester.pumpAndSettle();
-    expect(dividersIn('Density'), findsNothing);
+    // The motion row sits above density, so one divider separates them and
+    // none follows the last row.
+    expect(dividersIn('Density'), findsOneWidget);
   });
 
   testWidgets('picking a font and a size saves them on this phone and '
@@ -214,7 +216,7 @@ void main() {
 
     await tester.tap(segment('Font', 'Serif'));
     await tester.pumpAndSettle();
-    await tester.tap(segment('Text size', 'Large'));
+    await tester.tap(segment('Text size', 'L'));
     await tester.pumpAndSettle();
 
     final editor = container.read(editorPreferencesControllerProvider);
@@ -240,7 +242,7 @@ void main() {
   ) async {
     await pumpSettings(tester);
 
-    await tester.tap(segment('Text size', 'Large'));
+    await tester.tap(segment('Text size', 'L'));
     await tester.pump();
     expect(styleOf(tester, preview).fontSize, 16.5);
     await tester.pump(const Duration(milliseconds: 100));
@@ -266,7 +268,7 @@ void main() {
   ) async {
     await pumpSettings(tester, isMotionReduced: true);
 
-    await tester.tap(segment('Text size', 'Small'));
+    await tester.tap(segment('Text size', 'S'));
     await tester.pump();
     await tester.pump();
     expect(styleOf(tester, preview).fontSize, closeTo(16.5 * 0.88, 0.001));

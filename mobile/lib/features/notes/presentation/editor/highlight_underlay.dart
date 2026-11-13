@@ -6,6 +6,7 @@ import '../../../../core/widgets/marker_stroke.dart';
 import 'checklist_fold.dart';
 import 'editor_format.dart';
 import 'list_markers.dart';
+import 'note_search.dart';
 
 class HighlightUnderlay extends CustomPainter {
   HighlightUnderlay({
@@ -17,6 +18,9 @@ class HighlightUnderlay extends CustomPainter {
     required this.isDragged,
     required this.typography,
     required this.textScaler,
+    required this.search,
+    required this.searchFill,
+    required this.searchActiveFill,
   }) : super(repaint: repaint);
 
   final QuillController controller;
@@ -28,6 +32,10 @@ class HighlightUnderlay extends CustomPainter {
 
   final NoteTypography typography;
   final TextScaler textScaler;
+
+  final NoteSearch search;
+  final Color searchFill;
+  final Color searchActiveFill;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -101,6 +109,81 @@ class HighlightUnderlay extends CustomPainter {
       at += leaf.length;
     }
     flush(at);
+    _paintSearch(canvas, render, host, start, start + node.length);
+  }
+
+  /// Paints the search matches that fall inside [from]..[to].
+  void _paintSearch(
+    Canvas canvas,
+    RenderEditor render,
+    RenderBox host,
+    int from,
+    int to,
+  ) {
+    if (!search.hasMatches) return;
+    final active = search.activeRange;
+    for (final range in search.matches) {
+      if (range.end <= from || range.start >= to) continue;
+      final start = range.start.clamp(from, to);
+      final end = range.end.clamp(from, to);
+      if (end <= start) continue;
+      final isActive =
+          active != null &&
+          active.start == range.start &&
+          active.end == range.end;
+      _paintSearchRange(
+        canvas,
+        render,
+        host,
+        start,
+        end,
+        isActive ? searchActiveFill : searchFill,
+      );
+    }
+  }
+
+  void _paintSearchRange(
+    Canvas canvas,
+    RenderEditor render,
+    RenderBox host,
+    int start,
+    int end,
+    Color color,
+  ) {
+    var position = start;
+    var guard = 0;
+    while (position < end && guard++ < 200) {
+      final line = render.getLineAtOffset(TextPosition(offset: position));
+      final segmentEnd = line.end.clamp(position, end);
+      if (segmentEnd <= position) break;
+      final startRect = render.getLocalRectForCaret(
+        TextPosition(offset: position),
+      );
+      final endRect = render.getLocalRectForCaret(
+        TextPosition(offset: segmentEnd, affinity: TextAffinity.upstream),
+      );
+      final topLeft = host.globalToLocal(
+        render.localToGlobal(startRect.topLeft),
+      );
+      final right = host
+          .globalToLocal(
+            render.localToGlobal(Offset(endRect.left, startRect.top)),
+          )
+          .dx;
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(
+            topLeft.dx,
+            topLeft.dy,
+            right - topLeft.dx,
+            startRect.height,
+          ),
+          const Radius.circular(3),
+        ),
+        Paint()..color = color,
+      );
+      position = segmentEnd;
+    }
   }
 
   void _paintRange(
