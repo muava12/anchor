@@ -118,7 +118,9 @@ jobs:
         run: pnpm test
 
   mobile-lint:
-    runs-on: ubuntu-latest
+    # The Flutter SDK is installed on the runner itself, so the job needs no
+    # download and no cache step.
+    runs-on: [self-hosted, linux, x64, flutter]
     defaults:
       run:
         working-directory: mobile
@@ -126,12 +128,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          flutter-version: 3.47.9
-          cache: true
+      - name: Put Flutter on the path
+        run: echo "/data/workspace/toolchain/flutter/bin" >> "$GITHUB_PATH"
+
+      - name: Flutter version
+        run: flutter --version
 
       - name: Install dependencies
         run: flutter pub get
