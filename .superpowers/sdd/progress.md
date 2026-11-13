@@ -18,3 +18,7 @@ Task 3: complete (5 tests pass on box-03)
   - decrypt now refuses a truncated file with BackupFormatException.
 Task 4: complete (14 backup tests pass, analyze clean on box-03)
   - _attachmentsRoot now resolves a relative localPath, so the field is used.
+Task 5: complete (20 backup tests pass on box-03)
+  - BackupTag gained version; keepIds keeps tag versions, newIds clears them.
+  - Restore deletes replaced attachment files after commit, and written files on rollback.
+  - Duplicate tag ids per note are de-duplicated.

@@ -1,16 +1,31 @@
 class BackupTag {
-  const BackupTag({required this.id, required this.name, this.color});
+  const BackupTag({
+    required this.id,
+    required this.name,
+    this.color,
+    this.version,
+  });
 
   final String id;
   final String name;
   final String? color;
 
-  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'color': color};
+  /// The server version this tag was written against, kept for the same reason
+  /// a note keeps its own.
+  final int? version;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'color': color,
+    'version': version,
+  };
 
   factory BackupTag.fromJson(Map<String, dynamic> json) => BackupTag(
     id: json['id'] as String,
     name: json['name'] as String,
     color: json['color'] as String?,
+    version: json['version'] as int?,
   );
 }
 

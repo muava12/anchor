@@ -96,7 +96,12 @@ class BackupExporter {
         BackupContents(
           tags: [
             for (final tag in tags)
-              BackupTag(id: tag.id, name: tag.name, color: tag.color),
+              BackupTag(
+                id: tag.id,
+                name: tag.name,
+                color: tag.color,
+                version: tag.version,
+              ),
           ],
           notes: backupNotes,
         ).toJson(),
