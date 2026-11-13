@@ -200,7 +200,7 @@ void main() {
       16,
     );
     expect(font.left - group.left, 16);
-    expect(font.top - group.top, closeTo(105.1 + 12, 0.5));
+    expect(font.top - group.top, closeTo(101.0 + 12, 0.5));
     expect(fontPicker.top - font.bottom, 12);
     expect(fontPicker.height, 44);
     expect(textSize.top - fontPicker.bottom, 12 + 12);

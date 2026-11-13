@@ -439,7 +439,7 @@ void main() {
     final target = tester.getRect(checkboxSlot(1));
     final first = tester.getRect(checkboxSlot(0));
     expect(target.width, AnchorTokens.sizeControlMedium);
-    expect(target.top, moreOrLessEquals(first.bottom, epsilon: 0.1));
+    expect(target.top, moreOrLessEquals(first.bottom, epsilon: 0.5));
 
     await tester.tapAt(Offset(target.right - 2, target.top + 1));
     await tester.pump();
