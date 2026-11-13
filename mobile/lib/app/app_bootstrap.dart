@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../core/motion/motion_speed.dart';
 import '../core/theme/display_density.dart';
 import '../features/settings/domain/editor_preferences.dart';
 import 'router/app_routes.dart';
@@ -12,6 +13,7 @@ class AppBootstrap {
     this.themeMode = ThemeMode.system,
     this.displayDensity = DisplayDensity.standard,
     this.appLockEnabled = false,
+    this.motionSpeed = MotionSpeed.slow,
     this.editorPreferences = const EditorPreferences(),
     this.foldedChecklistNotes = const [],
     this.openArchivedTags = const [],
@@ -22,6 +24,7 @@ class AppBootstrap {
   final ThemeMode themeMode;
   final DisplayDensity displayDensity;
   final bool appLockEnabled;
+  final MotionSpeed motionSpeed;
   final EditorPreferences editorPreferences;
 
   final List<String> foldedChecklistNotes;

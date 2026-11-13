@@ -31,6 +31,7 @@ enum NoteFont {
 }
 
 enum NoteTextSize {
+  extraSmall(0.73),
   small(0.88),
   standard(1),
   large(1.12);
@@ -39,7 +40,17 @@ enum NoteTextSize {
 
   final double scale;
 
+  /// The letter the picker shows.
   String labelIn(AppLocalizations l10n) => switch (this) {
+    NoteTextSize.extraSmall => l10n.textSizeExtraSmallShort,
+    NoteTextSize.small => l10n.textSizeSmallShort,
+    NoteTextSize.standard => l10n.textSizeStandardShort,
+    NoteTextSize.large => l10n.textSizeLargeShort,
+  };
+
+  /// The words a screen reader says, so a letter is never read alone.
+  String spokenIn(AppLocalizations l10n) => switch (this) {
+    NoteTextSize.extraSmall => l10n.textSizeExtraSmall,
     NoteTextSize.small => l10n.textSizeSmall,
     NoteTextSize.standard => l10n.textSizeDefault,
     NoteTextSize.large => l10n.textSizeLarge,

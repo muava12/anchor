@@ -180,4 +180,11 @@ class PreferencesRepository {
       value: isEnabled.toString(),
     );
   }
+
+  Future<String?> getMotionSpeedName() =>
+      _storage.read(key: StorageKeys.motionSpeed);
+
+  Future<void> setMotionSpeedName(String name) async {
+    await _storage.write(key: StorageKeys.motionSpeed, value: name);
+  }
 }

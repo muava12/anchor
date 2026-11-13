@@ -860,6 +860,46 @@
   "@appLockInterrupted": {
     "description": "Shown on the cover when the system stopped the prompt or the person cancelled it."
   },
+  "settingsMotion": "Motion",
+  "@settingsMotion": {
+    "description": "Setting that picks how much the app animates."
+  },
+  "settingsMotionHelp": "How much the app animates.",
+  "@settingsMotionHelp": {
+    "description": "Under the motion setting: what it changes."
+  },
+  "settingsMotionSlow": "Slow",
+  "@settingsMotionSlow": {
+    "description": "Motion setting that keeps the design's own durations."
+  },
+  "settingsMotionFast": "Fast",
+  "@settingsMotionFast": {
+    "description": "Motion setting that runs animations at three tenths of the design duration."
+  },
+  "settingsMotionOff": "Off",
+  "@settingsMotionOff": {
+    "description": "Motion setting that removes animation entirely."
+  },
+  "textSizeExtraSmall": "Extra small",
+  "@textSizeExtraSmall": {
+    "description": "Spoken name of the smallest note text size."
+  },
+  "textSizeExtraSmallShort": "XS",
+  "@textSizeExtraSmallShort": {
+    "description": "Letter shown for the smallest note text size."
+  },
+  "textSizeSmallShort": "S",
+  "@textSizeSmallShort": {
+    "description": "Letter shown for the small note text size."
+  },
+  "textSizeStandardShort": "M",
+  "@textSizeStandardShort": {
+    "description": "Letter shown for the default note text size."
+  },
+  "textSizeLargeShort": "L",
+  "@textSizeLargeShort": {
+    "description": "Letter shown for the large note text size."
+  },
   "settingsMoveChecked": "Move checked items to the bottom",
   "@settingsMoveChecked": {
     "description": "Switch in Settings for checklists in notes."

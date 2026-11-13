@@ -623,6 +623,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appLockInterrupted => 'The device did not unlock. Try again.';
 
   @override
+  String get settingsMotion => 'Motion';
+
+  @override
+  String get settingsMotionHelp => 'How much the app animates.';
+
+  @override
+  String get settingsMotionSlow => 'Slow';
+
+  @override
+  String get settingsMotionFast => 'Fast';
+
+  @override
+  String get settingsMotionOff => 'Off';
+
+  @override
+  String get textSizeExtraSmall => 'Extra small';
+
+  @override
+  String get textSizeExtraSmallShort => 'XS';
+
+  @override
+  String get textSizeSmallShort => 'S';
+
+  @override
+  String get textSizeStandardShort => 'M';
+
+  @override
+  String get textSizeLargeShort => 'L';
+
+  @override
   String get settingsMoveChecked => 'Move checked items to the bottom';
 
   @override

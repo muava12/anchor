@@ -11,12 +11,16 @@ class Segment<T> {
   const Segment({
     required this.value,
     required this.label,
+    this.spokenLabel,
     this.icon,
     this.fontFamily,
   });
 
   final T value;
   final String label;
+
+  /// What a screen reader says. Falls back to [label].
+  final String? spokenLabel;
   final IconData? icon;
 
   final String? fontFamily;
@@ -85,7 +89,8 @@ class SegmentedControl<T> extends StatelessWidget {
                           child: Pressable(
                             style: PressStyle.button,
                             selected: i == index,
-                            semanticLabel: segments[i].label,
+                            semanticLabel:
+                                segments[i].spokenLabel ?? segments[i].label,
                             onTap: () {
                               if (segments[i].value == value) return;
                               Haptics.selection();

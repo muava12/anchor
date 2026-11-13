@@ -14,6 +14,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../core/logging/app_logger.dart';
 import '../core/logging/log_tags.dart';
+import '../core/motion/motion_speed.dart';
 import '../core/storage/clear_storage_on_new_install.dart';
 import '../core/storage/preferences_repository.dart';
 import '../core/storage/storage_keys.dart';
@@ -22,6 +23,7 @@ import '../core/theme/note_typography.dart';
 import '../features/home_widget/data/home_widget_payload.dart';
 import '../features/reminders/presentation/notification_launch.dart';
 import '../features/settings/domain/editor_preferences.dart';
+import '../features/settings/presentation/motion_speed_controller.dart';
 import 'app_bootstrap.dart';
 import 'router/app_routes.dart';
 
@@ -124,10 +126,16 @@ Future<AppBootstrap> initializeApp({
         notificationRoute ?? await _widgetLaunchRoute() ?? AppRoutes.home;
   }
 
+  final motionSpeed = motionSpeedFromName(
+    await preferences.getMotionSpeedName(),
+  );
+  MotionSpeed.current = motionSpeed;
+
   return AppBootstrap(
     themeMode: themeMode,
     displayDensity: displayDensity,
     appLockEnabled: await preferences.getAppLockEnabled(),
+    motionSpeed: motionSpeed,
     editorPreferences: editorPreferences,
     foldedChecklistNotes: await preferences.getFoldedChecklistNotes(),
     openArchivedTags: await preferences.getOpenArchivedTags(),

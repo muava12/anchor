@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:anchor/app/app_bootstrap.dart';
 import 'package:anchor/core/storage/preferences_repository.dart';
 import 'package:anchor/core/theme/app_theme.dart';
+import 'package:anchor/core/widgets/app_buttons.dart';
 import 'package:anchor/features/settings/presentation/app_lock_controller.dart';
 import 'package:anchor/features/settings/presentation/app_lock_gate.dart';
 import 'package:flutter/material.dart';
@@ -183,6 +184,19 @@ void main() {
 
     expect(find.byType(AppLockScreen), findsOneWidget);
     expect(auth.calls, 2);
+  });
+
+  testWidgets('the cover waits without a spinner on its button', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      isLocked: true,
+      authenticator: _FakeAuthenticator(holds: true),
+    );
+
+    expect(find.text('Waiting for the device…'), findsOneWidget);
+    expect(find.byType(Spinner), findsNothing);
   });
 
   test('turning the lock off stores the choice and takes the cover away', () async {

@@ -3,6 +3,7 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 
 import '../theme/tokens/anchor_tokens.dart';
+import 'motion_speed.dart';
 
 enum Spring {
   smooth(
@@ -22,12 +23,15 @@ enum Spring {
     AnchorTokens.motionSpringKeyboardBounce,
   );
 
-  const Spring(this.duration, this._bounce);
+  const Spring(this._duration, this._bounce);
 
-  final Duration duration;
+  final Duration _duration;
   final double _bounce;
 
-  Curve get curve => _curves[index];
+  /// The design duration, shortened or removed by the motion setting.
+  Duration get duration => _duration * MotionSpeed.current.scale;
+
+  Curve get curve => _SpringCurve(simulation(0, 1));
 
   /// Starts at [velocity] (units per second) and lands exactly on [to] once
   /// it is within [precision] of it.
@@ -38,7 +42,10 @@ enum Spring {
     double precision = 0.0005,
   }) => _SettlingSpring(
     SpringSimulation(
-      _descriptions[index],
+      SpringDescription.withDurationAndBounce(
+        duration: duration,
+        bounce: _bounce,
+      ),
       from,
       to,
       velocity,
@@ -46,18 +53,6 @@ enum Spring {
     ),
     to,
   );
-
-  static final List<SpringDescription> _descriptions = [
-    for (final spring in values)
-      SpringDescription.withDurationAndBounce(
-        duration: spring.duration,
-        bounce: spring._bounce,
-      ),
-  ];
-
-  static final List<Curve> _curves = [
-    for (final spring in values) _SpringCurve(spring.simulation(0, 1)),
-  ];
 }
 
 class _SettlingSpring extends Simulation {
@@ -105,9 +100,11 @@ bool _reducesMotion(bool disableAnimations) =>
         .accessibilityFeatures
         .reduceMotion;
 
-/// The system's reduced motion setting, for code without a [BuildContext].
+/// The system's reduced motion setting, or the app's own "off", for code
+/// without a [BuildContext].
 bool get isSystemMotionReduced =>
-    _reducesMotion(SemanticsBinding.instance.disableAnimations);
+    _reducesMotion(SemanticsBinding.instance.disableAnimations) ||
+    MotionSpeed.current == MotionSpeed.off;
 
 extension SpringController on AnimationController {
   /// [velocity] is in units per second; with reduced motion it jumps
@@ -142,9 +139,10 @@ extension SpringController on AnimationController {
 
 extension ReducedMotion on BuildContext {
   bool get isMotionReduced =>
-      _reducesMotion(MediaQuery.maybeDisableAnimationsOf(this) ?? false);
+      _reducesMotion(MediaQuery.maybeDisableAnimationsOf(this) ?? false) ||
+      MotionSpeed.current == MotionSpeed.off;
 
-  /// [duration], or no time at all with reduced motion.
+  /// [duration], shortened by the motion setting, or no time at all.
   Duration motion(Duration duration) =>
-      isMotionReduced ? Duration.zero : duration;
+      isMotionReduced ? Duration.zero : duration * MotionSpeed.current.scale;
 }

@@ -1162,6 +1162,66 @@ abstract class AppLocalizations {
   /// **'The device did not unlock. Try again.'**
   String get appLockInterrupted;
 
+  /// Setting that picks how much the app animates.
+  ///
+  /// In en, this message translates to:
+  /// **'Motion'**
+  String get settingsMotion;
+
+  /// Under the motion setting: what it changes.
+  ///
+  /// In en, this message translates to:
+  /// **'How much the app animates.'**
+  String get settingsMotionHelp;
+
+  /// Motion setting that keeps the design's own durations.
+  ///
+  /// In en, this message translates to:
+  /// **'Slow'**
+  String get settingsMotionSlow;
+
+  /// Motion setting that runs animations at three tenths of the design duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Fast'**
+  String get settingsMotionFast;
+
+  /// Motion setting that removes animation entirely.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get settingsMotionOff;
+
+  /// Spoken name of the smallest note text size.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra small'**
+  String get textSizeExtraSmall;
+
+  /// Letter shown for the smallest note text size.
+  ///
+  /// In en, this message translates to:
+  /// **'XS'**
+  String get textSizeExtraSmallShort;
+
+  /// Letter shown for the small note text size.
+  ///
+  /// In en, this message translates to:
+  /// **'S'**
+  String get textSizeSmallShort;
+
+  /// Letter shown for the default note text size.
+  ///
+  /// In en, this message translates to:
+  /// **'M'**
+  String get textSizeStandardShort;
+
+  /// Letter shown for the large note text size.
+  ///
+  /// In en, this message translates to:
+  /// **'L'**
+  String get textSizeLargeShort;
+
   /// Switch in Settings for checklists in notes.
   ///
   /// In en, this message translates to:

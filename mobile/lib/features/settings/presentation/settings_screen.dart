@@ -9,6 +9,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../../app/router/app_routes.dart';
 import '../../../core/links/link_utils.dart';
 import '../../../core/motion/haptics.dart';
+import '../../../core/motion/motion_speed.dart';
 import '../../../core/motion/springs.dart';
 import '../../../core/network/connectivity_provider.dart';
 import '../../../core/network/server_address.dart';
@@ -38,6 +39,7 @@ import '../../sync/data/sync_compatibility.dart';
 import '../../sync/presentation/compatibility_messages.dart';
 import 'app_lock_controller.dart';
 import 'editor_preferences_controller.dart';
+import 'motion_speed_controller.dart';
 import 'theme_preferences_controller.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -161,12 +163,28 @@ class _AppearanceSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final density = ref.watch(displayDensityControllerProvider);
+    final motion = ref.watch(motionSpeedControllerProvider);
     final l10n = context.l10n;
     return Section(
       label: l10n.settingsAppearance,
       child: GroupedList(
         children: [
           const _ThemePicker(),
+          StackedListTile(
+            label: l10n.settingsMotion,
+            subtitle: l10n.settingsMotionHelp,
+            child: SegmentedControl<MotionSpeed>(
+              semanticLabel: l10n.settingsMotion,
+              value: motion,
+              segments: [
+                Segment(value: MotionSpeed.slow, label: l10n.settingsMotionSlow),
+                Segment(value: MotionSpeed.fast, label: l10n.settingsMotionFast),
+                Segment(value: MotionSpeed.off, label: l10n.settingsMotionOff),
+              ],
+              onChanged: (speed) =>
+                  ref.read(motionSpeedControllerProvider.notifier).set(speed),
+            ),
+          ),
           StackedListTile(
             label: l10n.settingsDensity,
             subtitle: l10n.settingsDensityHelp,
@@ -275,7 +293,11 @@ class _EditorSection extends ConsumerWidget {
               value: editor.noteTextSize,
               segments: [
                 for (final size in NoteTextSize.values)
-                  Segment(value: size, label: size.labelIn(l10n)),
+                  Segment(
+                    value: size,
+                    label: size.labelIn(l10n),
+                    spokenLabel: size.spokenIn(l10n),
+                  ),
               ],
               onChanged: controller.setNoteTextSize,
             ),
