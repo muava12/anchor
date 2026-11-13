@@ -116,6 +116,43 @@ Settings → Appearance gains one row, above the theme picker:
   (`settingsMotionSlow`, `settingsMotionFast`, `settingsMotionOff`).
 - Changing it applies at once; no restart, no dialog.
 
+## Companion changes
+
+Two small changes ride with this work. They are separate from the motion
+setting and are listed here so one plan covers them.
+
+### The lock cover waits without a spinner
+
+`AppLockScreen` (`lib/features/settings/presentation/app_lock_gate.dart`) passes
+`isBusy: _isAsking` to its `AppButton`, and `AppButton` draws a `Spinner` when
+`isBusy` is true. That spinner turns while the system's own prompt is up, which
+is noise: the person is already looking at the fingerprint dialog.
+
+Change: the cover stops using `isBusy`.
+
+- While the prompt is up: the button is disabled (`onPressed: null`) and its
+  label is `appLockAsking` ("Waiting for the device…"). No spinner, no icon.
+- Otherwise: the label is `appLockUnlock`, with the static
+  `LucideIcons.fingerprint` icon, and the button asks again.
+
+The cover keeps `AnchorLogo` as its mark. No new icon, no new asset, no pulse.
+
+### Extra small note text
+
+NotallyX sets note text with a slider from 12 to 32 sp, default 16 sp, so its
+smallest text is 12 sp. Anchor's body size is 16.5, and its sizes are scales of
+that: `small` 0.88, `standard` 1, `large` 1.12.
+
+Change: `NoteTextSize` gains `extraSmall(0.73)`, which puts the body at 12.0,
+the same as NotallyX's smallest. The order becomes extraSmall, small, standard,
+large, and the l10n key `textSizeExtraSmall` reads "Extra small".
+
+Risk: the editor's size picker becomes four segments. On a 360 px screen that
+is tight; the plan checks it at 360 px and, if it does not fit, the picker wraps
+to two rows rather than shrinking the tap targets.
+
+
+
 ## Testing
 
 Unit tests, `test/motion_speed_test.dart`:
@@ -132,6 +169,17 @@ Widget test, `test/widgets/settings_motion_test.dart`:
 - Tapping Fast calls `setMotionSpeed(MotionSpeed.fast)` on the repository and
   moves the selection.
 
+Widget test, `test/widgets/app_lock_test.dart` (extended):
+
+- While the prompt is held, the cover's button is disabled, reads "Waiting for
+  the device…", and holds no `Spinner`.
+- After the prompt answers, the button reads "Unlock" again and works.
+
+Unit test, `test/note_text_size_test.dart`:
+
+- `NoteTextSize.extraSmall.scale` is 0.73, and the body size it produces is 12.0.
+- The picker offers four sizes in the order extraSmall, small, standard, large.
+
 ## Risks
 
 - A static `MotionSpeed.current` is global state. It is set in one place at
@@ -139,3 +187,5 @@ Widget test, `test/widgets/settings_motion_test.dart`:
   is contained. Tests must reset it in `tearDown`.
 - `Spring.duration` becoming a getter touches every caller. All callers read it
   as a value, so no call site changes.
+- Four text sizes may not fit one row at 360 px. The plan checks it there and
+  wraps the picker to two rows rather than shrinking the tap targets.
