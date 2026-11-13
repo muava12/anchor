@@ -26,3 +26,5 @@ Task 6: complete (4 tests pass on box-03)
   - Added androidx.documentfile:1.0.1 to android/app/build.gradle.kts.
   - Dart wrapper sends Uint8List so Kotlin receives a byte array.
   - Kotlin compile NOT verified: box-03 has no Android SDK. CI will verify.
+Task 7: complete (3 tests pass on box-03; riverpod .g.dart generated on box-03 and copied back)
+  - copyWith gained clearFolder, so setFolder(null) clears the in-memory state too.

@@ -192,4 +192,54 @@ class PreferencesRepository {
   Future<void> setMotionSpeedName(String name) async {
     await _storage.write(key: StorageKeys.motionSpeed, value: name);
   }
+
+  Future<String?> getBackupFolder() =>
+      _storage.read(key: StorageKeys.backupFolder);
+
+  Future<void> setBackupFolder(String? uri) => uri == null
+      ? _storage.delete(key: StorageKeys.backupFolder)
+      : _storage.write(key: StorageKeys.backupFolder, value: uri);
+
+  Future<bool> getBackupAutomatic() async =>
+      await _storage.read(key: StorageKeys.backupAutomatic) != 'false';
+
+  Future<void> setBackupAutomatic(bool value) => _storage.write(
+    key: StorageKeys.backupAutomatic,
+    value: value.toString(),
+  );
+
+  Future<int> getBackupPeriodDays() async =>
+      int.tryParse(
+        await _storage.read(key: StorageKeys.backupPeriodDays) ?? '',
+      ) ??
+      7;
+
+  Future<void> setBackupPeriodDays(int days) =>
+      _storage.write(key: StorageKeys.backupPeriodDays, value: '$days');
+
+  Future<int> getBackupKeepFiles() async =>
+      int.tryParse(
+        await _storage.read(key: StorageKeys.backupKeepFiles) ?? '',
+      ) ??
+      3;
+
+  Future<void> setBackupKeepFiles(int count) =>
+      _storage.write(key: StorageKeys.backupKeepFiles, value: '$count');
+
+  Future<String?> getBackupPassword() =>
+      _storage.read(key: StorageKeys.backupPassword);
+
+  Future<void> setBackupPassword(String? password) => password == null
+      ? _storage.delete(key: StorageKeys.backupPassword)
+      : _storage.write(key: StorageKeys.backupPassword, value: password);
+
+  Future<DateTime?> getBackupLastAt() async {
+    final stored = await _storage.read(key: StorageKeys.backupLastAt);
+    return stored == null ? null : DateTime.tryParse(stored);
+  }
+
+  Future<void> setBackupLastAt(DateTime at) => _storage.write(
+    key: StorageKeys.backupLastAt,
+    value: at.toUtc().toIso8601String(),
+  );
 }
