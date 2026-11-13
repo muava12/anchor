@@ -195,7 +195,7 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
       if (context.isCupertino) {
         context.go(AppRoutes.home);
       } else {
-        await moveTaskToBack();
+        unawaited(moveTaskToBack());
       }
     }
   }
