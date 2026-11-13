@@ -19,4 +19,5 @@ class StorageKeys {
   static const notesSortOption = 'notes_sort_option';
   static const notesSortAscending = 'notes_is_ascending';
   static const openArchivedTags = 'notes_open_archived_tags';
+  static const appLockEnabled = 'security_app_lock_enabled';
 }

@@ -1108,6 +1108,60 @@ abstract class AppLocalizations {
   /// **'Text size'**
   String get settingsTextSize;
 
+  /// Section label in Settings for the app lock.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get settingsSecurity;
+
+  /// Switch in Settings that covers the notes until the device authenticates the person.
+  ///
+  /// In en, this message translates to:
+  /// **'App lock'**
+  String get settingsAppLock;
+
+  /// Under the app lock switch: what turning it on does.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask for your fingerprint, face or screen lock each time Anchor opens.'**
+  String get settingsAppLockHelp;
+
+  /// Heading of the cover shown over the notes while the app lock is on.
+  ///
+  /// In en, this message translates to:
+  /// **'Anchor is locked'**
+  String get appLockTitle;
+
+  /// Under the cover's heading: what unlocking does.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to read your notes.'**
+  String get appLockSubtitle;
+
+  /// Button on the cover that asks the device to authenticate the person.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get appLockUnlock;
+
+  /// Button label on the cover while the system prompt is up.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the device…'**
+  String get appLockAsking;
+
+  /// Shown on the cover when the device has no screen lock and no enrolled biometrics.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a screen lock on this device first.'**
+  String get appLockNoCredentials;
+
+  /// Shown on the cover when the system stopped the prompt or the person cancelled it.
+  ///
+  /// In en, this message translates to:
+  /// **'The device did not unlock. Try again.'**
+  String get appLockInterrupted;
+
   /// Switch in Settings for checklists in notes.
   ///
   /// In en, this message translates to:

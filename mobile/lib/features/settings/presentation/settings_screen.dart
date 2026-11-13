@@ -36,6 +36,7 @@ import '../../notes/presentation/notes_controller.dart';
 import '../../server/data/server_info_provider.dart';
 import '../../sync/data/sync_compatibility.dart';
 import '../../sync/presentation/compatibility_messages.dart';
+import 'app_lock_controller.dart';
 import 'editor_preferences_controller.dart';
 import 'theme_preferences_controller.dart';
 
@@ -74,6 +75,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const _AppearanceSection(),
               gap,
               const _EditorSection(),
+              gap,
+              const _SecuritySection(),
               gap,
               _AccountSection(user: user),
               gap,
@@ -324,6 +327,52 @@ class _EditorPreview extends StatelessWidget {
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+class _SecuritySection extends ConsumerWidget {
+  const _SecuritySection();
+
+  Future<void> _setAppLock(
+    BuildContext context,
+    WidgetRef ref,
+    bool isEnabled,
+  ) async {
+    final problem = await ref
+        .read(appLockControllerProvider.notifier)
+        .setEnabled(isEnabled);
+    if (problem == null || !context.mounted) return;
+    final l10n = context.l10n;
+    await showAnchorDialog(
+      context,
+      title: l10n.settingsAppLock,
+      message: switch (problem) {
+        AppLockProblem.noCredentials => l10n.appLockNoCredentials,
+        AppLockProblem.interrupted => l10n.appLockInterrupted,
+      },
+      confirmLabel: l10n.commonDone,
+      hasCancel: false,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isEnabled = ref.watch(appLockEnabledProvider);
+    final l10n = context.l10n;
+    return Section(
+      label: l10n.settingsSecurity,
+      child: GroupedList(
+        children: [
+          SwitchRow(
+            icon: LucideIcons.fingerprint,
+            label: l10n.settingsAppLock,
+            subtitle: l10n.settingsAppLockHelp,
+            value: isEnabled,
+            onChanged: (value) => _setAppLock(context, ref, value),
+          ),
+        ],
       ),
     );
   }

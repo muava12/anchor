@@ -168,4 +168,16 @@ class PreferencesRepository {
       value: isAscending.toString(),
     );
   }
+
+  Future<bool> getAppLockEnabled() async {
+    final value = await _storage.read(key: StorageKeys.appLockEnabled);
+    return value == 'true';
+  }
+
+  Future<void> setAppLockEnabled(bool isEnabled) async {
+    await _storage.write(
+      key: StorageKeys.appLockEnabled,
+      value: isEnabled.toString(),
+    );
+  }
 }
