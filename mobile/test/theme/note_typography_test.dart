@@ -37,19 +37,20 @@ void main() {
     test(
       'the text size scales the editor, and Mono is set a tenth smaller',
       () {
-        for (final (font, textSize, scale) in [
-          (NoteFont.sans, NoteTextSize.small, 0.88),
-          (NoteFont.sans, NoteTextSize.standard, 1.0),
-          (NoteFont.serif, NoteTextSize.large, 1.12),
-          (NoteFont.mono, NoteTextSize.standard, 0.9),
-          (NoteFont.mono, NoteTextSize.large, 0.9 * 1.12),
+        for (final (font, sp) in [
+          (NoteFont.sans, 14.5),
+          (NoteFont.sans, 16.5),
+          (NoteFont.serif, 18.5),
+          (NoteFont.mono, 16.5),
+          (NoteFont.mono, 18.5),
         ]) {
+          final scale = sp / 16.5 * font.editorScale;
           final typography = NoteTypography(
             font: font,
-            textSize: textSize,
+            textSize: sp,
             lineHeight: 1.7,
           );
-          expect(typography.body.fontSize, closeTo(16.5 * scale, 0.001));
+          expect(typography.body.fontSize, closeTo(sp * font.editorScale, 0.001));
           expect(typography.title.fontSize, closeTo(27 * scale, 0.001));
           expect(typography.previewTitle.fontSize, closeTo(20 * scale, 0.001));
           expect(
@@ -72,7 +73,7 @@ void main() {
     test('cards and versions take the face but keep their sizes', () {
       final typography = NoteTypography(
         font: NoteFont.mono,
-        textSize: NoteTextSize.large,
+        textSize: 18.5,
         lineHeight: 1.55,
       );
       expect(typography.cardTitle.fontFamily, AppTypography.mono);
@@ -87,7 +88,7 @@ void main() {
     test('the title keeps its fixed tracking at every size', () {
       final large = NoteTypography(
         font: NoteFont.serif,
-        textSize: NoteTextSize.large,
+        textSize: 18.5,
         lineHeight: 1.7,
       );
       expect(large.title.letterSpacing, AppTypography.noteTitle.letterSpacing);
@@ -102,10 +103,10 @@ void main() {
         final typography = AppTheme.dark(
           density,
           NoteFont.serif,
-          NoteTextSize.small,
+          14.5,
         ).extension<NoteTypography>()!;
         expect(typography.font, NoteFont.serif);
-        expect(typography.textSize, NoteTextSize.small);
+        expect(typography.textSize, 14.5);
         expect(typography.lineHeight, AnchorDensity.of(density).noteLineHeight);
         expect(typography.body.height, typography.lineHeight);
       }
@@ -125,7 +126,7 @@ void main() {
           AppTheme.light(
             DisplayDensity.standard,
             NoteFont.mono,
-            NoteTextSize.large,
+            18.5,
           ),
         ),
         isFalse,
@@ -148,7 +149,7 @@ void main() {
         ),
       );
       expect(typography.font, NoteFont.sans);
-      expect(typography.textSize, NoteTextSize.standard);
+      expect(typography.textSize, 16.5);
       expect(typography.lineHeight, AnchorDensity.compact.noteLineHeight);
     });
   });

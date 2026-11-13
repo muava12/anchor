@@ -10,7 +10,7 @@ import 'tokens/anchor_tokens.dart';
 
 abstract final class AppTheme {
   static final Map<
-    (Brightness, DisplayDensity, NoteFont, NoteTextSize),
+    (Brightness, DisplayDensity, NoteFont, double),
     ThemeData
   >
   _cache = {};
@@ -18,7 +18,7 @@ abstract final class AppTheme {
   static ThemeData light([
     DisplayDensity density = DisplayDensity.standard,
     NoteFont font = NoteFont.sans,
-    NoteTextSize textSize = NoteTextSize.standard,
+    double textSize = NoteTextSize.standard,
   ]) => _cache.putIfAbsent((
     Brightness.light,
     density,
@@ -29,7 +29,7 @@ abstract final class AppTheme {
   static ThemeData dark([
     DisplayDensity density = DisplayDensity.standard,
     NoteFont font = NoteFont.sans,
-    NoteTextSize textSize = NoteTextSize.standard,
+    double textSize = NoteTextSize.standard,
   ]) => _cache.putIfAbsent((
     Brightness.dark,
     density,
@@ -41,7 +41,7 @@ abstract final class AppTheme {
     Brightness brightness,
     DisplayDensity density,
     NoteFont font,
-    NoteTextSize textSize,
+    double textSize,
   ) {
     final spacing = AnchorDensity.of(density);
     final isDark = brightness == Brightness.dark;

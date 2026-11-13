@@ -74,9 +74,9 @@ void main() {
   });
 
   for (final font in NoteFont.values) {
-    for (final textSize in [NoteTextSize.standard, NoteTextSize.large]) {
+    for (final textSize in [16.5, 18.5]) {
       testWidgets(
-        '${font.labelIn(_english)} at ${textSize.labelIn(_english)}: markers sit on their '
+        '${font.labelIn(_english)} at ${textSize.toStringAsFixed(1)}: markers sit on their '
         'line\'s letters',
         (tester) async {
           final focus = FocusNode();

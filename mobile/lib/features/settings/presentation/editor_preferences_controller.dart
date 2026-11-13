@@ -25,9 +25,10 @@ class EditorPreferencesController extends _$EditorPreferencesController {
     await repository.setNoteFont(font.name);
   }
 
-  Future<void> setNoteTextSize(NoteTextSize textSize) async {
-    state = state.copyWith(noteTextSize: textSize);
+  Future<void> setNoteTextSize(double textSize) async {
+    final size = NoteTextSize.clamp(textSize);
+    state = state.copyWith(noteTextSize: size);
     final repository = ref.read(preferencesRepositoryProvider);
-    await repository.setNoteTextSize(textSize.name);
+    await repository.setNoteTextSize(size);
   }
 }

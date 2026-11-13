@@ -30,31 +30,32 @@ enum NoteFont {
   };
 }
 
-enum NoteTextSize {
-  extraSmall(0.73),
-  small(0.88),
-  standard(1),
-  large(1.12);
+/// The note text size, in sp. The slider picks any value in the range.
+abstract final class NoteTextSize {
+  static const double min = 12;
+  static const double max = 32;
+  static const double step = 0.5;
 
-  const NoteTextSize(this.scale);
+  /// Anchor's own medium, and the default.
+  static const double standard = 16.5;
 
-  final double scale;
-
-  /// The letter the picker shows.
-  String labelIn(AppLocalizations l10n) => switch (this) {
-    NoteTextSize.extraSmall => l10n.textSizeExtraSmallShort,
-    NoteTextSize.small => l10n.textSizeSmallShort,
-    NoteTextSize.standard => l10n.textSizeStandardShort,
-    NoteTextSize.large => l10n.textSizeLargeShort,
+  /// The four names the app used before the slider, for stored values.
+  static const Map<String, double> legacyNames = {
+    'extraSmall': 12,
+    'small': 14.5,
+    'standard': 16.5,
+    'large': 18.5,
   };
 
-  /// The words a screen reader says, so a letter is never read alone.
-  String spokenIn(AppLocalizations l10n) => switch (this) {
-    NoteTextSize.extraSmall => l10n.textSizeExtraSmall,
-    NoteTextSize.small => l10n.textSizeSmall,
-    NoteTextSize.standard => l10n.textSizeDefault,
-    NoteTextSize.large => l10n.textSizeLarge,
-  };
+  static double clamp(double sp) => sp.clamp(min, max);
+
+  /// A stored value: a number, or one of the old names.
+  static double fromStored(String? stored) {
+    if (stored == null) return standard;
+    final number = double.tryParse(stored);
+    if (number != null) return clamp(number);
+    return legacyNames[stored] ?? standard;
+  }
 }
 
 @immutable
@@ -66,15 +67,15 @@ class NoteTypography extends ThemeExtension<NoteTypography> {
   });
 
   final NoteFont font;
-  final NoteTextSize textSize;
+  final double textSize;
 
   final double lineHeight;
 
   String get family => font.family;
 
-  double get scale => textSize.scale * font.editorScale;
+  double get scale => textSize / NoteTextSize.standard * font.editorScale;
 
-  double get bodySize => AppTypography.noteBodySize * scale;
+  double get bodySize => textSize * font.editorScale;
 
   TextStyle get title => AppTypography.noteTitle
       .copyWith(fontFamily: family)
@@ -128,7 +129,7 @@ class NoteTypography extends ThemeExtension<NoteTypography> {
   @override
   NoteTypography copyWith({
     NoteFont? font,
-    NoteTextSize? textSize,
+    double? textSize,
     double? lineHeight,
   }) => NoteTypography(
     font: font ?? this.font,

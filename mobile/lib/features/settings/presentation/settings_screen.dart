@@ -288,18 +288,33 @@ class _EditorSection extends ConsumerWidget {
           ),
           StackedListTile(
             label: l10n.settingsTextSize,
-            child: SegmentedControl<NoteTextSize>(
-              semanticLabel: l10n.settingsTextSize,
-              value: editor.noteTextSize,
-              segments: [
-                for (final size in NoteTextSize.values)
-                  Segment(
-                    value: size,
-                    label: size.labelIn(l10n),
-                    spokenLabel: size.spokenIn(l10n),
+            child: Row(
+              spacing: 12,
+              children: [
+                Expanded(
+                  child: Slider(
+                    value: editor.noteTextSize,
+                    min: NoteTextSize.min,
+                    max: NoteTextSize.max,
+                    divisions:
+                        ((NoteTextSize.max - NoteTextSize.min) /
+                                NoteTextSize.step)
+                            .round(),
+                    label: editor.noteTextSize.toStringAsFixed(1),
+                    semanticFormatterCallback: (value) =>
+                        '${l10n.settingsTextSize} ${value.toStringAsFixed(1)}',
+                    onChanged: controller.setNoteTextSize,
                   ),
+                ),
+                SizedBox(
+                  width: AnchorTokens.sizeControlSmall,
+                  child: Text(
+                    editor.noteTextSize.toStringAsFixed(1),
+                    textAlign: TextAlign.end,
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
+                ),
               ],
-              onChanged: controller.setNoteTextSize,
             ),
           ),
           SwitchRow(

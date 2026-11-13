@@ -95,10 +95,7 @@ Future<AppBootstrap> initializeApp({
       (font) => font.name == savedFont,
       orElse: () => NoteFont.sans,
     ),
-    noteTextSize: NoteTextSize.values.firstWhere(
-      (textSize) => textSize.name == savedTextSize,
-      orElse: () => NoteTextSize.standard,
-    ),
+    noteTextSize: savedTextSize,
   );
 
   String? userId;

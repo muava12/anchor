@@ -132,6 +132,14 @@ void main() {
   TextStyle styleOf(WidgetTester tester, String text) =>
       tester.widget<Text>(find.text(text)).style!;
 
+  /// Taps the slider at [fraction] of its width, from 0 to 1.
+  Future<void> setSlider(WidgetTester tester, double fraction) async {
+    final rect = tester.getRect(find.byType(Slider));
+    await tester.tapAt(
+      Offset(rect.left + rect.width * fraction, rect.center.dy),
+    );
+  }
+
   const preview =
       'Pack light. The hills are steep, and the trams fill up by '
       'nine.';
@@ -216,25 +224,28 @@ void main() {
 
     await tester.tap(segment('Font', 'Serif'));
     await tester.pumpAndSettle();
-    await tester.tap(segment('Text size', 'L'));
+    await setSlider(tester, 0.8);
     await tester.pumpAndSettle();
 
     final editor = container.read(editorPreferencesControllerProvider);
     expect(editor.noteFont, NoteFont.serif);
-    expect(editor.noteTextSize, NoteTextSize.large);
+    expect(editor.noteTextSize, greaterThan(16.5));
     final repository = container.read(preferencesRepositoryProvider);
     expect(await repository.getNoteFont(), 'serif');
-    expect(await repository.getNoteTextSize(), 'large');
+    expect(await repository.getNoteTextSize(), editor.noteTextSize);
     final typography = Theme.of(
       tester.element(find.text('Font')),
     ).extension<NoteTypography>()!;
     expect(typography.font, NoteFont.serif);
-    expect(typography.textSize, NoteTextSize.large);
+    expect(typography.textSize, editor.noteTextSize);
     expect(
       styleOf(tester, 'Weekend in Lisbon').fontFamily,
       AppTypography.noteSerif,
     );
-    expect(styleOf(tester, preview).fontSize, closeTo(16.5 * 1.12, 0.001));
+    expect(
+      styleOf(tester, preview).fontSize,
+      closeTo(editor.noteTextSize, 0.001),
+    );
   });
 
   testWidgets('the preview grows over the fade and the face changes at once', (
@@ -242,24 +253,24 @@ void main() {
   ) async {
     await pumpSettings(tester);
 
-    await tester.tap(segment('Text size', 'L'));
+    await setSlider(tester, 0.8);
     await tester.pump();
-    expect(styleOf(tester, preview).fontSize, 16.5);
+    expect(styleOf(tester, preview).fontSize, closeTo(16.5, 0.001));
     await tester.pump(const Duration(milliseconds: 100));
     final halfway = styleOf(tester, preview).fontSize!;
     expect(halfway, greaterThan(16.5));
-    expect(halfway, lessThan(16.5 * 1.12));
     await tester.pumpAndSettle();
-    expect(styleOf(tester, preview).fontSize, closeTo(16.5 * 1.12, 0.001));
+    final grown = styleOf(tester, preview).fontSize!;
+    expect(grown, greaterThan(16.5));
 
     await tester.tap(segment('Font', 'Mono'));
     await tester.pump();
     expect(styleOf(tester, preview).fontFamily, AppTypography.mono);
-    expect(styleOf(tester, preview).fontSize, closeTo(16.5 * 1.12, 0.001));
+    expect(styleOf(tester, preview).fontSize, closeTo(grown, 0.001));
     await tester.pumpAndSettle();
     expect(
       styleOf(tester, preview).fontSize,
-      closeTo(16.5 * 1.12 * 0.9, 0.001),
+      closeTo(grown * 0.9, 0.001),
     );
   });
 
@@ -268,9 +279,9 @@ void main() {
   ) async {
     await pumpSettings(tester, isMotionReduced: true);
 
-    await tester.tap(segment('Text size', 'S'));
+    await setSlider(tester, 0.2);
     await tester.pump();
     await tester.pump();
-    expect(styleOf(tester, preview).fontSize, closeTo(16.5 * 0.88, 0.001));
+    expect(styleOf(tester, preview).fontSize, lessThan(16.5));
   });
 }

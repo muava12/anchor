@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../network/custom_headers.dart';
+import '../theme/note_typography.dart';
 import 'secure_storage_provider.dart';
 import 'storage_keys.dart';
 
@@ -88,11 +89,15 @@ class PreferencesRepository {
     await _storage.write(key: StorageKeys.noteFont, value: font);
   }
 
-  Future<String?> getNoteTextSize() =>
-      _storage.read(key: StorageKeys.noteTextSize);
+  Future<double> getNoteTextSize() async => NoteTextSize.fromStored(
+    await _storage.read(key: StorageKeys.noteTextSize),
+  );
 
-  Future<void> setNoteTextSize(String textSize) async {
-    await _storage.write(key: StorageKeys.noteTextSize, value: textSize);
+  Future<void> setNoteTextSize(double textSize) async {
+    await _storage.write(
+      key: StorageKeys.noteTextSize,
+      value: textSize.toString(),
+    );
   }
 
   Future<String?> getThemeMode() => _storage.read(key: StorageKeys.themeMode);

@@ -5,7 +5,7 @@ class EditorPreferences {
   final bool sortChecklistItems;
 
   final NoteFont noteFont;
-  final NoteTextSize noteTextSize;
+  final double noteTextSize;
 
   const EditorPreferences({
     this.sortChecklistItems = true,
@@ -16,7 +16,7 @@ class EditorPreferences {
   EditorPreferences copyWith({
     bool? sortChecklistItems,
     NoteFont? noteFont,
-    NoteTextSize? noteTextSize,
+    double? noteTextSize,
   }) {
     return EditorPreferences(
       sortChecklistItems: sortChecklistItems ?? this.sortChecklistItems,

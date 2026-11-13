@@ -65,17 +65,16 @@ void main() {
     verify(() => preferences.setMotionSpeedName('fast')).called(1);
   });
 
-  testWidgets('the four text sizes fit a 360 px screen', (tester) async {
+  testWidgets('the text size slider fits a 360 px screen', (tester) async {
     tester.view.physicalSize = const Size(360 * 3, 800 * 3);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
 
     await pump(tester);
-    await tester.scrollUntilVisible(find.text('XS'), 200);
+    await tester.scrollUntilVisible(find.byType(Slider), 200);
 
-    for (final letter in ['XS', 'S', 'M', 'L']) {
-      expect(find.text(letter), findsOneWidget);
-    }
+    expect(find.byType(Slider), findsOneWidget);
+    expect(find.text('16.5'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
