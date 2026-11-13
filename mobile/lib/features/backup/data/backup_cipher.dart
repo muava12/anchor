@@ -38,9 +38,8 @@ abstract final class BackupCipher {
   static Future<List<int>> decrypt(List<int> sealed, String password) async {
     final saltStart = _magic.length;
     final bodyStart = saltStart + _saltLength;
-    final shortest = bodyStart +
-        _algorithm.nonceLength +
-        _algorithm.macAlgorithm.macLength;
+    final shortest =
+        bodyStart + _algorithm.nonceLength + _algorithm.macAlgorithm.macLength;
     if (sealed.length < shortest) {
       throw const BackupFormatException('This backup is damaged.');
     }

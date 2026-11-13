@@ -63,7 +63,10 @@ void main() {
   test('a zip without a manifest is refused', () async {
     final zipPath = '${folder.path}/bare.zip';
     final writer = BackupWriter(zipPath);
-    await writer.addJson('notes.json', {'tags': <Object>[], 'notes': <Object>[]});
+    await writer.addJson('notes.json', {
+      'tags': <Object>[],
+      'notes': <Object>[],
+    });
     await writer.close();
 
     expect(
@@ -83,7 +86,10 @@ void main() {
       'notes': 0,
       'attachments': 0,
     });
-    await writer.addJson('notes.json', {'tags': <Object>[], 'notes': <Object>[]});
+    await writer.addJson('notes.json', {
+      'tags': <Object>[],
+      'notes': <Object>[],
+    });
     await writer.close();
 
     expect(

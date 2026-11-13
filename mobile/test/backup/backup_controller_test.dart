@@ -3,9 +3,9 @@ import 'dart:io';
 
 import 'package:anchor/core/database/app_database.dart';
 import 'package:anchor/features/backup/data/backup_folder.dart';
+import 'package:anchor/features/backup/domain/backup_settings.dart';
 import 'package:anchor/features/backup/presentation/backup_controller.dart';
 import 'package:anchor/features/backup/presentation/backup_settings_controller.dart';
-import 'package:anchor/features/backup/domain/backup_settings.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -81,15 +81,11 @@ void main() {
         .run(automatic: false);
 
     expect(result.outcome, BackupOutcome.noFolder);
-    verifyNever(
-      () => folder.write(any(), any(), any()),
-    );
+    verifyNever(() => folder.write(any(), any(), any()));
   });
 
   test('a backup writes one file and marks the time', () async {
-    when(
-      () => folder.write(any(), any(), any()),
-    ).thenAnswer((_) async {});
+    when(() => folder.write(any(), any(), any())).thenAnswer((_) async {});
     when(() => folder.list(any())).thenAnswer((_) async => <String>[]);
 
     final container = containerWith(
@@ -101,7 +97,9 @@ void main() {
 
     expect(result.outcome, BackupOutcome.done);
     expect(result.fileName, startsWith('anchor-'));
-    verify(() => folder.write('content://tree/backups', any(), any())).called(1);
+    verify(
+      () => folder.write('content://tree/backups', any(), any()),
+    ).called(1);
   });
 
   test('a write that throws is reported, not swallowed', () async {
@@ -120,40 +118,40 @@ void main() {
     expect(result.error, contains('disk full'));
   });
 
-  test('an automatic backup keeps the newest files and leaves manual ones',
-      () async {
-    when(
-      () => folder.write(any(), any(), any()),
-    ).thenAnswer((_) async {});
-    when(() => folder.list(any())).thenAnswer(
-      (_) async => [
-        'anchor-auto-2026-01-01_000000.zip',
-        'anchor-auto-2026-02-01_000000.zip',
-        'anchor-auto-2026-03-01_000000.zip',
-        'anchor-2026-04-01_000000.zip',
-      ],
-    );
-    when(() => folder.delete(any(), any())).thenAnswer((_) async {});
+  test(
+    'an automatic backup keeps the newest files and leaves manual ones',
+    () async {
+      when(() => folder.write(any(), any(), any())).thenAnswer((_) async {});
+      when(() => folder.list(any())).thenAnswer(
+        (_) async => [
+          'anchor-auto-2026-01-01_000000.zip',
+          'anchor-auto-2026-02-01_000000.zip',
+          'anchor-auto-2026-03-01_000000.zip',
+          'anchor-2026-04-01_000000.zip',
+        ],
+      );
+      when(() => folder.delete(any(), any())).thenAnswer((_) async {});
 
-    final container = containerWith(
-      const BackupSettings(
-        folderUri: 'content://tree/backups',
-        keepFiles: 2,
-      ),
-    );
-    final result = await container
-        .read(backupControllerProvider.notifier)
-        .run(automatic: true);
+      final container = containerWith(
+        const BackupSettings(folderUri: 'content://tree/backups', keepFiles: 2),
+      );
+      final result = await container
+          .read(backupControllerProvider.notifier)
+          .run(automatic: true);
 
-    expect(result.outcome, BackupOutcome.done);
-    verify(
-      () => folder.delete(
-        'content://tree/backups',
-        'anchor-auto-2026-01-01_000000.zip',
-      ),
-    ).called(1);
-    verifyNever(
-      () => folder.delete('content://tree/backups', 'anchor-2026-04-01_000000.zip'),
-    );
-  });
+      expect(result.outcome, BackupOutcome.done);
+      verify(
+        () => folder.delete(
+          'content://tree/backups',
+          'anchor-auto-2026-01-01_000000.zip',
+        ),
+      ).called(1);
+      verifyNever(
+        () => folder.delete(
+          'content://tree/backups',
+          'anchor-2026-04-01_000000.zip',
+        ),
+      );
+    },
+  );
 }

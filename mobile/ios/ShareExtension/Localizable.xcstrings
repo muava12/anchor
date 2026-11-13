@@ -50,7 +50,7 @@
       }
     },
     "commonSave": {
-      "comment": "Button that saves a form or the choice made in a sheet.",
+      "comment": "Confirm button for a setting dialog",
       "extractionState": "manual",
       "localizations": {
         "en": {

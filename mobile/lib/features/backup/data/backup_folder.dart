@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/services.dart';
 
 /// The folder the person picked, reached through Android's document tree so it
@@ -12,8 +10,8 @@ class BackupFolder {
 
   Future<String?> pick() => _channel.invokeMethod<String>('pickFolder');
 
-  /// [bytes] must reach Kotlin as a byte array, so it is sent as a Uint8List.
-  /// A plain List<int> arrives as an int array and the plugin refuses it.
+  /// `bytes` must reach Kotlin as a byte array, so it is sent as a Uint8List.
+  /// A plain `List<int>` arrives as an int array and the plugin refuses it.
   Future<void> write(String folderUri, String name, List<int> bytes) {
     return _channel.invokeMethod<void>('writeFile', {
       'folder': folderUri,

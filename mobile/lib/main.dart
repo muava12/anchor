@@ -32,6 +32,9 @@ void main() async {
 @pragma('vm:entry-point')
 Future<void> shareMain() => runShareSheet();
 
+/// Lets a job that outlives a screen still show a toast.
+final scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
 class AnchorApp extends ConsumerStatefulWidget {
   const AnchorApp({super.key});
 
@@ -76,6 +79,7 @@ class _AnchorAppState extends ConsumerState<AnchorApp>
     ref.watch(shareContextSyncProvider);
 
     return MaterialApp.router(
+      scaffoldMessengerKey: scaffoldMessengerKey,
       onGenerateTitle: (context) => context.l10n.appName,
       theme: AppTheme.light(density, font, textSize),
       darkTheme: AppTheme.dark(density, font, textSize),

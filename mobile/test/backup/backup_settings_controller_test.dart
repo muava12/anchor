@@ -4,8 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-class MockPreferencesRepository extends Mock
-    implements PreferencesRepository {}
+class MockPreferencesRepository extends Mock implements PreferencesRepository {}
 
 void main() {
   late MockPreferencesRepository repository;
@@ -23,9 +22,7 @@ void main() {
     when(() => repository.setBackupKeepFiles(any())).thenAnswer((_) async {});
 
     container = ProviderContainer(
-      overrides: [
-        preferencesRepositoryProvider.overrideWithValue(repository),
-      ],
+      overrides: [preferencesRepositoryProvider.overrideWithValue(repository)],
     );
   });
 

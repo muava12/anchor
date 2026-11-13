@@ -322,7 +322,7 @@ abstract class AppLocalizations {
   /// **'The server ran into a problem. Try again later.'**
   String get errorServer;
 
-  /// Button that saves a form or the choice made in a sheet.
+  /// Confirm button for a setting dialog
   ///
   /// In en, this message translates to:
   /// **'Save'**
@@ -4185,6 +4185,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove {name}'**
   String shareRemoveItem(String name);
+
+  /// Settings section for local backups
+  ///
+  /// In en, this message translates to:
+  /// **'Backup'**
+  String get settingsBackup;
+
+  /// Button that opens the folder picker
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a folder'**
+  String get backupChooseFolder;
+
+  /// Label of the chosen backup folder
+  ///
+  /// In en, this message translates to:
+  /// **'Folder'**
+  String get backupFolder;
+
+  /// Button that writes a backup immediately
+  ///
+  /// In en, this message translates to:
+  /// **'Back up now'**
+  String get backupNow;
+
+  /// Shown in the row while a backup runs
+  ///
+  /// In en, this message translates to:
+  /// **'Making a backup…'**
+  String get backupRunning;
+
+  /// Toast after a backup is written, naming the file
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved as {name}'**
+  String backupDone(String name);
+
+  /// Toast when a backup could not be written
+  ///
+  /// In en, this message translates to:
+  /// **'Backup failed: {reason}'**
+  String backupFailed(String reason);
+
+  /// Toast when no folder is set
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a folder first'**
+  String get backupNoFolder;
+
+  /// Toggle for the periodic backup
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backup'**
+  String get backupAutomatic;
+
+  /// Row that opens the period picker
+  ///
+  /// In en, this message translates to:
+  /// **'Every {days} days'**
+  String backupPeriod(int days);
+
+  /// Row that opens the kept-files picker
+  ///
+  /// In en, this message translates to:
+  /// **'Keep {count} files'**
+  String backupKeep(int count);
+
+  /// Optional password for the backup file
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get backupPassword;
+
+  /// Shown when no password is set
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get backupPasswordNone;
+
+  /// Button that opens the restore flow
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get backupRestore;
+
+  /// Title of the restore sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Restore a backup'**
+  String get restoreTitle;
+
+  /// What the picked backup holds
+  ///
+  /// In en, this message translates to:
+  /// **'{notes} notes and {attachments} attachments'**
+  String restoreContents(int notes, int attachments);
+
+  /// Restore mode for the same account
+  ///
+  /// In en, this message translates to:
+  /// **'Restore this account'**
+  String get restoreKeepIds;
+
+  /// Explains the keep-ids mode
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps the server versions. A note edited after the backup keeps the server copy.'**
+  String get restoreKeepIdsHint;
+
+  /// Restore mode for another account
+  ///
+  /// In en, this message translates to:
+  /// **'Import as copies'**
+  String get restoreNewIds;
+
+  /// Explains the new-ids mode
+  ///
+  /// In en, this message translates to:
+  /// **'Gives every note a new id. Use this for another account or another server.'**
+  String get restoreNewIdsHint;
+
+  /// Asks before the local library is replaced
+  ///
+  /// In en, this message translates to:
+  /// **'Replace every note on this phone with {notes} notes from the backup?'**
+  String restoreConfirm(int notes);
+
+  /// Toast after a restore finishes
+  ///
+  /// In en, this message translates to:
+  /// **'Restored {notes} notes'**
+  String restoreDone(int notes);
+
+  /// Shown when the backup password does not open the file
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong password'**
+  String get restoreWrongPassword;
+
+  /// Shown when the picked file cannot be read
+  ///
+  /// In en, this message translates to:
+  /// **'This file is not an Anchor backup'**
+  String get restoreBadFile;
+
+  /// Confirm button for a destructive restore
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get commonReplace;
 }
 
 class _AppLocalizationsDelegate

@@ -68,9 +68,11 @@ void main() {
       containsAll(['manifest.json', 'notes.json', 'attachments/a1.jpg']),
     );
 
-    final notes = jsonDecode(
-      utf8.decode(archive.findFile('notes.json')!.content as List<int>),
-    ) as Map<String, dynamic>;
+    final notes =
+        jsonDecode(
+              utf8.decode(archive.findFile('notes.json')!.content as List<int>),
+            )
+            as Map<String, dynamic>;
     expect((notes['notes'] as List).single['title'], 'Groceries');
     expect(archive.findFile('attachments/a1.jpg')!.content, [1, 2, 3, 4]);
   });

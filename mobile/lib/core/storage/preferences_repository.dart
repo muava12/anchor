@@ -203,10 +203,8 @@ class PreferencesRepository {
   Future<bool> getBackupAutomatic() async =>
       await _storage.read(key: StorageKeys.backupAutomatic) != 'false';
 
-  Future<void> setBackupAutomatic(bool value) => _storage.write(
-    key: StorageKeys.backupAutomatic,
-    value: value.toString(),
-  );
+  Future<void> setBackupAutomatic(bool value) =>
+      _storage.write(key: StorageKeys.backupAutomatic, value: value.toString());
 
   Future<int> getBackupPeriodDays() async =>
       int.tryParse(

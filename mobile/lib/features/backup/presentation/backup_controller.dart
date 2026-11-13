@@ -53,9 +53,7 @@ class BackupController extends _$BackupController {
 
     final folder = ref.read(backupFolderProvider);
     final documents = await getApplicationDocumentsDirectory();
-    final attachmentsRoot = Directory(
-      path.join(documents.path, 'attachments'),
-    );
+    final attachmentsRoot = Directory(path.join(documents.path, 'attachments'));
     final temp = await getTemporaryDirectory();
     final stamp = _stamp(DateTime.now());
     final prefix = automatic ? 'anchor-auto-' : 'anchor-';
@@ -80,7 +78,8 @@ class BackupController extends _$BackupController {
           .read(backupSettingsControllerProvider.notifier)
           .markBackedUp(DateTime.now());
 
-      if (automatic) await _applyRetention(folder, settings.folderUri!, settings.keepFiles);
+      if (automatic)
+        await _applyRetention(folder, settings.folderUri!, settings.keepFiles);
 
       AppLogger.instance.info(
         LogTags.backup,
@@ -108,11 +107,9 @@ class BackupController extends _$BackupController {
     String folderUri,
     int keepFiles,
   ) async {
-    final names =
-        (await folder.list(folderUri))
-            .where((name) => name.startsWith('anchor-auto-'))
-            .toList()
-          ..sort();
+    final names = (await folder.list(
+      folderUri,
+    )).where((name) => name.startsWith('anchor-auto-')).toList()..sort();
     final excess = names.length - keepFiles;
     if (excess <= 0) return;
     for (final name in names.take(excess)) {
