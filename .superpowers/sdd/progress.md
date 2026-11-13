@@ -31,3 +31,4 @@ Task 7: complete (3 tests pass on box-03; riverpod .g.dart generated on box-03 a
 Task 8: complete (4 tests pass on box-03; backup_controller.g.dart generated and copied back)
   - Test mocks path_provider and PackageInfo; added a retention test.
   - bytes is List<int> so the encrypted path compiles.
+Task 9: complete (5 tests pass on box-03)
