@@ -22,3 +22,7 @@ Task 5: complete (20 backup tests pass on box-03)
   - BackupTag gained version; keepIds keeps tag versions, newIds clears them.
   - Restore deletes replaced attachment files after commit, and written files on rollback.
   - Duplicate tag ids per note are de-duplicated.
+Task 6: complete (4 tests pass on box-03)
+  - Added androidx.documentfile:1.0.1 to android/app/build.gradle.kts.
+  - Dart wrapper sends Uint8List so Kotlin receives a byte array.
+  - Kotlin compile NOT verified: box-03 has no Android SDK. CI will verify.

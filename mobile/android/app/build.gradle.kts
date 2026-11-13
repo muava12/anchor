@@ -68,4 +68,6 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+    // BackupFolderPlugin writes into the folder the person picked.
+    implementation("androidx.documentfile:documentfile:1.0.1")
 }
