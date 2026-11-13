@@ -145,11 +145,26 @@ that: `small` 0.88, `standard` 1, `large` 1.12.
 
 Change: `NoteTextSize` gains `extraSmall(0.73)`, which puts the body at 12.0,
 the same as NotallyX's smallest. The order becomes extraSmall, small, standard,
-large, and the l10n key `textSizeExtraSmall` reads "Extra small".
+large.
 
-Risk: the editor's size picker becomes four segments. On a 360 px screen that
-is tight; the plan checks it at 360 px and, if it does not fit, the picker wraps
-to two rows rather than shrinking the tap targets.
+The picker shows one letter each, so four segments fit a 360 px screen:
+
+| Size | Shown | Spoken |
+| --- | --- | --- |
+| extraSmall | XS | Extra small |
+| small | S | Small |
+| standard | M | Default |
+| large | L | Large |
+
+`NoteTextSize` gains `labelIn` (the letter) and `spokenIn` (the words).
+`Segment` gains an optional `spokenLabel`, and `SegmentedControl` uses it for
+the tap target's semantics, falling back to `label`. Without that, a screen
+reader would read "XS".
+
+New l10n keys: `textSizeExtraSmall` ("Extra small"), `textSizeExtraSmallShort`
+("XS"), `textSizeSmallShort` ("S"), `textSizeStandardShort` ("M"),
+`textSizeLargeShort` ("L"). The existing `textSizeSmall`, `textSizeDefault` and
+`textSizeLarge` stay as the spoken words.
 
 
 
@@ -178,7 +193,8 @@ Widget test, `test/widgets/app_lock_test.dart` (extended):
 Unit test, `test/note_text_size_test.dart`:
 
 - `NoteTextSize.extraSmall.scale` is 0.73, and the body size it produces is 12.0.
-- The picker offers four sizes in the order extraSmall, small, standard, large.
+- The picker offers four sizes in the order extraSmall, small, standard, large,
+  showing XS, S, M, L and speaking the full words.
 
 ## Risks
 
@@ -187,5 +203,5 @@ Unit test, `test/note_text_size_test.dart`:
   is contained. Tests must reset it in `tearDown`.
 - `Spring.duration` becoming a getter touches every caller. All callers read it
   as a value, so no call site changes.
-- Four text sizes may not fit one row at 360 px. The plan checks it there and
-  wraps the picker to two rows rather than shrinking the tap targets.
+- One-letter labels are terse. The spoken labels keep the meaning for a screen
+  reader, and the row's own label still reads "Text size".
