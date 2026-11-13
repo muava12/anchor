@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:anchor/app/app_bootstrap.dart';
 import 'package:anchor/core/theme/app_theme.dart';
 import 'package:anchor/features/settings/presentation/app_lock_controller.dart';
@@ -8,20 +10,35 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:local_auth/local_auth.dart';
 
 class _FakeAuthenticator implements DeviceAuthenticator {
-  _FakeAuthenticator({this.succeeds = true, this.failure});
+  _FakeAuthenticator({this.succeeds = true, this.failure, this.holds});
 
   final bool succeeds;
 
   /// Thrown instead of returning, to stand in for a device that cannot prompt.
   final Object? failure;
 
+  /// While true the prompt stays up, so a test can look at the cover first.
+  final bool holds;
+
+  final _answers = <Completer<bool>>[];
+
   int calls = 0;
 
+  /// Lets the newest held prompt finish.
+  void answer(bool didAuthenticate) {
+    _answers.last.complete(didAuthenticate);
+  }
+
   @override
-  Future<bool> authenticate() async {
+  Future<bool> authenticate() {
     calls++;
-    if (failure != null) throw failure!;
-    return succeeds;
+    if (holds) {
+      final answer = Completer<bool>();
+      _answers.add(answer);
+      return answer.future;
+    }
+    if (failure != null) return Future.error(failure!);
+    return Future.value(succeeds);
   }
 }
 
@@ -61,7 +78,12 @@ Future<_FakeAuthenticator> _pump(
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  // A held prompt never settles, so pump once rather than waiting it out.
+  if (auth.holds) {
+    await tester.pump();
+  } else {
+    await tester.pumpAndSettle();
+  }
   return auth;
 }
 
@@ -77,7 +99,11 @@ void main() {
   testWidgets('covers the notes and asks the device on a locked start', (
     tester,
   ) async {
-    final auth = await _pump(tester, isLocked: true);
+    final auth = await _pump(
+      tester,
+      isLocked: true,
+      authenticator: _FakeAuthenticator(holds: true),
+    );
 
     expect(find.byType(AppLockScreen), findsOneWidget);
     expect(find.text('Anchor is locked'), findsOneWidget);
@@ -87,7 +113,15 @@ void main() {
   testWidgets('uncovers the notes once the device lets the person in', (
     tester,
   ) async {
-    await _pump(tester, isLocked: true);
+    final auth = await _pump(
+      tester,
+      isLocked: true,
+      authenticator: _FakeAuthenticator(holds: true),
+    );
+    expect(find.byType(AppLockScreen), findsOneWidget);
+
+    auth.answer(true);
+    await tester.pumpAndSettle();
 
     expect(find.byType(AppLockScreen), findsNothing);
     expect(find.text('a note about the harbour'), findsOneWidget);
@@ -126,13 +160,20 @@ void main() {
   testWidgets('covers the notes again when the app goes to the background', (
     tester,
   ) async {
-    await _pump(tester, isLocked: true);
+    final auth = await _pump(
+      tester,
+      isLocked: true,
+      authenticator: _FakeAuthenticator(holds: true),
+    );
+    auth.answer(true);
+    await tester.pumpAndSettle();
     expect(find.byType(AppLockScreen), findsNothing);
 
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
-    await tester.pumpAndSettle();
+    await tester.pump();
 
     expect(find.byType(AppLockScreen), findsOneWidget);
+    expect(auth.calls, 2);
   });
 
   test('turning the lock off stores the choice and takes the cover away', () async {
