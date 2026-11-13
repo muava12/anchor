@@ -73,6 +73,7 @@ dependencies:
 
   # Backup
   archive: ^4.5.2
+  cryptography: ^2.7.0
 
   # Reminders (device-local notifications)
   flutter_local_notifications: ^22.3.3

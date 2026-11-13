@@ -13,3 +13,6 @@ Task 1: complete (commits 5414c19..9b86a2e, tests pass on box-03)
   - archive 4.5.2 addFile drops the entry; writer uses addArchiveFile with bytes.
 Task 2: complete (tests pass on box-03)
   - Formatting: run `dart format` on box-03 once at the end for all backup files.
+Task 3: complete (5 tests pass on box-03)
+  - cryptography resolves to 2.9.0; pubspec.lock updated from box-03.
+  - decrypt now refuses a truncated file with BackupFormatException.
