@@ -18,13 +18,11 @@ class BackupWriter {
 
   Future<void> addJson(String name, Map<String, dynamic> json) async {
     final bytes = utf8.encode(jsonEncode(json));
-    _encoder.addArchiveFile(
-      ArchiveFile(name, bytes.length, bytes),
-    );
+    _encoder.addArchiveFile(ArchiveFile(name, bytes.length, bytes));
   }
 
   Future<void> addFile(File source, String name) async {
-    final bytes = await source.readAsBytes();
+    final bytes = await source.readBytes();
     _encoder.addArchiveFile(ArchiveFile(name, bytes.length, bytes));
   }
 
