@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import '../../../core/motion/springs.dart';
 import '../../../core/theme/context_extensions.dart';
 import '../../../core/theme/tokens/anchor_tokens.dart';
 import '../../../core/widgets/anchor_logo.dart';
