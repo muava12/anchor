@@ -120,7 +120,7 @@ void main() {
       );
       expect(compact.control, AnchorTokens.sizeControlMedium);
       expect(compact.bar, AnchorTokens.sizeControlMedium);
-      expect(compact.noteLineHeight, 1.55);
+      expect(compact.noteLineHeight, 1.45);
       expect(
         [
           compact.previewMasonry,
