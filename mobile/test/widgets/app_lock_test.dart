@@ -10,7 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:local_auth/local_auth.dart';
 
 class _FakeAuthenticator implements DeviceAuthenticator {
-  _FakeAuthenticator({this.succeeds = true, this.failure, this.holds});
+  _FakeAuthenticator({this.succeeds = true, this.failure, this.holds = false});
 
   final bool succeeds;
 
