@@ -14,6 +14,7 @@ class LogTags {
   static const sharing = 'Sharing';
   static const shareTarget = 'ShareTarget';
   static const settings = 'Settings';
+  static const backup = 'Backup';
   static const homeWidget = 'HomeWidget';
   static const notifications = 'Notifications';
   static const reminders = 'Reminders';

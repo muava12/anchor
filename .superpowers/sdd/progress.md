@@ -28,3 +28,6 @@ Task 6: complete (4 tests pass on box-03)
   - Kotlin compile NOT verified: box-03 has no Android SDK. CI will verify.
 Task 7: complete (3 tests pass on box-03; riverpod .g.dart generated on box-03 and copied back)
   - copyWith gained clearFolder, so setFolder(null) clears the in-memory state too.
+Task 8: complete (4 tests pass on box-03; backup_controller.g.dart generated and copied back)
+  - Test mocks path_provider and PackageInfo; added a retention test.
+  - bytes is List<int> so the encrypted path compiles.
