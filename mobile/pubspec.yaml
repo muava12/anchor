@@ -71,6 +71,9 @@ dependencies:
   share_plus: ^13.3.1
   gal: ^2.3.3
 
+  # Backup
+  archive: ^4.5.2
+
   # Reminders (device-local notifications)
   flutter_local_notifications: ^22.3.3
   timezone: ^0.11.2

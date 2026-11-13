@@ -378,8 +378,11 @@ import 'dart:io';
 
 import 'package:archive/archive_io.dart';
 
-/// Writes a zip to disk one entry at a time, so a large attachment never sits
-/// in memory.
+/// Writes a zip to disk one entry at a time. Each attachment is read whole, so
+/// memory holds at most the largest single file, never the whole library.
+///
+/// `ZipFileEncoder.addFile` is not used: in archive 4.5.2 it closes the input
+/// stream before the encoder reads it, and the entry is dropped.
 class BackupWriter {
   BackupWriter(this.path) {
     _encoder.create(path);
@@ -396,7 +399,8 @@ class BackupWriter {
   }
 
   Future<void> addFile(File source, String name) async {
-    _encoder.addFile(source, name);
+    final bytes = await source.readAsBytes();
+    _encoder.addArchiveFile(ArchiveFile(name, bytes.length, bytes));
   }
 
   Future<void> close() async {
@@ -3025,4 +3029,4 @@ git commit -m "feat: add a Backup section to Settings"
 
 **Type consistency:** `BackupReader.contents` and `.manifest` are used the same way in Tasks 5 and 10. `BackupResult.outcome` and `.fileName` match between Tasks 8, 9 and 10. `RestoreMode.keepIds` and `.newIds` are spelled the same in Tasks 5 and 10. `backupFolderProvider` is defined in Task 8 and used in Task 10.
 
-**Known gap:** the spec says attachments are never read whole into memory. The writer honours that; the reader loads the archive to read it. A backup of photos stays small, so this is accepted, and the reader's doc comment says so.
+**Known gap:** the writer reads one attachment at a time, so memory holds at most the largest single file. The reader loads the whole archive to read it. A backup of photos stays small, so this is accepted, and both doc comments say so.
