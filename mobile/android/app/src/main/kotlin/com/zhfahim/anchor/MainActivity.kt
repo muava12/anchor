@@ -9,6 +9,7 @@ import com.zhfahim.anchor.share.ShareFolderPlugin
 import com.zhfahim.anchor.widget.NotesWidgetProvider
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import io.flutter.embedding.android.FlutterFragmentActivity
+import io.flutter.plugin.common.MethodChannel
 import io.flutter.embedding.engine.FlutterEngine
 
 // FlutterFragmentActivity, not FlutterActivity: local_auth shows the biometric
@@ -26,13 +27,21 @@ class MainActivity : FlutterFragmentActivity() {
         super.onNewIntent(intent)
     }
 
-    // SystemNavigator.pop moves the app to the background.
-    override fun popSystemNavigator(): Boolean = moveTaskToBack(true)
-
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         flutterEngine.plugins.add(PhotoConverterPlugin())
         flutterEngine.plugins.add(ShareFolderPlugin(listens = true))
+        // FlutterFragmentActivity has no popSystemNavigator hook, so the back
+        // arrow at the root of a folder asks for this instead of finishing.
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            "com.zhfahim.anchor/system",
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "moveTaskToBack" -> result.success(moveTaskToBack(true))
+                else -> result.notImplemented()
+            }
+        }
     }
 
     private fun preferFastestRefreshRate() {

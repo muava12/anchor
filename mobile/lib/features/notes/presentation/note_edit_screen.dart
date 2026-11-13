@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -12,6 +11,7 @@ import '../../../core/motion/haptics.dart';
 import '../../../core/motion/springs.dart';
 import '../../../core/network/connectivity_provider.dart';
 import '../../../core/session/active_user_id_provider.dart';
+import '../../../core/system/move_task_to_back.dart';
 import '../../../core/theme/context_extensions.dart';
 import '../../../core/theme/tokens/anchor_tokens.dart';
 import '../../../core/widgets/app_snackbar.dart';
@@ -195,7 +195,7 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
       if (context.isCupertino) {
         context.go(AppRoutes.home);
       } else {
-        SystemNavigator.pop();
+        await moveTaskToBack();
       }
     }
   }
