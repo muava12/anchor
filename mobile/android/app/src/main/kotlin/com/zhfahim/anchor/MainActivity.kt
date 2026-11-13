@@ -8,10 +8,12 @@ import com.zhfahim.anchor.photos.PhotoConverterPlugin
 import com.zhfahim.anchor.share.ShareFolderPlugin
 import com.zhfahim.anchor.widget.NotesWidgetProvider
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 
-class MainActivity : FlutterActivity() {
+// FlutterFragmentActivity, not FlutterActivity: local_auth shows the biometric
+// prompt through a fragment, and it fails on a plain activity.
+class MainActivity : FlutterFragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         attachWidgetNoteUri(intent)

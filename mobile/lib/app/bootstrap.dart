@@ -127,6 +127,7 @@ Future<AppBootstrap> initializeApp({
   return AppBootstrap(
     themeMode: themeMode,
     displayDensity: displayDensity,
+    appLockEnabled: await preferences.getAppLockEnabled(),
     editorPreferences: editorPreferences,
     foldedChecklistNotes: await preferences.getFoldedChecklistNotes(),
     openArchivedTags: await preferences.getOpenArchivedTags(),

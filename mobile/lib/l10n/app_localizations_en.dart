@@ -595,6 +595,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTextSize => 'Text size';
 
   @override
+  String get settingsSecurity => 'Security';
+
+  @override
+  String get settingsAppLock => 'App lock';
+
+  @override
+  String get settingsAppLockHelp =>
+      'Ask for your fingerprint, face or screen lock each time Anchor opens.';
+
+  @override
+  String get appLockTitle => 'Anchor is locked';
+
+  @override
+  String get appLockSubtitle => 'Unlock to read your notes.';
+
+  @override
+  String get appLockUnlock => 'Unlock';
+
+  @override
+  String get appLockAsking => 'Waiting for the device…';
+
+  @override
+  String get appLockNoCredentials => 'Set a screen lock on this device first.';
+
+  @override
+  String get appLockInterrupted => 'The device did not unlock. Try again.';
+
+  @override
   String get settingsMoveChecked => 'Move checked items to the bottom';
 
   @override

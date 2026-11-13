@@ -10,6 +10,7 @@ import 'core/theme/app_theme.dart';
 import 'features/home_widget/data/home_widget_service.dart';
 import 'features/reminders/data/reminder_scheduler.dart';
 import 'features/reminders/presentation/reminder_tap_handler.dart';
+import 'features/settings/presentation/app_lock_gate.dart';
 import 'features/settings/presentation/editor_preferences_controller.dart';
 import 'features/settings/presentation/theme_preferences_controller.dart';
 import 'features/share_target/data/share_target_service.dart';
@@ -83,7 +84,10 @@ class _AnchorAppState extends ConsumerState<AnchorApp>
           ? AnimationStyle.noAnimation
           : null,
       routerConfig: router,
-      builder: (context, child) => BackdropGroup(child: child!),
+      // The lock covers every screen, the sign-in page and dialogs included, so
+      // nothing shows while the app is locked.
+      builder: (context, child) =>
+          AppLockGate(child: BackdropGroup(child: child!)),
       localizationsDelegates: const [
         ...AppLocalizations.localizationsDelegates,
         FlutterQuillLocalizations.delegate,

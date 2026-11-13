@@ -80,6 +80,9 @@ dependencies:
   flutter_quill: ^11.6.0
   dart_quill_delta: ^10.8.3
 
+  # App lock (device biometrics or screen lock)
+  local_auth: ^3.0.2
+
   # Utilities
   path_provider: ^2.1.6
   path: ^1.9.1

@@ -824,6 +824,42 @@
   "@settingsTextSize": {
     "description": "Setting that picks how big the text in notes is."
   },
+  "settingsSecurity": "Security",
+  "@settingsSecurity": {
+    "description": "Section label in Settings for the app lock."
+  },
+  "settingsAppLock": "App lock",
+  "@settingsAppLock": {
+    "description": "Switch in Settings that covers the notes until the device authenticates the person."
+  },
+  "settingsAppLockHelp": "Ask for your fingerprint, face or screen lock each time Anchor opens.",
+  "@settingsAppLockHelp": {
+    "description": "Under the app lock switch: what turning it on does."
+  },
+  "appLockTitle": "Anchor is locked",
+  "@appLockTitle": {
+    "description": "Heading of the cover shown over the notes while the app lock is on."
+  },
+  "appLockSubtitle": "Unlock to read your notes.",
+  "@appLockSubtitle": {
+    "description": "Under the cover's heading: what unlocking does."
+  },
+  "appLockUnlock": "Unlock",
+  "@appLockUnlock": {
+    "description": "Button on the cover that asks the device to authenticate the person."
+  },
+  "appLockAsking": "Waiting for the device…",
+  "@appLockAsking": {
+    "description": "Button label on the cover while the system prompt is up."
+  },
+  "appLockNoCredentials": "Set a screen lock on this device first.",
+  "@appLockNoCredentials": {
+    "description": "Shown on the cover when the device has no screen lock and no enrolled biometrics."
+  },
+  "appLockInterrupted": "The device did not unlock. Try again.",
+  "@appLockInterrupted": {
+    "description": "Shown on the cover when the system stopped the prompt or the person cancelled it."
+  },
   "settingsMoveChecked": "Move checked items to the bottom",
   "@settingsMoveChecked": {
     "description": "Switch in Settings for checklists in notes."
