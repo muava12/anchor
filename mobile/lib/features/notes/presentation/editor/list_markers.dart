@@ -24,8 +24,6 @@ extension ListSpacing on NoteTypography {
 
 const double _checkboxInset = 2; // off-scale: the checkbox column
 
-const double _checkboxSize = 22; // off-scale: the note's checkbox
-
 /// Quill rebuilds every line on each change; an identical widget skips it.
 class ListMarkerCache {
   final Expando<(Object, Widget)> _markers = Expando();
@@ -114,13 +112,14 @@ Widget? buildListMarker(
   final guide = palette.border.withValues(alpha: palette.border.a * 0.85);
   if (config.attrs.isChecklist) {
     final enabled = (config.enabled ?? true) && canEdit;
+    final checkboxSize = NoteCheckBox.sizeFor(lineHeight);
     final boxLeft = left + _checkboxInset;
     final targetLeft = math.max(
       0.0,
-      boxLeft + (_checkboxSize - AnchorTokens.sizeControlMedium) / 2,
+      boxLeft + (checkboxSize - AnchorTokens.sizeControlMedium) / 2,
     );
     final targetHeight = lineHeight + 2 * listLinePadding;
-    final boxTop = listLinePadding + (lineHeight - _checkboxSize) / 2;
+    final boxTop = listLinePadding + (lineHeight - checkboxSize) / 2;
     final text = line.toPlainText();
     final label = text.length > 1 ? text.substring(0, text.length - 1) : '';
     final checked = config.value;
@@ -152,6 +151,7 @@ Widget? buildListMarker(
           enabled,
           boxLeft - targetLeft,
           boxTop,
+          checkboxSize,
           isJustChecked,
           muted,
           tick,
@@ -171,6 +171,7 @@ Widget? buildListMarker(
               child: NoteCheckBox(
                 checked: checked,
                 isJustChecked: isJustChecked,
+                size: checkboxSize,
                 border: muted,
                 opacity: isDragged ? _draggedOpacity : 1,
                 tick: tick,
@@ -337,13 +338,26 @@ class NoteCheckBox extends StatelessWidget {
     super.key,
     required this.checked,
     this.isJustChecked = false,
+    this.size = maxSize,
     required this.border,
     this.opacity = 1,
     required this.tick,
   });
 
+  /// The box for a standard line.
+  static const double maxSize = 22; // off-scale: the note's checkbox
+
+  /// The smallest box that still reads at the smallest text size.
+  static const double minSize = 14; // off-scale: the note's checkbox
+
+  /// The box fits its line. A compact line is shorter than [maxSize], so a
+  /// fixed size would draw the box over the line above and the one below.
+  static double sizeFor(double lineHeight) =>
+      math.min(maxSize, math.max(minSize, lineHeight));
+
   final bool checked;
   final bool isJustChecked;
+  final double size;
   final Color border;
   final double opacity;
   final Color tick;
@@ -353,7 +367,7 @@ class NoteCheckBox extends StatelessWidget {
     final colors = context.anchor;
     Widget mark = Icon(
       LucideIcons600.check,
-      size: 15, // off-scale: the note's check mark
+      size: size * 15 / maxSize, // off-scale: the note's check mark
       color: tick,
     );
     if (isJustChecked && !context.isMotionReduced) {
@@ -374,8 +388,8 @@ class NoteCheckBox extends StatelessWidget {
       opacity: opacity,
       child: AnimatedContainer(
         duration: context.motion(AnchorTokens.motionDurationHover),
-        width: _checkboxSize,
-        height: _checkboxSize,
+        width: size,
+        height: size,
         decoration: BoxDecoration(
           color: checked ? colors.accentStrong : null,
           borderRadius: BorderRadius.circular(AnchorTokens.radiusCheckbox),
