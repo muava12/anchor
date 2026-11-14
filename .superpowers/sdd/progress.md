@@ -35,3 +35,9 @@ Task 9: complete (5 tests pass on box-03)
 Task 10: complete (1171 tests pass on box-03, analyze clean, format clean)
   - FilePicker.pickFile replaces the removed FilePicker.platform API.
   - l10n descriptions added for 6 messages; share extension strings regenerated.
+
+## Kotlin / Android build verification (post-plan)
+- box-03 Android build verified after disk optimization: `flutter build apk --debug --target-platform=android-arm64` succeeded.
+- BackupFolderPlugin compiled into the APK (classes18/20.dex contain zhfahim/anchor/backup/BackupFolderPlugin).
+- The gradle signingConfig fix (key.properties guard) works on a machine without the keystore.
+- box-03 gotcha: universal build hit transient TLS rate-limiting to storage.googleapis.com; single-ABI succeeded. GitHub mobile-android job (ubuntu-latest) is the universal gate.
