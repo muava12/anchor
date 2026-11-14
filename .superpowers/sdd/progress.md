@@ -32,3 +32,6 @@ Task 8: complete (4 tests pass on box-03; backup_controller.g.dart generated and
   - Test mocks path_provider and PackageInfo; added a retention test.
   - bytes is List<int> so the encrypted path compiles.
 Task 9: complete (5 tests pass on box-03)
+Task 10: complete (1171 tests pass on box-03, analyze clean, format clean)
+  - FilePicker.pickFile replaces the removed FilePicker.platform API.
+  - l10n descriptions added for 6 messages; share extension strings regenerated.

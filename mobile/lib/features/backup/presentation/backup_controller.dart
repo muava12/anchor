@@ -78,8 +78,9 @@ class BackupController extends _$BackupController {
           .read(backupSettingsControllerProvider.notifier)
           .markBackedUp(DateTime.now());
 
-      if (automatic)
+      if (automatic) {
         await _applyRetention(folder, settings.folderUri!, settings.keepFiles);
+      }
 
       AppLogger.instance.info(
         LogTags.backup,
