@@ -1,10 +1,12 @@
 import 'dart:convert';
 
+import 'package:anchor/core/theme/anchor_density.dart';
 import 'package:anchor/core/theme/tokens/anchor_tokens.dart';
 import 'package:anchor/features/notes/presentation/editor/editor_format.dart';
 import 'package:anchor/features/notes/presentation/editor/editor_link.dart';
 import 'package:anchor/features/notes/presentation/editor/editor_palette.dart';
 import 'package:anchor/features/notes/presentation/editor/line_kind.dart';
+import 'package:anchor/features/notes/presentation/editor/list_markers.dart';
 import 'package:anchor/features/notes/presentation/editor/rich_text_editor.dart';
 import 'package:anchor/features/notes/presentation/editor/slash_hint.dart';
 import 'package:flutter/gestures.dart';
@@ -34,9 +36,13 @@ final palette = EditorPalette(
   highlightInk: (name) => AnchorColors.light.highlights[name]!.ink!,
 );
 
-Widget wrap(Widget Function(ScrollController scroll) builder) {
+Widget wrap(
+  Widget Function(ScrollController scroll) builder, {
+  AnchorDensity? density,
+}) {
   return MaterialApp(
     localizationsDelegates: FlutterQuillLocalizations.localizationsDelegates,
+    theme: density == null ? null : ThemeData(extensions: [density]),
     home: Scaffold(body: _Scroller(builder: builder)),
   );
 }
@@ -87,6 +93,7 @@ void main() {
     bool hasSlashHint = false,
     ValueChanged<bool>? onBlankChanged,
     ValueChanged<String>? onBackspaceAtStart,
+    AnchorDensity? density,
   }) async {
     final focusNode = FocusNode();
     addTearDown(focusNode.dispose);
@@ -107,6 +114,7 @@ void main() {
           scrollController: scroll,
           palette: palette,
         ),
+        density: density,
       ),
     );
     await tester.pump();
@@ -240,6 +248,31 @@ void main() {
     expect([
       for (var i = 0; i < 3; i++) tester.getRect(checkboxSlot(i)),
     ], boxes);
+  });
+
+  testWidgets('a compact line is tall enough for its checkbox', (tester) async {
+    const checklist =
+        '{"ops":[{"insert":"a"},{"insert":"\\n","attributes":{"list":"unchecked"}}, '
+        '{"insert":"b"},{"insert":"\\n","attributes":{"list":"checked"}}, '
+        '{"insert":"c"},{"insert":"\\n","attributes":{"list":"unchecked"}}]}';
+    await pumpEditor(
+      tester,
+      content: checklist,
+      density: AnchorDensity.compact,
+    );
+    final boxes = [
+      for (var i = 0; i < 3; i++)
+        tester.getRect(find.byType(NoteCheckBox).at(i)),
+    ];
+
+    expect(boxes.first.height, lessThan(NoteCheckBox.maxSize));
+    for (var i = 1; i < boxes.length; i++) {
+      expect(
+        boxes[i].top,
+        greaterThanOrEqualTo(boxes[i - 1].bottom),
+        reason: 'the box on line $i grows over the line above it',
+      );
+    }
   });
 
   testWidgets('typing above a list leaves its lines laid out', (tester) async {

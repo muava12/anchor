@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import com.zhfahim.anchor.backup.BackupFolderPlugin
 import com.zhfahim.anchor.photos.PhotoConverterPlugin
 import com.zhfahim.anchor.share.ShareFolderPlugin
 import com.zhfahim.anchor.widget.NotesWidgetProvider
@@ -29,6 +30,7 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        flutterEngine.plugins.add(BackupFolderPlugin())
         flutterEngine.plugins.add(PhotoConverterPlugin())
         flutterEngine.plugins.add(ShareFolderPlugin(listens = true))
         // FlutterFragmentActivity has no popSystemNavigator hook, so the back

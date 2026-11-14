@@ -201,8 +201,10 @@ Dart dependency.
 
 - No compression. Notes are small text and attachments are already compressed;
   deflate would burn CPU for nothing.
-- Attachments are copied with `File.copy` into the ZIP stream, never read whole
-  into memory.
+- Each attachment is read whole, one at a time, so memory holds at most the
+  largest single file, never the whole library. `ZipFileEncoder.addFile` would
+  stream, but in archive 4.5.2 it closes the input before the encoder reads it
+  and the entry is dropped.
 - The whole job runs in a background isolate, so the UI never stutters.
 
 ### Settings

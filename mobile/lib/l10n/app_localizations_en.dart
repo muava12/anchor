@@ -2729,4 +2729,95 @@ class AppLocalizationsEn extends AppLocalizations {
   String shareRemoveItem(String name) {
     return 'Remove $name';
   }
+
+  @override
+  String get settingsBackup => 'Backup';
+
+  @override
+  String get backupChooseFolder => 'Choose a folder';
+
+  @override
+  String get backupFolder => 'Folder';
+
+  @override
+  String get backupNow => 'Back up now';
+
+  @override
+  String get backupRunning => 'Making a backup…';
+
+  @override
+  String backupDone(String name) {
+    return 'Backup saved as $name';
+  }
+
+  @override
+  String backupFailed(String reason) {
+    return 'Backup failed: $reason';
+  }
+
+  @override
+  String get backupNoFolder => 'Choose a folder first';
+
+  @override
+  String get backupAutomatic => 'Automatic backup';
+
+  @override
+  String backupPeriod(int days) {
+    return 'Every $days days';
+  }
+
+  @override
+  String backupKeep(int count) {
+    return 'Keep $count files';
+  }
+
+  @override
+  String get backupPassword => 'Password';
+
+  @override
+  String get backupPasswordNone => 'None';
+
+  @override
+  String get backupRestore => 'Restore';
+
+  @override
+  String get restoreTitle => 'Restore a backup';
+
+  @override
+  String restoreContents(int notes, int attachments) {
+    return '$notes notes and $attachments attachments';
+  }
+
+  @override
+  String get restoreKeepIds => 'Restore this account';
+
+  @override
+  String get restoreKeepIdsHint =>
+      'Keeps the server versions. A note edited after the backup keeps the server copy.';
+
+  @override
+  String get restoreNewIds => 'Import as copies';
+
+  @override
+  String get restoreNewIdsHint =>
+      'Gives every note a new id. Use this for another account or another server.';
+
+  @override
+  String restoreConfirm(int notes) {
+    return 'Replace every note on this phone with $notes notes from the backup?';
+  }
+
+  @override
+  String restoreDone(int notes) {
+    return 'Restored $notes notes';
+  }
+
+  @override
+  String get restoreWrongPassword => 'Wrong password';
+
+  @override
+  String get restoreBadFile => 'This file is not an Anchor backup';
+
+  @override
+  String get commonReplace => 'Replace';
 }

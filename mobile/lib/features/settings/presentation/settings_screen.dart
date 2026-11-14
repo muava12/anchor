@@ -33,6 +33,7 @@ import '../../../l10n/l10n.dart';
 import '../../auth/domain/user.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../auth/presentation/oidc_config_provider.dart';
+import '../../backup/presentation/backup_section.dart';
 import '../../notes/presentation/notes_controller.dart';
 import '../../server/data/server_info_provider.dart';
 import '../../sync/data/sync_compatibility.dart';
@@ -79,6 +80,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const _EditorSection(),
               gap,
               const _SecuritySection(),
+              gap,
+              Section(
+                label: context.l10n.settingsBackup,
+                child: const BackupSection(),
+              ),
               gap,
               _AccountSection(user: user),
               gap,
@@ -177,8 +183,14 @@ class _AppearanceSection extends ConsumerWidget {
               semanticLabel: l10n.settingsMotion,
               value: motion,
               segments: [
-                Segment(value: MotionSpeed.slow, label: l10n.settingsMotionSlow),
-                Segment(value: MotionSpeed.fast, label: l10n.settingsMotionFast),
+                Segment(
+                  value: MotionSpeed.slow,
+                  label: l10n.settingsMotionSlow,
+                ),
+                Segment(
+                  value: MotionSpeed.fast,
+                  label: l10n.settingsMotionFast,
+                ),
                 Segment(value: MotionSpeed.off, label: l10n.settingsMotionOff),
               ],
               onChanged: (speed) =>

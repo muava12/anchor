@@ -3643,5 +3643,143 @@
         "example": "IMG_2041.jpg"
       }
     }
+  },
+  "settingsBackup": "Backup",
+  "@settingsBackup": {
+    "description": "Settings section for local backups"
+  },
+  "backupChooseFolder": "Choose a folder",
+  "@backupChooseFolder": {
+    "description": "Button that opens the folder picker"
+  },
+  "backupFolder": "Folder",
+  "@backupFolder": {
+    "description": "Label of the chosen backup folder"
+  },
+  "backupNow": "Back up now",
+  "@backupNow": {
+    "description": "Button that writes a backup immediately"
+  },
+  "backupRunning": "Making a backup…",
+  "@backupRunning": {
+    "description": "Shown in the row while a backup runs"
+  },
+  "backupDone": "Backup saved as {name}",
+  "@backupDone": {
+    "description": "Toast after a backup is written, naming the file",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "backupFailed": "Backup failed: {reason}",
+  "@backupFailed": {
+    "description": "Toast when a backup could not be written",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "backupNoFolder": "Choose a folder first",
+  "@backupNoFolder": {
+    "description": "Toast when no folder is set"
+  },
+  "backupAutomatic": "Automatic backup",
+  "@backupAutomatic": {
+    "description": "Toggle for the periodic backup"
+  },
+  "backupPeriod": "Every {days} days",
+  "@backupPeriod": {
+    "description": "Row that opens the period picker",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "backupKeep": "Keep {count} files",
+  "@backupKeep": {
+    "description": "Row that opens the kept-files picker",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupPassword": "Password",
+  "@backupPassword": {
+    "description": "Optional password for the backup file"
+  },
+  "backupPasswordNone": "None",
+  "@backupPasswordNone": {
+    "description": "Shown when no password is set"
+  },
+  "backupRestore": "Restore",
+  "@backupRestore": {
+    "description": "Button that opens the restore flow"
+  },
+  "restoreTitle": "Restore a backup",
+  "@restoreTitle": {
+    "description": "Title of the restore sheet"
+  },
+  "restoreContents": "{notes} notes and {attachments} attachments",
+  "@restoreContents": {
+    "description": "What the picked backup holds",
+    "placeholders": {
+      "notes": {"type": "int"},
+      "attachments": {"type": "int"}
+    }
+  },
+  "restoreKeepIds": "Restore this account",
+  "@restoreKeepIds": {
+    "description": "Restore mode for the same account"
+  },
+  "restoreKeepIdsHint": "Keeps the server versions. A note edited after the backup keeps the server copy.",
+  "@restoreKeepIdsHint": {
+    "description": "Explains the keep-ids mode"
+  },
+  "restoreNewIds": "Import as copies",
+  "@restoreNewIds": {
+    "description": "Restore mode for another account"
+  },
+  "restoreNewIdsHint": "Gives every note a new id. Use this for another account or another server.",
+  "@restoreNewIdsHint": {
+    "description": "Explains the new-ids mode"
+  },
+  "restoreConfirm": "Replace every note on this phone with {notes} notes from the backup?",
+  "@restoreConfirm": {
+    "description": "Asks before the local library is replaced",
+    "placeholders": {
+      "notes": {
+        "type": "int"
+      }
+    }
+  },
+  "restoreDone": "Restored {notes} notes",
+  "@restoreDone": {
+    "description": "Toast after a restore finishes",
+    "placeholders": {
+      "notes": {
+        "type": "int"
+      }
+    }
+  },
+  "restoreWrongPassword": "Wrong password",
+  "@restoreWrongPassword": {
+    "description": "Shown when the backup password does not open the file"
+  },
+  "restoreBadFile": "This file is not an Anchor backup",
+  "@restoreBadFile": {
+    "description": "Shown when the picked file cannot be read"
+  },
+  "commonSave": "Save",
+  "@commonSave": {
+    "description": "Confirm button for a setting dialog"
+  },
+  "commonReplace": "Replace",
+  "@commonReplace": {
+    "description": "Confirm button for a destructive restore"
   }
 }

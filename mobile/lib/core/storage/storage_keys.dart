@@ -21,4 +21,10 @@ class StorageKeys {
   static const openArchivedTags = 'notes_open_archived_tags';
   static const appLockEnabled = 'security_app_lock_enabled';
   static const motionSpeed = 'motion_speed';
+  static const backupFolder = 'backup_folder_uri';
+  static const backupAutomatic = 'backup_automatic';
+  static const backupPeriodDays = 'backup_period_days';
+  static const backupKeepFiles = 'backup_keep_files';
+  static const backupPassword = 'backup_password';
+  static const backupLastAt = 'backup_last_at';
 }
