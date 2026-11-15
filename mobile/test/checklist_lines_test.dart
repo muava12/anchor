@@ -980,6 +980,20 @@ void main() {
       ]);
     });
 
+    test('a plan that only changes indents applies', () {
+      final doc = nestedDoc([
+        ('p', 'unchecked', 0),
+        ('c', 'checked', 1),
+      ]);
+      final plan = planOf(doc)!;
+      expect(plan.order, [0, 1]);
+      expect(plan.indents, [0, 0]);
+      expect(nestedLinesOf(appliedPlan(doc, plan)), [
+        ('p', 'unchecked', 0),
+        ('c', 'checked', 0),
+      ]);
+    });
+
     test('the delta keeps inline formatting', () {
       final doc = nestedDoc([
         ('p', 'unchecked', 0),

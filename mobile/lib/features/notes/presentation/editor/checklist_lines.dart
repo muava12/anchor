@@ -451,7 +451,8 @@ void _appendLine(int index, int indent, List<int> order, List<int> indents) {
   indents.add(indent);
 }
 
-/// [order] holds indices into [lines] and must differ from the current order.
+/// [order] holds indices into [lines]. It may be the identity order when only
+/// the indents change; that case makes an empty delta.
 Delta buildGroupReorderDelta(
   Document document,
   List<ParsedLine> lines,
@@ -495,7 +496,8 @@ Delta buildGroupReorderDelta(
     }
   }
 
-  return total!;
+  // An order that only re-indents makes no move of its own.
+  return total ?? Delta();
 }
 
 /// Writes [lines] newline indent attributes to their absolute [indents],
@@ -528,6 +530,11 @@ Delta buildCheckedSectionDelta(
   CheckedSectionPlan plan,
 ) {
   final move = buildGroupReorderDelta(document, lines, groupStart, plan.order);
+  // A plan that only re-indents makes no move of its own, and Document.compose
+  // rejects an empty delta.
+  if (move.isEmpty) {
+    return buildIndentsDelta(lines, groupStart, plan.indents);
+  }
   final moved = Document.fromDelta(document.toDelta())
     ..compose(move, ChangeSource.local);
   final reindent = buildIndentsDelta(
@@ -535,7 +542,7 @@ Delta buildCheckedSectionDelta(
     groupStart,
     plan.indents,
   );
-  return move.compose(reindent);
+  return reindent.isEmpty ? move : move.compose(reindent);
 }
 
 /// Toggles [index] and every checklist line in its block.
