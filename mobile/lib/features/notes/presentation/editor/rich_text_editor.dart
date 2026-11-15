@@ -839,6 +839,7 @@ class RichTextEditorState extends State<RichTextEditor>
   }
 
   void _toggleCheckbox(Line line, bool checked) {
+    _sorter.cancelAll();
     Haptics.selection();
     if (checked) {
       _justCheckedTimers[line]?.cancel();

@@ -200,6 +200,40 @@ void main() {
     expect(state.getPlainText(), startsWith('A\nA1\nB\nB1'));
   });
 
+  testWidgets('a flat item still moves to the bottom when checked', (
+    tester,
+  ) async {
+    final state = await pumpNote(tester, const [
+      ('A', 'unchecked', 0),
+      ('B', 'unchecked', 0),
+      ('C', 'unchecked', 0),
+    ]);
+
+    await tester.tap(checkboxOf('A'));
+    await tester.pump(AnchorTokens.motionDurationSinkDelay);
+
+    expect(state.getPlainText(), startsWith('B\nC\nA'));
+  });
+
+  testWidgets('a child tap then a parent tap keeps the parent in place', (
+    tester,
+  ) async {
+    final state = await pumpNote(tester, const [
+      ('A', 'unchecked', 0),
+      ('A1', 'unchecked', 1),
+      ('B', 'unchecked', 0),
+      ('B1', 'checked', 1),
+    ], folded: true);
+
+    await tester.tap(checkboxOf('A1'));
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(checkboxOf('A'));
+    await tester.pump(AnchorTokens.motionDurationSinkDelay);
+
+    expect(state.getPlainText(), startsWith('A\nA1\nB\nB1'));
+    expect(checkboxOf('B1'), findsNothing);
+  });
+
   testWidgets('list lines keep one rhythm across indents, ticks and kinds', (
     tester,
   ) async {

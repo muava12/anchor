@@ -25,7 +25,7 @@
 - A non-checklist line indented under a parent: its list state does not change. Covered in Task 1.
 - Unchecking a parent with checked descendants: every checklist descendant becomes unchecked. Covered in Task 1.
 - A checked item hidden at the end of another branch: it stays hidden after the parent toggle. Covered in Task 2.
-- A flat checklist item: checking it still moves it to the bottom. Covered by the existing `checklist_reorder_test.dart` suite in Task 2.
+- A flat checklist item: checking it still moves it to the bottom. Covered by the flat-item widget test in Task 2.
 
 ---
 
