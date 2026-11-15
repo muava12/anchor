@@ -213,6 +213,29 @@ void main() {
     ]);
   });
 
+  testWidgets('toggling a child moves its whole subtree', (tester) async {
+    final lines = <(String, String?, int)>[
+      ('p', 'unchecked', 0),
+      ('c1', 'unchecked', 1),
+      ('g1', 'unchecked', 2),
+      ('q', 'unchecked', 0),
+    ];
+    final controller = makeNestedController(lines);
+    addTearDown(controller.dispose);
+    sortWith(controller);
+
+    controller.formatText(lineStartOf(lines, 1), 0, Attribute.checked);
+    await tester.pump();
+
+    // c1 leaves its parent with g1, which stays one level below it.
+    expect(nestedLinesOf(controller), [
+      ('p', 'unchecked', 0),
+      ('q', 'unchecked', 0),
+      ('c1', 'checked', 0),
+      ('g1', 'unchecked', 1),
+    ]);
+  });
+
   testWidgets('checking the last unchecked item leaves it in place', (
     tester,
   ) async {
