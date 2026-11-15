@@ -268,56 +268,6 @@ Delta _buildSpanMoveDelta(
   return move;
 }
 
-/// Unchecked blocks before checked at each level, in document order, with
-/// the toggled block last in its section. Null when already in order.
-List<int>? checklistSortOrder(
-  List<ParsedLine> lines,
-  int groupStart,
-  int groupEnd,
-  int toggledIndex,
-) {
-  final order = <int>[];
-  _orderSiblingBlocks(lines, groupStart, groupEnd, toggledIndex, order);
-  for (var k = 0; k < order.length; k++) {
-    if (order[k] != groupStart + k) return order;
-  }
-  return null;
-}
-
-void _orderSiblingBlocks(
-  List<ParsedLine> lines,
-  int start,
-  int end,
-  int toggledIndex,
-  List<int> out,
-) {
-  final unchecked = <(int, int)>[];
-  final checked = <(int, int)>[];
-  (int, int)? toggled;
-
-  var i = start;
-  while (i <= end) {
-    final blockEnd = checklistBlockEnd(lines, i, end);
-    final block = (i, blockEnd);
-    if (i == toggledIndex) {
-      toggled = block;
-    } else {
-      (lines[i].isChecked ? checked : unchecked).add(block);
-    }
-    i = blockEnd + 1;
-  }
-  if (toggled != null) {
-    (lines[toggled.$1].isChecked ? checked : unchecked).add(toggled);
-  }
-
-  for (final (blockStart, blockEnd) in [...unchecked, ...checked]) {
-    out.add(blockStart);
-    if (blockEnd > blockStart) {
-      _orderSiblingBlocks(lines, blockStart + 1, blockEnd, toggledIndex, out);
-    }
-  }
-}
-
 /// Lines of a checklist group in the checked section's order, with the absolute
 /// indent each line takes. [order] holds original line indices; [indents]
 /// follows it. An unchecked line keeps its own indent. A checked block starts
@@ -375,19 +325,25 @@ _ChecklistBlock _checklistSubtree(List<ParsedLine> lines, int start, int end) {
 CheckedSectionPlan? checklistCheckedSectionPlan(
   List<ParsedLine> lines,
   int groupStart,
-  int groupEnd,
-) {
+  int groupEnd, {
+  int? prefer,
+}) {
   final open = <int>[];
   final openIndents = <int>[];
   final done = <int>[];
   final doneIndents = <int>[];
+  final blocks = _checklistBlocks(lines, groupStart, groupEnd);
+  // The block holding [prefer] goes last in the section it lands in, so the
+  // item the reader just toggled sits at the end of that list.
+  final late = prefer == null ? null : _blockStartingAt(blocks, prefer);
   _planSiblings(
     lines,
-    _checklistBlocks(lines, groupStart, groupEnd),
+    blocks,
     open,
     openIndents,
     done,
     doneIndents,
+    late: late,
   );
   final order = [...open, ...done];
   final indents = [...openIndents, ...doneIndents];
@@ -411,25 +367,68 @@ void _planSiblings(
   List<int> open,
   List<int> openIndents,
   List<int> done,
-  List<int> doneIndents,
-) {
+  List<int> doneIndents, {
+  _ChecklistBlock? late,
+}) {
   for (final block in blocks) {
-    if (lines[block.start].isChecked) {
-      // A checked block leaves its parent and starts the checked section at
-      // the absolute root indent.
-      _appendWholeBlock(block, 0, done, doneIndents);
-    } else {
-      _appendLine(block.start, lines[block.start].indent, open, openIndents);
-      _planSiblings(
-        lines,
-        block.children,
-        open,
-        openIndents,
-        done,
-        doneIndents,
-      );
-    }
+    if (block == late) continue;
+    _appendBlock(lines, block, open, openIndents, done, doneIndents, late);
   }
+  if (late == null) return;
+
+  // The toggled block goes last in its section. A checked one leaves its
+  // parent and starts the section at the absolute root indent.
+  if (lines[late.start].isChecked) {
+    _appendWholeBlock(late, 0, done, doneIndents);
+  } else {
+    _appendLine(late.start, lines[late.start].indent, open, openIndents);
+    _appendChildren(lines, late, open, openIndents, done, doneIndents, late);
+  }
+}
+
+void _appendBlock(
+  List<ParsedLine> lines,
+  _ChecklistBlock block,
+  List<int> open,
+  List<int> openIndents,
+  List<int> done,
+  List<int> doneIndents,
+  _ChecklistBlock? late,
+) {
+  if (lines[block.start].isChecked) {
+    // A checked block leaves its parent and starts the checked section at
+    // the absolute root indent.
+    _appendWholeBlock(block, 0, done, doneIndents);
+    return;
+  }
+  _appendLine(block.start, lines[block.start].indent, open, openIndents);
+  _appendChildren(lines, block, open, openIndents, done, doneIndents, late);
+}
+
+void _appendChildren(
+  List<ParsedLine> lines,
+  _ChecklistBlock block,
+  List<int> open,
+  List<int> openIndents,
+  List<int> done,
+  List<int> doneIndents,
+  _ChecklistBlock? late,
+) {
+  for (final child in block.children) {
+    // The toggled block waits its turn in _planSiblings.
+    if (child == late) continue;
+    _appendBlock(lines, child, open, openIndents, done, doneIndents, late);
+  }
+}
+
+/// The innermost block that starts at line [index].
+_ChecklistBlock? _blockStartingAt(List<_ChecklistBlock> blocks, int index) {
+  for (final block in blocks) {
+    if (block.start == index) return block;
+    final inner = _blockStartingAt(block.children, index);
+    if (inner != null) return inner;
+  }
+  return null;
 }
 
 /// A checked block moves whole. [headIndent] is absolute: the head takes it,
