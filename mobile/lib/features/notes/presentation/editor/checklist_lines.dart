@@ -322,6 +322,11 @@ _ChecklistBlock _checklistSubtree(List<ParsedLine> lines, int start, int end) {
 
 /// One checked section at the bottom of the group, after every unchecked
 /// line. Null when the group is already in that order.
+///
+/// [prefer] is the line the reader just toggled. Its block goes last in the
+/// section its container lands in: the container is its parent block when it
+/// has one, otherwise its own checked or unchecked section. Pass null for the
+/// plain order, which keeps every section in document order.
 CheckedSectionPlan? checklistCheckedSectionPlan(
   List<ParsedLine> lines,
   int groupStart,
@@ -333,8 +338,6 @@ CheckedSectionPlan? checklistCheckedSectionPlan(
   final done = <int>[];
   final doneIndents = <int>[];
   final blocks = _checklistBlocks(lines, groupStart, groupEnd);
-  // The block holding [prefer] goes last in the section it lands in, so the
-  // item the reader just toggled sits at the end of that list.
   final late = prefer == null ? null : _blockStartingAt(blocks, prefer);
   _planSiblings(
     lines,
@@ -345,6 +348,24 @@ CheckedSectionPlan? checklistCheckedSectionPlan(
     doneIndents,
     late: late,
   );
+  // The toggled block was skipped everywhere above, so it is appended once,
+  // here. A checked one leaves its parent and starts at the absolute root; an
+  // unchecked one keeps its own indent. An unchecked block stays with the
+  // section its container lands in, so unchecking the child of a checked
+  // parent leaves it at the end of the checked section.
+  if (late != null) {
+    final container = _blockParent(blocks, late);
+    final toDone =
+        lines[late.start].isChecked ||
+        (container != null && lines[container.start].isChecked);
+    _appendWholeBlock(
+      late,
+      lines[late.start].isChecked ? 0 : lines[late.start].indent,
+      toDone ? done : open,
+      toDone ? doneIndents : openIndents,
+      late: null,
+    );
+  }
   final order = [...open, ...done];
   final indents = [...openIndents, ...doneIndents];
   if (order.length != groupEnd - groupStart + 1) return null;
@@ -368,21 +389,12 @@ void _planSiblings(
   List<int> openIndents,
   List<int> done,
   List<int> doneIndents, {
-  _ChecklistBlock? late,
+  required _ChecklistBlock? late,
 }) {
   for (final block in blocks) {
+    // The toggled block waits for the caller to append it last.
     if (block == late) continue;
     _appendBlock(lines, block, open, openIndents, done, doneIndents, late);
-  }
-  if (late == null) return;
-
-  // The toggled block goes last in its section. A checked one leaves its
-  // parent and starts the section at the absolute root indent.
-  if (lines[late.start].isChecked) {
-    _appendWholeBlock(late, 0, done, doneIndents);
-  } else {
-    _appendLine(late.start, lines[late.start].indent, open, openIndents);
-    _appendChildren(lines, late, open, openIndents, done, doneIndents, late);
   }
 }
 
@@ -398,7 +410,13 @@ void _appendBlock(
   if (lines[block.start].isChecked) {
     // A checked block leaves its parent and starts the checked section at
     // the absolute root indent.
-    _appendWholeBlock(block, 0, done, doneIndents);
+    _appendWholeBlock(
+      block,
+      0,
+      done,
+      doneIndents,
+      late: late,
+    );
     return;
   }
   _appendLine(block.start, lines[block.start].indent, open, openIndents);
@@ -431,17 +449,40 @@ _ChecklistBlock? _blockStartingAt(List<_ChecklistBlock> blocks, int index) {
   return null;
 }
 
+/// The block whose children hold [target], or null when it is top level.
+_ChecklistBlock? _blockParent(
+  List<_ChecklistBlock> blocks,
+  _ChecklistBlock target,
+) {
+  for (final block in blocks) {
+    if (block.children.contains(target)) return block;
+    final inner = _blockParent(block.children, target);
+    if (inner != null) return inner;
+  }
+  return null;
+}
+
 /// A checked block moves whole. [headIndent] is absolute: the head takes it,
 /// and each descendant is one level below its own parent.
 void _appendWholeBlock(
   _ChecklistBlock block,
   int headIndent,
   List<int> order,
-  List<int> indents,
-) {
+  List<int> indents, {
+  _ChecklistBlock? late,
+}) {
   _appendLine(block.start, headIndent, order, indents);
   for (final child in block.children) {
-    _appendWholeBlock(child, headIndent + 1, order, indents);
+    // The toggled block is appended last by the caller, so it is never
+    // emitted here. Without this the same line lands in [order] twice.
+    if (child == late) continue;
+    _appendWholeBlock(
+      child,
+      headIndent + 1,
+      order,
+      indents,
+      late: late,
+    );
   }
 }
 

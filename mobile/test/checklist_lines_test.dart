@@ -331,6 +331,21 @@ void main() {
       expect(checklistCheckedSectionPlan(lines, 0, 2, prefer: 2), isNull);
     });
 
+    test('unchecking the only child of a checked parent keeps one line each', () {
+      // The toggled line is emitted once, after its parent leaves for the
+      // checked section. Emitting it twice made the length guard return null.
+      final doc = nestedDoc([
+        ('p', 'checked', 0),
+        ('c', 'unchecked', 1),
+        ('q', 'unchecked', 0),
+      ]);
+      final lines = parseDocumentLines(doc);
+      final plan = checklistCheckedSectionPlan(lines, 0, 2, prefer: 1);
+      expect(plan, isNotNull);
+      expect(plan!.order, [2, 0, 1]);
+      expect(plan.indents, [0, 0, 1]);
+    });
+
     test('a checked child under an unchecked parent always re-indents', () {
       final doc = nestedDoc([
         ('p', 'unchecked', 0),
