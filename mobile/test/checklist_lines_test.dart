@@ -850,7 +850,7 @@ void main() {
       expect(plan.indents, [0, 1, 0, 1]);
     });
 
-    test('a checked child sits after its unchecked siblings', () {
+    test('a checked child leaves an unchecked parent', () {
       final plan = planOf(
         nestedDoc([
           ('p', 'unchecked', 0),
@@ -859,8 +859,21 @@ void main() {
           ('q', 'unchecked', 0),
         ]),
       );
-      expect(plan!.order, [0, 2, 1, 3]);
-      expect(plan.indents, [0, 1, 1, 0]);
+      expect(plan!.order, [0, 2, 3, 1]);
+      expect(plan.indents, [0, 1, 0, 0]);
+    });
+
+    test('a checked grandchild leaves to the checked section', () {
+      final plan = planOf(
+        nestedDoc([
+          ('p', 'unchecked', 0),
+          ('c', 'unchecked', 1),
+          ('g', 'checked', 2),
+          ('q', 'unchecked', 0),
+        ]),
+      );
+      expect(plan!.order, [0, 1, 3, 2]);
+      expect(plan.indents, [0, 1, 0, 0]);
     });
 
     test('an already ordered group has no plan', () {

@@ -367,23 +367,29 @@ _ChecklistBlock _checklistSubtree(List<ParsedLine> lines, int start, int end) {
   return root;
 }
 
-/// Unchecked lines before checked at every level, a checked block at the
-/// bottom of its section. Null when the group is already in that order.
+/// One checked section at the bottom of the group, after every unchecked
+/// line. Null when the group is already in that order.
 CheckedSectionPlan? checklistCheckedSectionPlan(
   List<ParsedLine> lines,
   int groupStart,
   int groupEnd,
 ) {
   final base = lines[groupStart].indent;
-  final order = <int>[];
-  final indents = <int>[];
+  final open = <int>[];
+  final openIndents = <int>[];
+  final done = <int>[];
+  final doneIndents = <int>[];
   _planSiblings(
     lines,
     _checklistBlocks(lines, groupStart, groupEnd),
     base,
-    order,
-    indents,
+    open,
+    openIndents,
+    done,
+    doneIndents,
   );
+  final order = [...open, ...done];
+  final indents = [...openIndents, ...doneIndents];
   if (order.length != groupEnd - groupStart + 1) return null;
 
   for (var k = 0; k < order.length; k++) {
@@ -396,41 +402,47 @@ CheckedSectionPlan? checklistCheckedSectionPlan(
 }
 
 /// One level of blocks: every unchecked block first, then the checked ones.
-/// A block is its head line, then the same plan for its children.
+/// An unchecked block emits its head, then its children in place. A checked
+/// block goes to the group's one checked section.
 void _planSiblings(
   List<ParsedLine> lines,
   List<_ChecklistBlock> blocks,
   int base,
-  List<int> order,
-  List<int> indents,
+  List<int> open,
+  List<int> openIndents,
+  List<int> done,
+  List<int> doneIndents,
 ) {
-  final open = <_ChecklistBlock>[];
-  final done = <_ChecklistBlock>[];
   for (final block in blocks) {
-    (lines[block.start].isChecked ? done : open).add(block);
-  }
-
-  for (final block in open) {
-    _appendLine(block.start, lines[block.start].indent - base, order, indents);
-    _planSiblings(lines, block.children, base, order, indents);
-  }
-  for (final block in done) {
-    final indent = lines[block.start].indent - base;
-    _appendLine(block.start, indent, order, indents);
-    _appendWholeBlock(block.children, indent, order, indents);
+    if (lines[block.start].isChecked) {
+      // A checked block leaves its parent and starts the checked section at
+      // the group's root indent.
+      _appendWholeBlock(block, 0, done, doneIndents);
+    } else {
+      _appendLine(block.start, lines[block.start].indent - base, open, openIndents);
+      _planSiblings(
+        lines,
+        block.children,
+        base,
+        open,
+        openIndents,
+        done,
+        doneIndents,
+      );
+    }
   }
 }
 
 /// A checked block moves whole, its children one level below the head.
 void _appendWholeBlock(
-  List<_ChecklistBlock> blocks,
+  _ChecklistBlock block,
   int headIndent,
   List<int> order,
   List<int> indents,
 ) {
-  for (final block in blocks) {
-    _appendLine(block.start, headIndent + 1, order, indents);
-    _appendWholeBlock(block.children, headIndent + 1, order, indents);
+  _appendLine(block.start, headIndent, order, indents);
+  for (final child in block.children) {
+    _appendWholeBlock(child, headIndent + 1, order, indents);
   }
 }
 
