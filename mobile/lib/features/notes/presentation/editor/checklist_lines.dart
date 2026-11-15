@@ -318,6 +318,127 @@ void _orderSiblingBlocks(
   }
 }
 
+/// Lines of a checklist group in the checked section's order, with the indent
+/// each line takes. [order] holds original line indices; [indents] follows it.
+class CheckedSectionPlan {
+  final List<int> order;
+  final List<int> indents;
+
+  const CheckedSectionPlan({required this.order, required this.indents});
+}
+
+class _ChecklistBlock {
+  final int start;
+  final int end;
+  final List<_ChecklistBlock> children = [];
+
+  _ChecklistBlock(this.start, this.end);
+}
+
+/// Splits [start..end] into sibling blocks, each with its own descendants.
+/// A block is a head line and the deeper-indented lines after it; the next
+/// line at the head's indent or shallower ends the block.
+List<_ChecklistBlock> _checklistBlocks(
+  List<ParsedLine> lines,
+  int start,
+  int end,
+) {
+  final heads = <int>[];
+  for (var i = start; i <= end; i++) {
+    if (i == start || lines[i].indent <= lines[heads.last].indent) {
+      heads.add(i);
+    }
+  }
+
+  final blocks = <_ChecklistBlock>[];
+  for (var h = 0; h < heads.length; h++) {
+    final head = heads[h];
+    final blockEnd = h + 1 < heads.length ? heads[h + 1] - 1 : end;
+    blocks.add(_checklistSubtree(lines, head, blockEnd));
+  }
+  return blocks;
+}
+
+/// Block [start..end] with its descendants nested by indent.
+_ChecklistBlock _checklistSubtree(List<ParsedLine> lines, int start, int end) {
+  final root = _ChecklistBlock(start, end);
+  final children = _checklistBlocks(lines, start + 1, end);
+  root.children.addAll(children);
+  return root;
+}
+
+/// Unchecked lines before checked at every level, a checked block at the
+/// bottom of its section. Null when the group is already in that order.
+CheckedSectionPlan? checklistCheckedSectionPlan(
+  List<ParsedLine> lines,
+  int groupStart,
+  int groupEnd,
+) {
+  final base = lines[groupStart].indent;
+  final order = <int>[];
+  final indents = <int>[];
+  _planSiblings(
+    lines,
+    _checklistBlocks(lines, groupStart, groupEnd),
+    base,
+    order,
+    indents,
+  );
+  if (order.length != groupEnd - groupStart + 1) return null;
+
+  for (var k = 0; k < order.length; k++) {
+    final line = lines[groupStart + k];
+    if (order[k] != groupStart + k || indents[k] != line.indent) {
+      return CheckedSectionPlan(order: order, indents: indents);
+    }
+  }
+  return null;
+}
+
+/// One level of blocks: every unchecked block first, then the checked ones.
+/// A block is its head line, then the same plan for its children.
+void _planSiblings(
+  List<ParsedLine> lines,
+  List<_ChecklistBlock> blocks,
+  int base,
+  List<int> order,
+  List<int> indents,
+) {
+  final open = <_ChecklistBlock>[];
+  final done = <_ChecklistBlock>[];
+  for (final block in blocks) {
+    (lines[block.start].isChecked ? done : open).add(block);
+  }
+
+  for (final block in open) {
+    _appendLine(block.start, lines[block.start].indent - base, order, indents);
+    _planSiblings(lines, block.children, base, order, indents);
+  }
+  for (final block in done) {
+    final indent = lines[block.start].indent - base;
+    _appendLine(block.start, indent, order, indents);
+    _appendWholeBlock(block.children, indent, order, indents);
+  }
+}
+
+/// A checked block moves whole, its children one level below the head.
+void _appendWholeBlock(
+  List<_ChecklistBlock> blocks,
+  int headIndent,
+  List<int> order,
+  List<int> indents,
+) {
+  for (final block in blocks) {
+    _appendLine(block.start, headIndent + 1, order, indents);
+    _appendWholeBlock(block.children, headIndent + 1, order, indents);
+  }
+}
+
+void _appendLine(int index, int indent, List<int> order, List<int> indents) {
+  order.add(index);
+  indents.add(indent);
+}
+
 /// [order] holds indices into [lines] and must differ from the current order.
 Delta buildGroupReorderDelta(
   Document document,

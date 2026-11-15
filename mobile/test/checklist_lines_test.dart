@@ -805,4 +805,80 @@ void main() {
       ]);
     });
   });
+
+  group('checklistCheckedSectionPlan', () {
+    CheckedSectionPlan? planOf(Document doc) {
+      final lines = parseDocumentLines(doc);
+      return checklistCheckedSectionPlan(lines, 0, lines.length - 1);
+    }
+
+    test('a checked item moves to the bottom', () {
+      final plan = planOf(
+        nestedDoc([
+          ('a', 'unchecked', 0),
+          ('b', 'checked', 0),
+          ('c', 'unchecked', 0),
+        ]),
+      );
+      expect(plan, isNotNull);
+      expect(plan!.order, [0, 2, 1]);
+      expect(plan.indents, [0, 0, 0]);
+    });
+
+    test('a checked block drops below an unchecked block', () {
+      final plan = planOf(
+        nestedDoc([
+          ('a', 'unchecked', 0),
+          ('a1', 'unchecked', 1),
+          ('b', 'checked', 0),
+          ('b1', 'checked', 1),
+        ]),
+      );
+      expect(plan, isNull);
+    });
+
+    test('a checked block ahead of an unchecked one drops below it', () {
+      final plan = planOf(
+        nestedDoc([
+          ('a', 'checked', 0),
+          ('a1', 'checked', 1),
+          ('b', 'unchecked', 0),
+          ('b1', 'unchecked', 1),
+        ]),
+      );
+      expect(plan!.order, [2, 3, 0, 1]);
+      expect(plan.indents, [0, 1, 0, 1]);
+    });
+
+    test('a checked child sits after its unchecked siblings', () {
+      final plan = planOf(
+        nestedDoc([
+          ('p', 'unchecked', 0),
+          ('c1', 'checked', 1),
+          ('c2', 'unchecked', 1),
+          ('q', 'unchecked', 0),
+        ]),
+      );
+      expect(plan!.order, [0, 2, 1, 3]);
+      expect(plan.indents, [0, 1, 1, 0]);
+    });
+
+    test('an already ordered group has no plan', () {
+      final plan = planOf(
+        nestedDoc([
+          ('a', 'unchecked', 0),
+          ('b', 'checked', 0),
+          ('c', 'checked', 0),
+        ]),
+      );
+      expect(plan, isNull);
+    });
+
+    test('a non-checklist group has no plan', () {
+      final plan = planOf(
+        nestedDoc([('a', 'bullet', 0), ('b', 'bullet', 0), ('c', 'bullet', 0)]),
+      );
+      expect(plan, isNull);
+    });
+  });
 }
