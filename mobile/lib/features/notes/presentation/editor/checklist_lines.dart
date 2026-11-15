@@ -498,6 +498,46 @@ Delta buildGroupReorderDelta(
   return total!;
 }
 
+/// Writes [lines] newline indent attributes to their absolute [indents],
+/// keeping every other attribute of each newline.
+Delta buildIndentsDelta(
+  List<ParsedLine> lines,
+  int groupStart,
+  List<int> indents,
+) {
+  final delta = Delta();
+  var cursor = 0;
+  for (var k = 0; k < indents.length; k++) {
+    final line = lines[groupStart + k];
+    if (indents[k] == line.indent) continue;
+    final newlineOffset = line.startOffset + line.length - 1;
+    if (newlineOffset > cursor) delta.retain(newlineOffset - cursor);
+    delta.retain(1, indentAttributes(indents[k]));
+    cursor = newlineOffset + 1;
+  }
+  return delta;
+}
+
+/// Moves the group at [groupStart] into the checked section [plan] describes,
+/// in one delta: the reorder, then the indent each line takes in the new
+/// order.
+Delta buildCheckedSectionDelta(
+  Document document,
+  List<ParsedLine> lines,
+  int groupStart,
+  CheckedSectionPlan plan,
+) {
+  final move = buildGroupReorderDelta(document, lines, groupStart, plan.order);
+  final moved = Document.fromDelta(document.toDelta())
+    ..compose(move, ChangeSource.local);
+  final reindent = buildIndentsDelta(
+    parseDocumentLines(moved),
+    groupStart,
+    plan.indents,
+  );
+  return move.compose(reindent);
+}
+
 /// Toggles [index] and every checklist line in its block.
 Delta buildChecklistToggleDelta(
   List<ParsedLine> lines,

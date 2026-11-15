@@ -61,6 +61,11 @@ List<(String, String?, int)> nestedLinesOf(Document doc) {
 }
 
 void main() {
+  CheckedSectionPlan? planOf(Document doc) {
+    final lines = parseDocumentLines(doc);
+    return checklistCheckedSectionPlan(lines, 0, lines.length - 1);
+  }
+
   group('buildLineMoveDelta', () {
     test('moves a middle line down', () {
       final doc = docFrom([
@@ -807,11 +812,6 @@ void main() {
   });
 
   group('checklistCheckedSectionPlan', () {
-    CheckedSectionPlan? planOf(Document doc) {
-      final lines = parseDocumentLines(doc);
-      return checklistCheckedSectionPlan(lines, 0, lines.length - 1);
-    }
-
     test('a checked item moves to the bottom', () {
       final plan = planOf(
         nestedDoc([
@@ -904,6 +904,115 @@ void main() {
         nestedDoc([('a', 'bullet', 0), ('b', 'bullet', 0), ('c', 'bullet', 0)]),
       );
       expect(plan, isNull);
+    });
+  });
+
+  group('buildCheckedSectionDelta', () {
+    Document appliedPlan(Document doc, CheckedSectionPlan plan) {
+      final lines = parseDocumentLines(doc);
+      final delta = buildCheckedSectionDelta(doc, lines, 0, plan);
+      doc.compose(delta, ChangeSource.local);
+      return doc;
+    }
+
+    test('the delta writes the checked section order and indents', () {
+      final doc = nestedDoc([
+        ('p', 'unchecked', 0),
+        ('c1', 'checked', 1),
+        ('c2', 'unchecked', 1),
+        ('q', 'unchecked', 0),
+      ]);
+      final plan = planOf(doc)!;
+      expect(nestedLinesOf(appliedPlan(doc, plan)), [
+        ('p', 'unchecked', 0),
+        ('c2', 'unchecked', 1),
+        ('q', 'unchecked', 0),
+        ('c1', 'checked', 0),
+      ]);
+    });
+
+    test('the delta undoes in one step', () {
+      final doc = nestedDoc([
+        ('a', 'checked', 0),
+        ('a1', 'checked', 1),
+        ('b', 'unchecked', 0),
+      ]);
+      final before = doc.toDelta();
+      final plan = planOf(doc)!;
+      final delta = buildCheckedSectionDelta(
+        doc,
+        parseDocumentLines(doc),
+        0,
+        plan,
+      );
+      doc.compose(delta, ChangeSource.local);
+      doc.compose(delta.invert(before), ChangeSource.local);
+      expect(doc.toDelta(), before);
+    });
+
+    test('a checked parent block sinks whole with its subtree', () {
+      final doc = nestedDoc([
+        ('a', 'checked', 0),
+        ('a1', 'checked', 1),
+        ('b', 'unchecked', 0),
+        ('b1', 'unchecked', 1),
+      ]);
+      final plan = planOf(doc)!;
+      expect(nestedLinesOf(appliedPlan(doc, plan)), [
+        ('b', 'unchecked', 0),
+        ('b1', 'unchecked', 1),
+        ('a', 'checked', 0),
+        ('a1', 'checked', 1),
+      ]);
+    });
+
+    test('a checked block leaves an indented group at the checked root', () {
+      final doc = nestedDoc([
+        ('p', 'unchecked', 1),
+        ('c', 'checked', 2),
+        ('q', 'unchecked', 1),
+      ]);
+      final plan = planOf(doc)!;
+      expect(nestedLinesOf(appliedPlan(doc, plan)), [
+        ('p', 'unchecked', 1),
+        ('q', 'unchecked', 1),
+        ('c', 'checked', 0),
+      ]);
+    });
+
+    test('the delta keeps inline formatting', () {
+      final doc = nestedDoc([
+        ('p', 'unchecked', 0),
+        ('c1', 'checked', 1),
+        ('q', 'unchecked', 0),
+      ]);
+      final lines = parseDocumentLines(doc);
+      final c1Start = lines[1].startOffset;
+      doc.compose(
+        Delta()
+          ..retain(c1Start + 1)
+          ..retain(1, {'bold': true}),
+        ChangeSource.local,
+      );
+      final plan = planOf(doc)!;
+      appliedPlan(doc, plan);
+
+      final moved = parseDocumentLines(doc);
+      final c1 = moved.firstWhere(
+        (line) =>
+            doc.toPlainText().substring(
+                  line.startOffset,
+                  line.startOffset + line.length - 1,
+                ) ==
+            'c1',
+      );
+      final boldOffset = c1.startOffset + 1;
+      final bold = doc
+          .toDelta()
+          .slice(boldOffset, boldOffset + 1)
+          .first;
+      expect(bold.data, '1');
+      expect(bold.attributes, containsPair('bold', true));
     });
   });
 }
