@@ -876,6 +876,18 @@ void main() {
       expect(plan.indents, [0, 1, 0, 0]);
     });
 
+    test('indents are absolute when the group starts indented', () {
+      final plan = planOf(
+        nestedDoc([
+          ('p', 'unchecked', 1),
+          ('c', 'checked', 2),
+          ('q', 'unchecked', 1),
+        ]),
+      );
+      expect(plan!.order, [0, 2, 1]);
+      expect(plan.indents, [1, 1, 0]);
+    });
+
     test('an already ordered group has no plan', () {
       final plan = planOf(
         nestedDoc([

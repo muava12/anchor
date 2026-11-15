@@ -318,8 +318,11 @@ void _orderSiblingBlocks(
   }
 }
 
-/// Lines of a checklist group in the checked section's order, with the indent
-/// each line takes. [order] holds original line indices; [indents] follows it.
+/// Lines of a checklist group in the checked section's order, with the absolute
+/// indent each line takes. [order] holds original line indices; [indents]
+/// follows it. An unchecked line keeps its own indent. A checked block starts
+/// the checked section at absolute indent 0, and its descendants follow one
+/// level below their own parent.
 class CheckedSectionPlan {
   final List<int> order;
   final List<int> indents;
@@ -374,7 +377,6 @@ CheckedSectionPlan? checklistCheckedSectionPlan(
   int groupStart,
   int groupEnd,
 ) {
-  final base = lines[groupStart].indent;
   final open = <int>[];
   final openIndents = <int>[];
   final done = <int>[];
@@ -382,7 +384,6 @@ CheckedSectionPlan? checklistCheckedSectionPlan(
   _planSiblings(
     lines,
     _checklistBlocks(lines, groupStart, groupEnd),
-    base,
     open,
     openIndents,
     done,
@@ -401,13 +402,12 @@ CheckedSectionPlan? checklistCheckedSectionPlan(
   return null;
 }
 
-/// One level of blocks: every unchecked block first, then the checked ones.
-/// An unchecked block emits its head, then its children in place. A checked
-/// block goes to the group's one checked section.
+/// One level of blocks, in document order. An unchecked block emits its head
+/// at its own absolute indent, then its children in place. A checked block
+/// goes to the group's one checked section.
 void _planSiblings(
   List<ParsedLine> lines,
   List<_ChecklistBlock> blocks,
-  int base,
   List<int> open,
   List<int> openIndents,
   List<int> done,
@@ -416,14 +416,13 @@ void _planSiblings(
   for (final block in blocks) {
     if (lines[block.start].isChecked) {
       // A checked block leaves its parent and starts the checked section at
-      // the group's root indent.
+      // the absolute root indent.
       _appendWholeBlock(block, 0, done, doneIndents);
     } else {
-      _appendLine(block.start, lines[block.start].indent - base, open, openIndents);
+      _appendLine(block.start, lines[block.start].indent, open, openIndents);
       _planSiblings(
         lines,
         block.children,
-        base,
         open,
         openIndents,
         done,
@@ -433,7 +432,8 @@ void _planSiblings(
   }
 }
 
-/// A checked block moves whole, its children one level below the head.
+/// A checked block moves whole. [headIndent] is absolute: the head takes it,
+/// and each descendant is one level below its own parent.
 void _appendWholeBlock(
   _ChecklistBlock block,
   int headIndent,
