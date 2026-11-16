@@ -2784,6 +2784,35 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get backupEvery => 'Every';
+
+  @override
+  String get backupKeepWord => 'Keep';
+
+  @override
+  String get backupDaysUnit => 'days';
+
+  @override
+  String get backupFilesUnit => 'files';
+
+  @override
+  String get backupDaily => 'Daily';
+
+  @override
+  String get backupWeekly => 'Weekly';
+
+  @override
+  String get backupMonthly => 'Monthly';
+
+  @override
+  String get backupPeriodDesc =>
+      'How often Anchor makes an automatic backup';
+
+  @override
+  String get backupKeepDesc =>
+      'How many backups to keep before the oldest is removed';
+
+  @override
   String get backupPassword => 'Password';
 
   @override

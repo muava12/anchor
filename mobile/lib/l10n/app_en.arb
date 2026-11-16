@@ -3724,6 +3724,42 @@
       }
     }
   },
+  "backupEvery": "Every",
+  "@backupEvery": {
+    "description": "Fixed left label of the backup-period dialog; the number and unit are shown on the right."
+  },
+  "backupKeepWord": "Keep",
+  "@backupKeepWord": {
+    "description": "Fixed left label of the kept-files dialog; the number and unit are shown on the right."
+  },
+  "backupDaysUnit": "days",
+  "@backupDaysUnit": {
+    "description": "Unit shown after the backup-period number in its dialog."
+  },
+  "backupFilesUnit": "files",
+  "@backupFilesUnit": {
+    "description": "Unit shown after the kept-files number in its dialog."
+  },
+  "backupDaily": "Daily",
+  "@backupDaily": {
+    "description": "Quick-pick chip in the backup-period dialog; selects 1 day."
+  },
+  "backupWeekly": "Weekly",
+  "@backupWeekly": {
+    "description": "Quick-pick chip in the backup-period dialog; selects 7 days."
+  },
+  "backupMonthly": "Monthly",
+  "@backupMonthly": {
+    "description": "Quick-pick chip in the backup-period dialog; selects 30 days."
+  },
+  "backupPeriodDesc": "How often Anchor makes an automatic backup",
+  "@backupPeriodDesc": {
+    "description": "Supporting line under the title in the backup-period dialog."
+  },
+  "backupKeepDesc": "How many backups to keep before the oldest is removed",
+  "@backupKeepDesc": {
+    "description": "Supporting line under the title in the kept-files dialog."
+  },
   "backupPassword": "Password",
   "@backupPassword": {
     "description": "Optional password for the backup file"
