@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'image_compressor_worker.dart'
     show CompressedImage, SourceImage, compressImageIsolate;
 
+export 'image_compressor_worker.dart' show CompressedImage, SourceImage;
+
 abstract interface class ImageCompressor {
   /// Compresses [image] and returns the result.
   Future<CompressedImage> compress(SourceImage image);
