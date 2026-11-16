@@ -43,6 +43,28 @@ void main() {
     await tempDir.delete(recursive: true);
   });
 
+  test('compressImageIsolate preserves the aspect ratio when downscaling', () async {
+    final tempDir = await Directory.systemTemp.createTemp('anchor_test');
+    final inputFile = File('${tempDir.path}/input.jpg');
+    // 3000x1000 wide photo: must fit inside 2048x2048 as 2048x683, not square.
+    final wide = img.Image(width: 3000, height: 1000);
+    img.fill(wide, color: img.ColorRgb8(120, 60, 200));
+    await inputFile.writeAsBytes(img.encodeJpg(wide, quality: 70));
+
+    final source = SourceImage(path: inputFile.path, mime: 'image/jpeg');
+    final result = await compressImageIsolate(source);
+
+    final outputBytes = await File(result.path).readAsBytes();
+    final decoded = img.decodeJpg(outputBytes);
+    expect(decoded, isNotNull);
+    expect(decoded!.width, lessThanOrEqualTo(2048));
+    expect(decoded.height, lessThanOrEqualTo(2048));
+    // Ratio 3:1 kept within rounding error.
+    expect(decoded.width / decoded.height, closeTo(3.0, 0.01));
+
+    await tempDir.delete(recursive: true);
+  });
+
   test('compressImageIsolate handles decode failure', () async {
     final tempDir = await Directory.systemTemp.createTemp('anchor_test');
     final inputFile = File('${tempDir.path}/input.jpg');

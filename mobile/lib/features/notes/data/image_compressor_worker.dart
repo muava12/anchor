@@ -41,14 +41,13 @@ Future<CompressedImage> compressImageIsolate(SourceImage image) async {
     throw Exception('Cannot decode image: ${image.path}');
   }
 
-  // Only downscale; never upscale.
+  // Only downscale; never upscale. Resize by the longest side so the
+  // original aspect ratio is kept; copyResize derives the other side.
   img.Image resized = decoded;
   if (decoded.width > _maxDimension || decoded.height > _maxDimension) {
-    resized = img.copyResize(
-      decoded,
-      width: _maxDimension,
-      height: _maxDimension,
-    );
+    resized = decoded.width >= decoded.height
+        ? img.copyResize(decoded, width: _maxDimension)
+        : img.copyResize(decoded, height: _maxDimension);
   }
 
   final jpeg = img.encodeJpg(resized, quality: _jpegQuality);
