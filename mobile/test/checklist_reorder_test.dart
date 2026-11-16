@@ -114,6 +114,19 @@ int lineStart(List<(String, String?)> lines, int index) {
   return offset;
 }
 
+int indexByText(QuillController controller, String text) {
+  final lines = parseDocumentLines(controller.document);
+  final plain = controller.document.toPlainText();
+  for (var i = 0; i < lines.length; i++) {
+    final line = lines[i];
+    if (plain.substring(line.startOffset, line.startOffset + line.length - 1) ==
+        text) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 void main() {
   Future<QuillController> pumpHost(
     WidgetTester tester,
@@ -126,6 +139,50 @@ void main() {
     sortWith(controller, sortEnabled: sortEnabled, delay: delay);
     return controller;
   }
+
+  test('P2: a cascaded child returns under its parent when unchecked', () {
+    final controller = makeNestedController([
+      ('p', 'unchecked', 0),
+      ('c1', 'unchecked', 1),
+      ('c2', 'unchecked', 1),
+    ]);
+    addTearDown(controller.dispose);
+    final sorter = sortWith(controller);
+
+    // Cascade-check c1: the sort sinks it to the checked section, recording
+    // its home under p.
+    var lines = parseDocumentLines(controller.document);
+    var c1 = indexByText(controller, 'c1');
+    controller.compose(
+      buildChecklistToggleDelta(lines, c1, true),
+      controller.selection,
+      ChangeSource.local,
+    );
+    sorter.sortAfterToggle(c1);
+
+    final sunk = parseDocumentLines(controller.document)[indexByText(controller, 'c1')];
+    expect(sunk.indent, 0, reason: 'sunk to the checked section root');
+    expect(sunk.anchorHome, isNotNull);
+
+    // Cascade-uncheck c1: the sort returns it under p, back at indent 1.
+    c1 = indexByText(controller, 'c1');
+    lines = parseDocumentLines(controller.document);
+    controller.compose(
+      buildChecklistToggleDelta(lines, c1, false),
+      controller.selection,
+      ChangeSource.local,
+    );
+    sorter.sortAfterToggle(c1);
+
+    expect(
+      nestedLinesOf(controller),
+      [
+        ('p', 'unchecked', 0),
+        ('c2', 'unchecked', 1),
+        ('c1', 'unchecked', 1),
+      ],
+    );
+  });
 
   testWidgets('checking an item moves it to the bottom of its group', (
     tester,

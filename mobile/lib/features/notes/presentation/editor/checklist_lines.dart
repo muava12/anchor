@@ -277,7 +277,15 @@ class CheckedSectionPlan {
   final List<int> order;
   final List<int> indents;
 
-  const CheckedSectionPlan({required this.order, required this.indents});
+  /// Newline attributes each original line index takes in its final
+  /// position: generated stable ids and the home of each sinking block.
+  final Map<int, Map<String, dynamic>> attrPatches;
+
+  const CheckedSectionPlan({
+    required this.order,
+    required this.indents,
+    this.attrPatches = const {},
+  });
 }
 
 class _ChecklistBlock {
@@ -333,6 +341,19 @@ CheckedSectionPlan? checklistCheckedSectionPlan(
   int groupEnd, {
   int? prefer,
 }) {
+  // Every checklist line of the group gets a known stable id: its existing
+  // one, or a generated one written by the same delta.
+  final ids = <int, String>{};
+  final attrPatches = <int, Map<String, dynamic>>{};
+  for (var i = groupStart; i <= groupEnd; i++) {
+    if (!lines[i].isChecklist) continue;
+    final existing = lines[i].anchorId;
+    ids[i] = existing ?? newChecklistLineId();
+    if (existing == null) {
+      attrPatches[i] = {checklistLineIdAttribute.key: ids[i]};
+    }
+  }
+
   final open = <int>[];
   final openIndents = <int>[];
   final done = <int>[];
@@ -351,6 +372,8 @@ CheckedSectionPlan? checklistCheckedSectionPlan(
   _planSiblings(
     lines,
     blocks,
+    ids,
+    attrPatches,
     open,
     openIndents,
     done,
@@ -358,18 +381,61 @@ CheckedSectionPlan? checklistCheckedSectionPlan(
     late: effectiveLate,
     frozen: frozen,
   );
-  // The toggled block was skipped everywhere above, so it is appended once,
-  // here. A checked block with only checked descendants leaves its parent and
-  // starts at the absolute root. An unchecked block keeps its own indent.
+  // The toggled block was skipped everywhere above, so it is placed once,
+  // here. A checked block leaves its parent and starts at the absolute root,
+  // remembering its home. An unchecked block returns under its remembered
+  // parent; without a home it keeps its own indent and goes to the end of
+  // the open list.
   if (lateMoves) {
     final toDone = _blockFullyChecked(lines, late);
-    _appendWholeBlock(
-      late,
-      toDone ? 0 : lines[late.start].indent,
-      toDone ? done : open,
-      toDone ? doneIndents : openIndents,
-      late: null,
-    );
+    var placed = false;
+    if (toDone) {
+      final parent = _blockParent(blocks, late);
+      attrPatches[late.start] = {
+        ...?attrPatches[late.start],
+        checklistHomeAttribute.key: parent == null
+            ? null
+            : encodeChecklistHome(
+                ids[parent.start]!,
+                lines[late.start].indent,
+              ),
+      };
+      _appendWholeBlock(late, 0, done, doneIndents, late: null);
+      placed = true;
+    } else {
+      final home = parseChecklistHome(lines[late.start].anchorHome);
+      final homeParent =
+          home != null && home.parentId != lines[late.start].anchorId
+              ? home
+              : null;
+      final parentIndex = homeParent == null
+          ? null
+          : _lineWithAnchorId(lines, groupStart, groupEnd, homeParent.parentId);
+      if (homeParent != null &&
+          parentIndex != null &&
+          !lines[parentIndex].isChecked) {
+        // Back under the remembered parent, as its last open child.
+        final position = open.indexOf(parentIndex);
+        if (position != -1) {
+          var at = position;
+          final blockEnd = checklistBlockEnd(lines, parentIndex, groupEnd);
+          while (at + 1 < open.length && open[at + 1] <= blockEnd) {
+            at++;
+          }
+          _spliceWholeBlock(late, homeParent.indent, at + 1, open, openIndents);
+          placed = true;
+        }
+      }
+      if (!placed) {
+        _appendWholeBlock(
+          late,
+          lines[late.start].indent,
+          open,
+          openIndents,
+          late: null,
+        );
+      }
+    }
   }
   final order = [...open, ...done];
   final indents = [...openIndents, ...doneIndents];
@@ -378,24 +444,34 @@ CheckedSectionPlan? checklistCheckedSectionPlan(
   for (var k = 0; k < order.length; k++) {
     final line = lines[groupStart + k];
     if (order[k] != groupStart + k || indents[k] != line.indent) {
-      return CheckedSectionPlan(order: order, indents: indents);
+      return CheckedSectionPlan(
+        order: order,
+        indents: indents,
+        attrPatches: attrPatches,
+      );
     }
   }
+  // Nothing moved and no indent changed, so no home needs writing either
+  // (homes are recorded as blocks sink, and sinking changes the order).
+  // Generated ids alone are not worth materializing a delta for.
   return null;
 }
 
 /// One level of blocks, in document order. An unchecked block emits its head
 /// at its own absolute indent, then its children in place. A checked block
-/// goes to the group's one checked section.
+/// goes to the group's one checked section, remembering its home.
 void _planSiblings(
   List<ParsedLine> lines,
   List<_ChecklistBlock> blocks,
+  Map<int, String> ids,
+  Map<int, Map<String, dynamic>> attrPatches,
   List<int> open,
   List<int> openIndents,
   List<int> done,
   List<int> doneIndents, {
   required _ChecklistBlock? late,
   _ChecklistBlock? frozen,
+  _ChecklistBlock? parent,
 }) {
   for (final block in blocks) {
     // The toggled block waits for the caller to append it last.
@@ -403,12 +479,15 @@ void _planSiblings(
     _appendBlock(
       lines,
       block,
+      ids,
+      attrPatches,
       open,
       openIndents,
       done,
       doneIndents,
       late,
       frozen,
+      parent,
     );
   }
 }
@@ -416,12 +495,15 @@ void _planSiblings(
 void _appendBlock(
   List<ParsedLine> lines,
   _ChecklistBlock block,
+  Map<int, String> ids,
+  Map<int, Map<String, dynamic>> attrPatches,
   List<int> open,
   List<int> openIndents,
   List<int> done,
   List<int> doneIndents,
   _ChecklistBlock? late,
   _ChecklistBlock? frozen,
+  _ChecklistBlock? parent,
 ) {
   if (block == frozen) {
     // A frozen block keeps its whole subtree where it is.
@@ -436,8 +518,18 @@ void _appendBlock(
   }
   if (lines[block.start].isChecked && _blockFullyChecked(lines, block)) {
     // A checked block leaves its parent and starts the checked section at
-    // the absolute root indent. A parent with an unchecked descendant stays
-    // in the open list, and its checked children may still leave it.
+    // the absolute root indent, remembering where it came from. A parent
+    // with an unchecked descendant stays in the open list, and its checked
+    // children may still leave it.
+    attrPatches[block.start] = {
+      ...?attrPatches[block.start],
+      checklistHomeAttribute.key: parent == null
+          ? null
+          : encodeChecklistHome(
+              ids[parent.start]!,
+              lines[block.start].indent,
+            ),
+    };
     _appendWholeBlock(block, 0, done, doneIndents, late: late);
     return;
   }
@@ -445,6 +537,8 @@ void _appendBlock(
   _appendChildren(
     lines,
     block,
+    ids,
+    attrPatches,
     open,
     openIndents,
     done,
@@ -457,6 +551,8 @@ void _appendBlock(
 void _appendChildren(
   List<ParsedLine> lines,
   _ChecklistBlock block,
+  Map<int, String> ids,
+  Map<int, Map<String, dynamic>> attrPatches,
   List<int> open,
   List<int> openIndents,
   List<int> done,
@@ -470,12 +566,15 @@ void _appendChildren(
     _appendBlock(
       lines,
       child,
+      ids,
+      attrPatches,
       open,
       openIndents,
       done,
       doneIndents,
       late,
       frozen,
+      block,
     );
   }
 }
@@ -552,6 +651,45 @@ void _appendLine(int index, int indent, List<int> order, List<int> indents) {
   indents.add(indent);
 }
 
+/// Like [_appendWholeBlock], but the block lands at [position] in its list
+/// instead of the end: the block's lines, in depth-first order, are inserted
+/// contiguously there.
+void _spliceWholeBlock(
+  _ChecklistBlock block,
+  int headIndent,
+  int position,
+  List<int> order,
+  List<int> indents,
+) {
+  final entries = <(int, int)>[];
+  void collect(_ChecklistBlock b, int indent) {
+    entries.add((b.start, indent));
+    for (final c in b.children) {
+      collect(c, indent + 1);
+    }
+  }
+
+  collect(block, headIndent);
+  for (final (line, indent) in entries) {
+    order.insert(position, line);
+    indents.insert(position, indent);
+    position++;
+  }
+}
+
+/// The checklist line in [groupStart..groupEnd] whose stable id is [id].
+int? _lineWithAnchorId(
+  List<ParsedLine> lines,
+  int groupStart,
+  int groupEnd,
+  String id,
+) {
+  for (var i = groupStart; i <= groupEnd; i++) {
+    if (lines[i].isChecklist && lines[i].anchorId == id) return i;
+  }
+  return null;
+}
+
 /// [order] holds indices into [lines]. It may be the identity order when only
 /// the indents change; that case makes an empty delta.
 Delta buildGroupReorderDelta(
@@ -622,8 +760,8 @@ Delta buildIndentsDelta(
 }
 
 /// Moves the group at [groupStart] into the checked section [plan] describes,
-/// in one delta: the reorder, then the indent each line takes in the new
-/// order.
+/// in one delta: the reorder, then the indent each line takes, then the
+/// line-id and home attributes the plan assigns.
 Delta buildCheckedSectionDelta(
   Document document,
   List<ParsedLine> lines,
@@ -633,17 +771,44 @@ Delta buildCheckedSectionDelta(
   final move = buildGroupReorderDelta(document, lines, groupStart, plan.order);
   // A plan that only re-indents makes no move of its own, and Document.compose
   // rejects an empty delta.
-  if (move.isEmpty) {
-    return buildIndentsDelta(lines, groupStart, plan.indents);
+  final settledLines = move.isEmpty
+      ? lines
+      : parseDocumentLines(
+          Document.fromDelta(document.toDelta())
+            ..compose(move, ChangeSource.local),
+        );
+  var result = move;
+  final reindent = buildIndentsDelta(settledLines, groupStart, plan.indents);
+  if (reindent.isNotEmpty) {
+    result = result.isEmpty ? reindent : result.compose(reindent);
   }
-  final moved = Document.fromDelta(document.toDelta())
-    ..compose(move, ChangeSource.local);
-  final reindent = buildIndentsDelta(
-    parseDocumentLines(moved),
-    groupStart,
-    plan.indents,
-  );
-  return reindent.isEmpty ? move : move.compose(reindent);
+  final attrs = _buildAttrPatchesDelta(settledLines, groupStart, plan);
+  if (attrs.isNotEmpty) {
+    result = result.isEmpty ? attrs : result.compose(attrs);
+  }
+  return result;
+}
+
+/// Retains each patched line's newline, at its settled position, writing the
+/// stable ids and homes [plan] assigns. A null attribute value removes it.
+Delta _buildAttrPatchesDelta(
+  List<ParsedLine> settled,
+  int groupStart,
+  CheckedSectionPlan plan,
+) {
+  if (plan.attrPatches.isEmpty) return Delta();
+  final delta = Delta();
+  var cursor = 0;
+  for (var k = 0; k < plan.order.length; k++) {
+    final patch = plan.attrPatches[plan.order[k]];
+    if (patch == null) continue;
+    final line = settled[groupStart + k];
+    final newlineOffset = line.startOffset + line.length - 1;
+    if (newlineOffset > cursor) delta.retain(newlineOffset - cursor);
+    delta.retain(1, patch);
+    cursor = newlineOffset + 1;
+  }
+  return delta;
 }
 
 /// Toggles [index] and every checklist line in its block.
