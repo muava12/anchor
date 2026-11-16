@@ -1,10 +1,8 @@
 import 'dart:io';
 
+import 'package:anchor/features/notes/data/image_compressor_worker.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
-
-import 'package:anchor/features/notes/data/image_compressor.dart';
-import 'package:anchor/features/notes/data/image_compressor_worker.dart';
 
 void main() {
   test('compressImageIsolate returns a JPEG path with compressed size', () async {

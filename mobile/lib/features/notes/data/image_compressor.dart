@@ -1,6 +1,5 @@
-/// Defines the interface for image compression on the local device.
-///
-/// Implementations should run compression work off the UI thread.
+// Defines the interface for image compression on the local device.
+// Implementations should run compression work off the UI thread.
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
