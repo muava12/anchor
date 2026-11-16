@@ -13,9 +13,17 @@ class FakeSettings extends BackupSettingsController {
   FakeSettings(this.initial);
 
   final BackupSettings initial;
+  final List<int> periodCalls = [];
+  final List<int> keepCalls = [];
 
   @override
   Future<BackupSettings> build() async => initial;
+
+  @override
+  Future<void> setPeriodDays(int days) async => periodCalls.add(days);
+
+  @override
+  Future<void> setKeepFiles(int count) async => keepCalls.add(count);
 }
 
 class FakeBackup extends BackupController {
@@ -24,12 +32,16 @@ class FakeBackup extends BackupController {
 }
 
 void main() {
+  FakeSettings? fake;
+
   Future<void> pump(WidgetTester tester, BackupSettings settings) async {
+    final notifier = FakeSettings(settings);
+    fake = notifier;
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           backupSettingsControllerProvider.overrideWith(
-            () => FakeSettings(settings),
+            () => notifier,
           ),
           backupControllerProvider.overrideWith(FakeBackup.new),
         ],
@@ -73,5 +85,72 @@ void main() {
     expect(find.text('Backups'), findsOneWidget);
     expect(find.text('Back up now'), findsOneWidget);
     expect(find.text('Choose a folder'), findsNothing);
+  });
+
+  testWidgets('the period dialog shows description, value, chips and ends',
+      (tester) async {
+    await pump(tester, const BackupSettings());
+    await tester.tap(find.text('Every 7 days'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('How often Anchor makes an automatic backup'),
+      findsOneWidget,
+    );
+    // Quick-pick chips only on the period dialog.
+    expect(find.text('Daily'), findsOneWidget);
+    expect(find.text('Weekly'), findsOneWidget);
+    expect(find.text('Monthly'), findsOneWidget);
+    // Range ends.
+    expect(find.text('1', skipOffstage: false), findsOneWidget);
+    expect(find.text('31', skipOffstage: false), findsOneWidget);
+  });
+
+  testWidgets('tapping a chip sets the value and Save records it',
+      (tester) async {
+    await pump(tester, const BackupSettings());
+    await tester.tap(find.text('Every 7 days'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Daily'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(fake!.periodCalls, [1]);
+    expect(
+      find.text('How often Anchor makes an automatic backup'),
+      findsNothing, // dialog closed
+    );
+  });
+
+  testWidgets('Cancel closes the period dialog without saving', (tester) async {
+    await pump(tester, const BackupSettings());
+    await tester.tap(find.text('Every 7 days'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Daily'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(fake!.periodCalls, isEmpty);
+  });
+
+  testWidgets('the keep-files dialog has no chips and Save records it',
+      (tester) async {
+    await pump(tester, const BackupSettings());
+    await tester.tap(find.text('Keep 3 files'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Daily'), findsNothing);
+    expect(find.text('How many backups to keep before the oldest is removed'),
+        findsOneWidget);
+
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    // No change made -> current value is saved back.
+    expect(fake!.keepCalls, [3]);
   });
 }

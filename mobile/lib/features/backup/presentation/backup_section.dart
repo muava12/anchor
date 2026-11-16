@@ -8,7 +8,13 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
 import '../../../core/database/app_database.dart';
+import '../../../core/motion/haptics.dart';
+import '../../../core/motion/springs.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/context_extensions.dart';
+import '../../../core/theme/tokens/anchor_tokens.dart';
 import '../../../core/widgets/grouped_list.dart';
+import '../../../core/widgets/pressable.dart';
 import '../../../core/widgets/switch_row.dart';
 import '../../../l10n/l10n.dart';
 import '../../../main.dart' show scaffoldMessengerKey;
@@ -205,9 +211,17 @@ class BackupSection extends ConsumerWidget {
     final value = await _pickNumber(
       context,
       title: context.l10n.backupPeriod(settings.periodDays),
+      description: context.l10n.backupPeriodDesc,
+      leftLabel: context.l10n.backupEvery,
+      unit: context.l10n.backupDaysUnit,
       current: settings.periodDays,
       min: BackupSettings.minPeriodDays,
       max: BackupSettings.maxPeriodDays,
+      chips: [
+        (context.l10n.backupDaily, 1),
+        (context.l10n.backupWeekly, 7),
+        (context.l10n.backupMonthly, 30),
+      ],
     );
     if (value == null) return;
     await ref
@@ -223,6 +237,9 @@ class BackupSection extends ConsumerWidget {
     final value = await _pickNumber(
       context,
       title: context.l10n.backupKeep(settings.keepFiles),
+      description: context.l10n.backupKeepDesc,
+      leftLabel: context.l10n.backupKeepWord,
+      unit: context.l10n.backupFilesUnit,
       current: settings.keepFiles,
       min: BackupSettings.minKeepFiles,
       max: BackupSettings.maxKeepFiles,
@@ -236,35 +253,25 @@ class BackupSection extends ConsumerWidget {
   Future<int?> _pickNumber(
     BuildContext context, {
     required String title,
+    required String description,
+    required String leftLabel,
+    required String unit,
     required int current,
     required int min,
     required int max,
+    List<(String label, int value)>? chips,
   }) {
-    var value = current;
     return showDialog<int>(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Text(title),
-          content: Slider(
-            value: value.toDouble(),
-            min: min.toDouble(),
-            max: max.toDouble(),
-            divisions: max - min,
-            label: '$value',
-            onChanged: (next) => setState(() => value = next.round()),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(context.l10n.commonCancel),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(value),
-              child: Text(context.l10n.commonSave),
-            ),
-          ],
-        ),
+      builder: (dialogContext) => _BackupNumberDialog(
+        title: title,
+        description: description,
+        leftLabel: leftLabel,
+        unit: unit,
+        current: current,
+        min: min,
+        max: max,
+        chips: chips,
       ),
     );
   }
@@ -298,5 +305,199 @@ class BackupSection extends ConsumerWidget {
     scaffoldMessengerKey.currentState
       ?..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+/// The redesigned number dialog: big accent value + unit, styled slider,
+/// min/max ends, and optional quick-pick chips (period dialog only).
+class _BackupNumberDialog extends StatefulWidget {
+  const _BackupNumberDialog({
+    required this.title,
+    required this.description,
+    required this.leftLabel,
+    required this.unit,
+    required this.current,
+    required this.min,
+    required this.max,
+    this.chips,
+  });
+
+  final String title;
+  final String description;
+  final String leftLabel;
+  final String unit;
+  final int current;
+  final int min;
+  final int max;
+  final List<(String label, int value)>? chips;
+
+  @override
+  State<_BackupNumberDialog> createState() => _BackupNumberDialogState();
+}
+
+class _BackupNumberDialogState extends State<_BackupNumberDialog> {
+  late int _value = widget.current;
+
+  void _setValue(int next, {bool haptic = true}) {
+    if (next == _value) return;
+    if (haptic) Haptics.selection();
+    setState(() => _value = next);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.anchor;
+    final l10n = context.l10n;
+    return AlertDialog(
+      backgroundColor: colors.appSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AnchorTokens.radius2xl),
+      ),
+      title: Text(
+        widget.title,
+        style: AppTypography.cardTitle.copyWith(color: colors.appText),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            widget.description,
+            style: AppTypography.secondary.copyWith(color: colors.appMuted),
+          ),
+          const SizedBox(height: AnchorTokens.space16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                widget.leftLabel,
+                style: AppTypography.row.copyWith(color: colors.appText),
+              ),
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '$_value',
+                      style: AppTypography.largeTitle.tabular.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: colors.accentStrong,
+                      ),
+                    ),
+                    TextSpan(
+                      text: ' ${widget.unit}',
+                      style: AppTypography.footnote.copyWith(
+                        color: colors.appMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AnchorTokens.space12),
+          SliderTheme(
+            data: SliderThemeData(
+              trackHeight: 6,
+              activeTrackColor: colors.accentStrong,
+              inactiveTrackColor: colors.appBorder,
+              thumbColor: colors.appText,
+              overlayColor: colors.accentStrong.withValues(alpha: 0.12),
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 11),
+            ),
+            child: Slider(
+              value: _value.toDouble().clamp(
+                widget.min.toDouble(),
+                widget.max.toDouble(),
+              ),
+              min: widget.min.toDouble(),
+              max: widget.max.toDouble(),
+              divisions: widget.max - widget.min,
+              onChanged: (next) => _setValue(next.round(), haptic: false),
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${widget.min}',
+                style: AppTypography.footnote.copyWith(color: colors.appMuted),
+              ),
+              Text(
+                '${widget.max}',
+                style: AppTypography.footnote.copyWith(color: colors.appMuted),
+              ),
+            ],
+          ),
+          if (widget.chips != null) ...[
+            const SizedBox(height: AnchorTokens.space16),
+            Wrap(
+              spacing: AnchorTokens.space8,
+              children: [
+                for (final chip in widget.chips!)
+                  _QuickChip(
+                    label: chip.$1,
+                    isOn: _value == chip.$2,
+                    onTap: () => _setValue(chip.$2),
+                  ),
+              ],
+            ),
+          ],
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.commonCancel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(_value),
+          child: Text(l10n.commonSave),
+        ),
+      ],
+    );
+  }
+}
+
+class _QuickChip extends StatelessWidget {
+  const _QuickChip({
+    required this.label,
+    required this.isOn,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool isOn;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.anchor;
+    return Pressable(
+      style: PressStyle.plain,
+      onTap: onTap,
+      semanticLabel: label,
+      child: AnimatedContainer(
+        duration: Spring.snappy.duration,
+        curve: Spring.snappy.curve,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AnchorTokens.space16,
+          vertical: AnchorTokens.space8,
+        ),
+        decoration: BoxDecoration(
+          color: isOn ? colors.accentStrong : colors.appPage,
+          borderRadius: BorderRadius.circular(AnchorTokens.radiusPill),
+          border: Border.all(
+            color: isOn ? colors.accentStrong : colors.appBorder,
+          ),
+        ),
+        child: Text(
+          label,
+          style: AppTypography.chip.copyWith(
+            color: isOn ? colors.appSurface : colors.appMuted,
+            fontWeight: isOn ? FontWeight.w600 : FontWeight.w500,
+          ),
+        ),
+      ),
+    );
   }
 }

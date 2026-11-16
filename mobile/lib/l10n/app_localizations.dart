@@ -4276,6 +4276,60 @@ abstract class AppLocalizations {
   /// **'Keep {count} files'**
   String backupKeep(int count);
 
+  /// Fixed left label of the backup-period dialog; the number and unit are shown on the right.
+  ///
+  /// In en, this message translates to:
+  /// **'Every'**
+  String get backupEvery;
+
+  /// Fixed left label of the kept-files dialog; the number and unit are shown on the right.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get backupKeepWord;
+
+  /// Unit shown after the backup-period number in its dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get backupDaysUnit;
+
+  /// Unit shown after the kept-files number in its dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'files'**
+  String get backupFilesUnit;
+
+  /// Quick-pick chip in the backup-period dialog; selects 1 day.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get backupDaily;
+
+  /// Quick-pick chip in the backup-period dialog; selects 7 days.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get backupWeekly;
+
+  /// Quick-pick chip in the backup-period dialog; selects 30 days.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get backupMonthly;
+
+  /// Supporting line under the title in the backup-period dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'How often Anchor makes an automatic backup'**
+  String get backupPeriodDesc;
+
+  /// Supporting line under the title in the kept-files dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'How many backups to keep before the oldest is removed'**
+  String get backupKeepDesc;
+
   /// Optional password for the backup file
   ///
   /// In en, this message translates to:
