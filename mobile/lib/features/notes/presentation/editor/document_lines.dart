@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:dart_quill_delta/dart_quill_delta.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 
@@ -21,6 +23,15 @@ class ParsedLine {
   bool get isChecked => listType == Attribute.checked.value;
 
   int get indent => (newlineAttributes?[Attribute.indent.key] as int?) ?? 0;
+
+  /// Stable per-line id used to point [anchorHome] at a parent line.
+  String? get anchorId => newlineAttributes?[checklistLineIdAttribute.key] as String?;
+
+  /// Encoded "home": the parent's [anchorId] and the indent this line had
+  /// when its block sank into the checked section. Null when the line has
+  /// no remembered home.
+  String? get anchorHome =>
+      newlineAttributes?[checklistHomeAttribute.key] as String?;
 }
 
 extension LineAttributes on Map<String, Attribute> {
@@ -80,6 +91,48 @@ int lineIndexAt(List<ParsedLine> lines, int offset) {
 Map<String, dynamic> indentAttributes(int indent) => {
   Attribute.indent.key: indent == 0 ? null : indent,
 };
+
+/// Newline attributes that remember where a checklist block was before it
+/// sank into the checked section.
+class _LineMemoryAttribute {
+  const _LineMemoryAttribute(this.key);
+
+  final String key;
+}
+
+/// A stable id of one checklist line; [checklistHomeAttribute] points at the
+/// line a block was a child of.
+const checklistLineIdAttribute = _LineMemoryAttribute('anchor-id');
+
+/// The parent's checklist-line id and the indent at the move, joined by a
+/// pipe, remembered on a block head while it sits in the checked section. A
+/// null value clears it.
+const checklistHomeAttribute = _LineMemoryAttribute('anchor-home');
+
+/// A short unique checklist-line id. Collisions across a whole note are
+/// vanishingly unlikely.
+String newChecklistLineId() {
+  const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  final random = math.Random();
+  final buffer = StringBuffer();
+  for (var i = 0; i < 10; i++) {
+    buffer.write(alphabet[random.nextInt(alphabet.length)]);
+  }
+  return buffer.toString();
+}
+
+/// Encodes where [parentId] is, at [indent], for a line's home attribute.
+String encodeChecklistHome(String parentId, int indent) => '$parentId|$indent';
+
+/// Splits an [encodeChecklistHome] value. Null when absent or malformed.
+({String parentId, int indent})? parseChecklistHome(String? home) {
+  if (home == null) return null;
+  final pipe = home.lastIndexOf('|');
+  if (pipe < 1) return null;
+  final indent = int.tryParse(home.substring(pipe + 1));
+  if (indent == null || indent < 0) return null;
+  return (parentId: home.substring(0, pipe), indent: indent);
+}
 
 /// Indenting stops at [maxListIndent] and one level deeper than the list
 /// line above. Null when nothing changes.

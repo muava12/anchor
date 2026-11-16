@@ -1028,4 +1028,149 @@ void main() {
       expect(bold.attributes, containsPair('bold', true));
     });
   });
+
+  group('restore home (P2)', () {
+    // (text, list, indent, anchorId)
+    Document restoreDoc(List<(String, String, int, String)> lines) {
+      final ops = <Map<String, dynamic>>[];
+      for (final (text, list, indent, id) in lines) {
+        if (text.isNotEmpty) ops.add({'insert': text});
+        final attrs = <String, dynamic>{'list': list};
+        if (indent > 0) attrs['indent'] = indent;
+        if (id.isNotEmpty) attrs[checklistLineIdAttribute.key] = id;
+        ops.add({'insert': '\n', 'attributes': attrs});
+      }
+      return Document.fromJson(ops);
+    }
+
+    // Flip the last line's list attribute in place (simulates a tap toggle).
+    void flipLast(Document doc, String listValue) {
+      doc.compose(
+        Delta()
+          ..retain(doc.length - 1)
+          ..retain(1, {Attribute.list.key: listValue}),
+        ChangeSource.local,
+      );
+    }
+
+    List<(String, String, int)> shapeOf(Document doc) {
+      final parsed = parseDocumentLines(doc);
+      final text = doc.toPlainText();
+      return [
+        for (final line in parsed)
+          (
+            text.substring(line.startOffset, line.startOffset + line.length - 1),
+            line.listType ?? '',
+            line.indent,
+          ),
+      ];
+    }
+
+    void applyPlan(Document doc, {int? prefer}) {
+      final plan = planOf(doc, prefer: prefer);
+      if (plan == null) return;
+      doc.compose(
+        buildCheckedSectionDelta(doc, parseDocumentLines(doc), 0, plan),
+        ChangeSource.local,
+      );
+    }
+
+    test('an unchecked child returns under its remembered parent', () {
+      final doc = restoreDoc([
+        ('p', 'unchecked', 0, 'P'),
+        ('c1', 'checked', 1, 'C1'),
+        ('c2', 'unchecked', 1, 'C2'),
+        ('q', 'unchecked', 0, 'Q'),
+      ]);
+
+      // c1 sinks to the checked section, recording home = P|1.
+      applyPlan(doc, prefer: 1);
+      expect(shapeOf(doc), [
+        ('p', 'unchecked', 0),
+        ('c2', 'unchecked', 1),
+        ('q', 'unchecked', 0),
+        ('c1', 'checked', 0),
+      ]);
+      final afterSink = parseDocumentLines(doc);
+      expect(
+        afterSink[3].anchorHome,
+        encodeChecklistHome('P', 1),
+      );
+
+      // Uncheck c1 (now the last line).
+      flipLast(doc, 'unchecked');
+      applyPlan(doc, prefer: parseDocumentLines(doc).length - 1);
+      expect(shapeOf(doc), [
+        ('p', 'unchecked', 0),
+        ('c2', 'unchecked', 1),
+        ('c1', 'unchecked', 1),
+        ('q', 'unchecked', 0),
+      ]);
+    });
+
+    test('a legacy child with no home stays at the open tail', () {
+      final doc = restoreDoc([
+        ('p', 'unchecked', 0, 'P'),
+        ('c2', 'unchecked', 1, 'C2'),
+        ('c1', 'checked', 0, 'C1'), // already sunk, but no anchor-home
+      ]);
+      flipLast(doc, 'unchecked');
+      applyPlan(doc, prefer: 2);
+      // No home, so c1 does not climb back under p; it keeps its spot at the
+      // end of the open list, still at indent 0.
+      expect(shapeOf(doc), [
+        ('p', 'unchecked', 0),
+        ('c2', 'unchecked', 1),
+        ('c1', 'unchecked', 0),
+      ]);
+    });
+
+    test('an unchecked child whose parent is gone falls back to the tail',
+        () {
+      // c1 remembers home P|1, but p was deleted since it sank.
+      final doc = restoreDoc([
+        ('c2', 'unchecked', 1, 'C2'),
+        ('q', 'unchecked', 0, 'Q'),
+        ('c1', 'checked', 0, 'C1'),
+      ]);
+      final lastNewline = doc.length - 1;
+      doc.compose(
+        Delta()
+          ..retain(lastNewline)
+          ..retain(1, {checklistHomeAttribute.key: encodeChecklistHome('P', 1)}),
+        ChangeSource.local,
+      );
+      flipLast(doc, 'unchecked');
+      applyPlan(doc, prefer: 2);
+      // Parent P is absent, so c1 stays at the open tail at indent 0.
+      expect(shapeOf(doc), [
+        ('c2', 'unchecked', 1),
+        ('q', 'unchecked', 0),
+        ('c1', 'unchecked', 0),
+      ]);
+    });
+
+    test('an unchecked child whose parent is checked falls back to the tail',
+        () {
+      final doc = restoreDoc([
+        ('p', 'checked', 0, 'P'),
+        ('c2', 'checked', 1, 'C2'),
+        ('c1', 'checked', 0, 'C1'),
+      ]);
+      doc.compose(
+        Delta()
+          ..retain(doc.length - 1)
+          ..retain(1, {checklistHomeAttribute.key: encodeChecklistHome('P', 1)}),
+        ChangeSource.local,
+      );
+      flipLast(doc, 'unchecked');
+      applyPlan(doc, prefer: 2);
+      // Parent p is checked, so c1 cannot return under it; it keeps the
+      // open-tail fallback at its own indent (0), never the remembered 1.
+      final lines = parseDocumentLines(doc);
+      final c1 = lines.firstWhere((l) => l.anchorId == 'C1');
+      expect(c1.indent, 0);
+      expect(c1.anchorHome, encodeChecklistHome('P', 1));
+    });
+  });
 }
