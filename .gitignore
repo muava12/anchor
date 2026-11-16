@@ -14,3 +14,9 @@ thumbs.db
 
 # Agent worktrees
 .worktrees/
+
+# SDD agent ledgers
+.superpowers/
+
+# Local scratch
+.scratch/
