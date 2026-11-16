@@ -26,13 +26,18 @@ void main() {
 
   tearDown(() => db.close());
 
+  // A date well inside the 90-day retention window, relative to today so
+  // the test keeps passing as time moves on.
   Map<String, dynamic> revisionJson(String id) => {
     'id': id,
     'noteId': 'n1',
     'version': 1,
     'title': 'Groceries',
     'cause': 'edit',
-    'createdAt': '2026-08-18T10:00:00.000Z',
+    'createdAt': DateTime.now()
+        .toUtc()
+        .subtract(const Duration(days: 1))
+        .toIso8601String(),
     'content': null,
     'author': null,
   };
