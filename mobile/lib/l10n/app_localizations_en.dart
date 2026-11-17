@@ -1548,6 +1548,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get journalMoodRough => 'Rough';
 
   @override
+  String journalEntriesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entries',
+      one: '1 entry',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String drawerAccount(String name) {
     return '$name, Settings';
   }

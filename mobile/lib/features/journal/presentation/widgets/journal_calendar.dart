@@ -9,7 +9,8 @@ import '../../../../core/theme/tokens/anchor_tokens.dart';
 import '../../../../core/widgets/pressable.dart';
 import '../../../notes/domain/note_dates.dart';
 
-/// A month grid with a dot under days that have an entry.
+/// A month grid in a card: navigation, weekdays, and a dot on days that have
+/// an entry.
 class JournalCalendar extends StatelessWidget {
   const JournalCalendar({
     super.key,
@@ -34,80 +35,94 @@ class JournalCalendar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.anchor;
-    final dayCount = DateTime(month.year, month.month + 1, 0).day;
-    final leadingBlanks = DateTime(month.year, month.month, 1).weekday - 1;
+    final density = context.density;
     final today = DateTime.now();
-
-    final cells = <Widget>[
-      for (var i = 0; i < leadingBlanks; i++) const SizedBox.shrink(),
-      for (var d = 1; d <= dayCount; d++)
-        _DayCell(
-          date: DateTime(month.year, month.month, d),
-          isEntry: entryDays.any((e) => isSameDay(e, dateOf(month.year, month.month, d))),
-          isSelected: selectedDay != null && isSameDay(selectedDay!, dateOf(month.year, month.month, d)),
-          isToday: isSameDay(today, dateOf(month.year, month.month, d)),
-          onPick: onPickDay,
-        ),
-    ];
+    final first = DateTime(month.year, month.month, 1);
+    // The Monday of the week that holds the 1st, then six full weeks.
+    final start = first.subtract(Duration(days: first.weekday - 1));
+    DateTime dayAt(int i) => start.add(Duration(days: i));
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        context.density.space8,
-        16,
-        context.density.space8,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              _NavButton(id: 'prev', icon: LucideIcons.chevronLeft, onTap: onPreviousMonth),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    DateFormat.yMMMM(dateLocale).format(month),
-                    style: AppTypography.secondary.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: colors.appText,
-                    ),
-                  ),
+      padding: EdgeInsets.fromLTRB(16, density.space8, 16, density.space8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: colors.appSurface,
+          borderRadius: BorderRadius.circular(AnchorTokens.radiusCard),
+          border: Border.all(color: colors.appBorder),
+        ),
+        padding: EdgeInsets.all(density.space16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                _NavButton(
+                  id: 'prev',
+                  icon: LucideIcons.chevronLeft,
+                  onTap: onPreviousMonth,
                 ),
-              ),
-              _NavButton(id: 'next', icon: LucideIcons.chevronRight, onTap: onNextMonth),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              for (final label in _weekdays)
                 Expanded(
                   child: Center(
                     child: Text(
-                      label,
-                      style: AppTypography.footnote.copyWith(color: colors.appMuted),
+                      DateFormat.yMMMM(dateLocale).format(month),
+                      style: AppTypography.serifText(
+                        fontSize: AnchorTokens.typeLargeTitle.fontSize,
+                        fontWeight: FontWeight.w700,
+                        color: colors.appText,
+                      ),
                     ),
                   ),
                 ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          GridView(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              mainAxisExtent: 48,
+                _NavButton(
+                  id: 'next',
+                  icon: LucideIcons.chevronRight,
+                  onTap: onNextMonth,
+                ),
+              ],
             ),
-            children: cells,
-          ),
-        ],
+            SizedBox(height: density.space16),
+            Row(
+              children: [
+                for (final label in _weekdays)
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        label,
+                        style: AppTypography.label.copyWith(
+                          color: colors.appMuted,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            SizedBox(height: density.space8),
+            GridView(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 7,
+                mainAxisExtent: AnchorTokens.sizeRow, // same in Compact: a grid row
+              ),
+              children: [
+                for (var i = 0; i < 42; i++)
+                  _DayCell(
+                    date: dayAt(i),
+                    month: month,
+                    isEntry: entryDays.any((e) => isSameDay(e, dayAt(i))),
+                    isSelected:
+                        selectedDay != null && isSameDay(selectedDay!, dayAt(i)),
+                    isToday: isSameDay(today, dayAt(i)),
+                    onPick: onPickDay,
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 }
-
-DateTime dateOf(int year, int month, int day) => DateTime(year, month, day);
 
 class _NavButton extends StatelessWidget {
   const _NavButton({required this.id, required this.icon, required this.onTap});
@@ -123,9 +138,13 @@ class _NavButton extends StatelessWidget {
       style: PressStyle.plain,
       onTap: onTap,
       semanticLabel: id,
-      child: SizedBox(
-        width: 40, // off-scale: seven cells fit the phone
-        height: 40, // off-scale: seven cells fit the phone
+      child: Container(
+        width: AnchorTokens.sizeTargetPhone,
+        height: AnchorTokens.sizeTargetPhone,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: colors.appPage,
+        ),
         child: Center(
           child: Icon(
             key: ValueKey('calendar-$id'),
@@ -142,6 +161,7 @@ class _NavButton extends StatelessWidget {
 class _DayCell extends StatelessWidget {
   const _DayCell({
     required this.date,
+    required this.month,
     required this.isEntry,
     required this.isSelected,
     required this.isToday,
@@ -149,10 +169,13 @@ class _DayCell extends StatelessWidget {
   });
 
   final DateTime date;
+  final DateTime month;
   final bool isEntry;
   final bool isSelected;
   final bool isToday;
   final ValueChanged<DateTime> onPick;
+
+  bool get _inMonth => date.year == month.year && date.month == month.month;
 
   @override
   Widget build(BuildContext context) {
@@ -163,47 +186,52 @@ class _DayCell extends StatelessWidget {
       '${date.month.toString().padLeft(2, '0')}-'
       '${number.toString().padLeft(2, '0')}',
     );
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: AnchorTokens.sizeTargetPhone,
+          height: AnchorTokens.sizeTargetPhone,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isSelected ? colors.accentStrong : null,
+            border: isToday && !isSelected
+                ? Border.all(color: colors.accentStrong, width: 1.5)
+                : null,
+          ),
+          child: Text(
+            '$number',
+            style: AppTypography.row.copyWith(
+              color: isSelected
+                  ? colors.appOnInverse
+                  : _inMonth
+                  ? colors.appText
+                  : colors.appMuted,
+            ),
+          ),
+        ),
+        if (_inMonth && isEntry)
+          Container(
+            key: const ValueKey('journal-entry-dot'),
+            width: 4,
+            height: 4,
+            margin: const EdgeInsets.only(top: 4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: colors.accentStrong,
+            ),
+          ),
+      ],
+    );
+
+    // A day from the month beside this one is shown, but not picked here.
+    if (!_inMonth) return IgnorePointer(key: key, child: content);
     return GestureDetector(
       key: key,
       behavior: HitTestBehavior.opaque,
       onTap: () => onPick(date),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isSelected ? colors.accentStrong : null,
-              border: isToday && !isSelected
-                  ? Border.all(color: colors.accentStrong, width: 1.5)
-                  : null,
-            ),
-            child: Text(
-              '$number',
-              style: AppTypography.footnote.copyWith(
-                color: isSelected
-                    ? colors.appOnInverse
-                    : colors.appText,
-              ),
-            ),
-          ),
-          const SizedBox(height: 2),
-          isEntry
-              ? Container(
-                  key: const ValueKey('journal-entry-dot'),
-                  width: 4,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: colors.accentStrong,
-                  ),
-                )
-              : const SizedBox(width: 4, height: 4),
-        ],
-      ),
+      child: content,
     );
   }
 }

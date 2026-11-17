@@ -16,6 +16,7 @@ import '../../notes/presentation/widgets/notes_bottom_bar.dart';
 import '../domain/journal_day.dart';
 import 'journal_providers.dart';
 import 'widgets/journal_calendar.dart';
+import 'widgets/journal_day_cards.dart';
 import 'widgets/journal_timeline.dart';
 
 class JournalScreen extends ConsumerStatefulWidget {
@@ -77,16 +78,16 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
 
     List<JournalDay> shownDays = days;
     final selected = _selectedDay;
-    if (_calendar && selected != null && !empty) {
-      shownDays = [
-        for (final day in days)
-          if (
-            day.day.year == selected.year &&
-            day.day.month == selected.month &&
-            day.day.day == selected.day
-          )
-            day,
-      ];
+    if (_calendar) {
+      shownDays = selected == null
+          ? const []
+          : [
+              for (final day in days)
+                if (day.day.year == selected.year &&
+                    day.day.month == selected.month &&
+                    day.day.day == selected.day)
+                  day,
+            ];
     }
 
     final page = AppScaffold(
@@ -106,7 +107,14 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
           label: _calendar ? l10n.journalTimeline : l10n.journalCalendar,
           onPressed: () => setState(() {
             _calendar = !_calendar;
-            _selectedDay = null;
+            if (_calendar) {
+              final now = DateTime.now();
+              final today = DateTime(now.year, now.month, now.day);
+              _selectedDay = today;
+              _month = _firstOfMonth(today);
+            } else {
+              _selectedDay = null;
+            }
           }),
         ),
       ],
@@ -129,7 +137,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
             ),
           )
         else ...[
-          if (_calendar)
+          if (_calendar) ...[
             SliverToBoxAdapter(
               child: JournalCalendar(
                 month: _month,
@@ -144,7 +152,9 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                 onNextMonth: () => setState(() => _month = _nextMonth()),
               ),
             ),
-          JournalTimeline(days: shownDays, onOpen: _open),
+            JournalDayCards(days: shownDays, onOpen: _open),
+          ] else
+            JournalTimeline(days: shownDays, onOpen: _open),
         ],
       ],
       bottomBar: NotesBottomBar(

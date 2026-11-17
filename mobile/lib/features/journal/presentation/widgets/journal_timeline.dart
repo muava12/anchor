@@ -13,11 +13,10 @@ import '../../../../core/widgets/pressable.dart';
 import '../../../../l10n/l10n.dart';
 import '../../../notes/data/repository/attachment_file_provider.dart';
 import '../../../notes/domain/note.dart';
-import '../../../notes/domain/note_blocks.dart';
 import '../../../notes/domain/note_dates.dart';
 import '../../../notes/presentation/note_labels.dart';
 import '../../domain/journal_day.dart';
-import '../../domain/journal_meta.dart';
+import '../journal_entry_text.dart';
 
 /// A day-grouped journal, as a sliver for a [CustomScrollView].
 class JournalTimeline extends StatelessWidget {
@@ -112,47 +111,13 @@ class _EntryRow extends StatelessWidget {
   final ValueChanged<Note> onOpen;
   final bool isLastOfDay;
 
-  String _timeOf(JournalDayEntry entry) {
-    final at = entry.meta.entryAt ?? entry.note.updatedAt?.toLocal();
-    return at == null ? '' : clockLabel(at);
-  }
-
-  /// The line on top: the title, or the body's first line when it has none.
-  String _titleOf(BuildContext context, Note note) {
-    if (note.hasTitle) return displayTitleOf(note.title, context.l10n);
-    return _firstBodyLine(context, note);
-  }
-
-  /// The body below a title. Empty when the title already is the body.
-  String _previewOf(Note note, String title) {
-    if (!note.hasTitle) return '';
-    final body = _bodyText(note).trim();
-    if (body.isEmpty) return '';
-    // A first line that only repeats the title would show it twice.
-    final lines = body.split('\n');
-    if (lines.first.trim() == title.trim()) {
-      return lines.skip(1).join('\n').trim();
-    }
-    return body;
-  }
-
-  String _bodyText(Note note) =>
-      plainTextOf(parseJournalContent(note.content).body ?? note.content);
-
-  String _firstBodyLine(BuildContext context, Note note) {
-    for (final line in _bodyText(note).split('\n')) {
-      if (line.trim().isNotEmpty) return line;
-    }
-    return context.l10n.noteUntitled;
-  }
-
   @override
   Widget build(BuildContext context) {
     final note = entry.note;
     final colors = context.anchor;
-    final time = _timeOf(entry);
-    final title = _titleOf(context, note);
-    final preview = _previewOf(note, title);
+    final time = journalTimeOf(entry);
+    final title = journalTitleOf(note, context.l10n);
+    final preview = journalPreviewOf(note, title);
     final hasPicture = note.imagePreviewData.isNotEmpty;
 
     return Pressable(

@@ -2109,6 +2109,7 @@
   "journalMoodGood": "Good",
   "journalMoodNeutral": "Neutral",
   "journalMoodRough": "Rough",
+  "journalEntriesCount": "{count, plural, =1{1 entry} other{{count} entries}}",
   "@navJournal": {
     "description": "Noun: the side menu item and list title for the journal."
   },
@@ -2144,6 +2145,15 @@
   },
   "@journalMoodRough": {
     "description": "Mood label: a hard day."
+  },
+  "@journalEntriesCount": {
+    "description": "Number of entries for the selected day, under the calendar.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
   },
   "@navTrash": {
     "description": "Noun: the side menu item and list title for deleted notes."
