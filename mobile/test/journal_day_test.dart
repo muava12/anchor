@@ -47,4 +47,25 @@ void main() {
     ]);
     expect(days.single.day, DateTime(now.year, now.month, now.day));
   });
+
+  test('heat buckets map entry counts to a level', () {
+    expect(heatLevelOf(0), 0);
+    expect(heatLevelOf(1), 1);
+    expect(heatLevelOf(2), 2);
+    expect(heatLevelOf(3), 2);
+    expect(heatLevelOf(4), 3);
+    expect(heatLevelOf(10), 3);
+  });
+
+  test('journalEntryCounts maps each day to its entry count', () {
+    final days = groupJournalDays([
+      note('a', '2026-11-17T08:00:00'),
+      note('b', '2026-11-17T09:00:00'),
+      note('c', '2026-11-16T10:00:00'),
+    ]);
+    final counts = journalEntryCounts(days);
+    expect(counts[DateTime(2026, 11, 17)], 2);
+    expect(counts[DateTime(2026, 11, 16)], 1);
+    expect(counts[DateTime(2026, 11, 18)], isNull);
+  });
 }

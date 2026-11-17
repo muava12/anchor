@@ -45,3 +45,15 @@ List<JournalDay> groupJournalDays(List<Note> notes) {
       ),
   ];
 }
+
+/// The heat level for a day: 0 none, 1 for one entry, 2 for two to three,
+/// and 3 for four or more.
+int heatLevelOf(int count) => switch (count) {
+  0 => 0,
+  1 => 1,
+  _ => count < 4 ? 2 : 3,
+};
+
+/// Each day's entry count, for shading the calendar.
+Map<DateTime, int> journalEntryCounts(List<JournalDay> days) =>
+    {for (final day in days) day.day: day.entries.length};

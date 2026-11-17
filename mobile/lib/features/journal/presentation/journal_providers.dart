@@ -65,6 +65,12 @@ final journalDaysProvider = Provider<List<JournalDay>>((ref) {
   return groupJournalDays(kept);
 });
 
+/// Each day's journal entry count, unfiltered by the search query.
+final journalEntryCountsProvider = Provider<Map<DateTime, int>>((ref) {
+  final notes = ref.watch(journalNotesProvider).value ?? const <Note>[];
+  return journalEntryCounts(groupJournalDays(notes));
+});
+
 bool _matches(Note note, String query) {
   if (note.title.toLowerCase().contains(query)) return true;
   final body =
