@@ -100,7 +100,7 @@ GoRouter goRouter(Ref ref) {
             path: 'journal/new',
             pageBuilder: (context, state) => const NoteMorphPage(
               key: ValueKey('journal/new'),
-              child: NoteEditScreen(),
+              child: NoteEditScreen(journal: true),
             ),
           ),
           GoRoute(

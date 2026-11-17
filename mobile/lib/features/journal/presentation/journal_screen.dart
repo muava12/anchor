@@ -50,7 +50,11 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
 
   void _open(Note note) => context.go(AppRoutes.note(note.id), extra: note);
 
-  void _newEntry() => context.go(AppRoutes.journalNew);
+  Future<void> _newEntry() async {
+    await ensureJournalTag(ref);
+    if (!mounted) return;
+    context.go(AppRoutes.journalNew);
+  }
 
   void _startSearch() => setState(() => _searching = true);
 

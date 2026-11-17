@@ -1,6 +1,6 @@
 import 'package:anchor/core/theme/app_theme.dart';
-import 'package:anchor/features/journal/presentation/journal_screen.dart';
 import 'package:anchor/features/journal/presentation/journal_providers.dart';
+import 'package:anchor/features/journal/presentation/journal_screen.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_calendar.dart';
 import 'package:anchor/features/notes/domain/note.dart';
 import 'package:anchor/features/tags/domain/tag.dart';

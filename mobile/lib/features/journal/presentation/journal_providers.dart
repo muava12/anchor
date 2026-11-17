@@ -36,6 +36,13 @@ final journalNotesProvider = StreamProvider<List<Note>>((ref) {
   return ref.watch(notesRepositoryProvider).watchNotes(tagId: tag.id);
 });
 
+/// The `journal` tag, created when it is missing.
+Future<Tag> ensureJournalTag(WidgetRef ref) async {
+  final existing = ref.read(journalTagProvider);
+  if (existing != null) return existing;
+  return ref.read(tagsControllerProvider.notifier).createTag('journal');
+}
+
 final journalQueryProvider =
     NotifierProvider<JournalQuery, String>(JournalQuery.new);
 

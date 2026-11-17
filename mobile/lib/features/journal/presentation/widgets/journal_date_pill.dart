@@ -11,7 +11,7 @@ import '../../../notes/presentation/note_labels.dart';
 
 /// The journal entry's day and time, as a small pill above the title.
 class JournalDatePill extends StatelessWidget {
-  const JournalDatePill({required this.entryAt, this.onTap});
+  const JournalDatePill({super.key, required this.entryAt, this.onTap});
 
   final DateTime? entryAt;
   final VoidCallback? onTap;
@@ -23,7 +23,7 @@ class JournalDatePill extends StatelessWidget {
     final label =
         '${shortDayLabel(entryAt!, context.l10n)} · ${clockLabel(entryAt!)}';
     final pill = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: colors.appPage,
         borderRadius: BorderRadius.circular(AnchorTokens.radiusPill),
@@ -37,7 +37,7 @@ class JournalDatePill extends StatelessWidget {
             size: AnchorTokens.sizeIconSmall,
             color: colors.accentStrong,
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 8),
           Text(
             label,
             style: AppTypography.footnote.copyWith(color: colors.appMuted),

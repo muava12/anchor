@@ -101,7 +101,7 @@ class _EditorToolButtonState extends State<EditorToolButton> {
           else if (widget.emoji != null)
             Text(
               widget.emoji!,
-              style: const TextStyle(fontSize: 22),
+              style: const TextStyle(fontSize: 24), // off-scale: emoji glyph
             )
           else
             Icon(

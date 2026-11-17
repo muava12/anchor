@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../../l10n/l10n.dart';
 import '../../../../core/text/date_formats.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/context_extensions.dart';
 import '../../../../core/theme/tokens/anchor_tokens.dart';
 import '../../../../core/widgets/pressable.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../notes/domain/note.dart';
 import '../../../notes/domain/note_blocks.dart';
 import '../../../notes/presentation/note_labels.dart';
@@ -14,7 +14,7 @@ import '../../domain/journal_meta.dart';
 
 /// A day-grouped journal, as a sliver for a [CustomScrollView].
 class JournalTimeline extends StatelessWidget {
-  const JournalTimeline({required this.days, required this.onOpen});
+  const JournalTimeline({super.key, required this.days, required this.onOpen});
 
   final List<JournalDay> days;
   final ValueChanged<Note> onOpen;
@@ -96,10 +96,10 @@ class _EntryRow extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(width: 12, child: const _TimelineRail()),
+            SizedBox(width: 12, child: const _TimelineRail()),
             const SizedBox(width: 8),
             SizedBox(
-              width: 56,
+              width: 48,
               child: Text(
                 time,
                 style: AppTypography.footnote.copyWith(color: colors.appMuted),
@@ -117,10 +117,10 @@ class _EntryRow extends StatelessWidget {
                   ),
                   if (mood != null)
                     Padding(
-                      padding: const EdgeInsets.only(top: 2),
+                      padding: const EdgeInsets.only(top: 4),
                       child: Text(
                         mood.emoji,
-                        style: const TextStyle(fontSize: 14),
+                        style: const TextStyle(fontSize: 16), // off-scale: inline emoji
                       ),
                     ),
                 ],
@@ -149,7 +149,7 @@ class _TimelineRail extends StatelessWidget {
         Container(
           width: 8,
           height: 8,
-          margin: const EdgeInsets.only(top: 6),
+          margin: const EdgeInsets.only(top: 4),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: colors.accentStrong,
@@ -169,11 +169,11 @@ class _PlaceholderThumbnail extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.anchor;
     return Container(
-      width: 44,
-      height: 44,
+      width: 48,
+      height: 48,
       decoration: BoxDecoration(
         color: colors.appSurface,
-        borderRadius: BorderRadius.circular(AnchorTokens.radiusMd),
+        borderRadius: BorderRadius.circular(AnchorTokens.radiusTile),
         border: Border.all(color: colors.appBorder),
       ),
     );

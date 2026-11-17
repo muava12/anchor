@@ -18,6 +18,10 @@ import '../../../core/widgets/app_snackbar.dart';
 import '../../../core/widgets/bottom_bar_frame.dart';
 import '../../../core/widgets/page_bar.dart';
 import '../../../l10n/l10n.dart';
+import '../../journal/domain/journal_meta.dart';
+import '../../journal/presentation/journal_providers.dart';
+import '../../journal/presentation/widgets/journal_date_pill.dart';
+import '../../journal/presentation/widgets/journal_mood_picker.dart';
 import '../../reminders/presentation/reminder_permission_prompt.dart';
 import '../../reminders/presentation/reminder_sheet.dart';
 import '../../settings/presentation/editor_preferences_controller.dart';
@@ -42,9 +46,6 @@ import 'note_actions.dart';
 import 'note_editor_controller.dart';
 import 'note_labels.dart';
 import 'note_morph_route.dart';
-import '../../journal/domain/journal_meta.dart';
-import '../../journal/presentation/widgets/journal_date_pill.dart';
-import '../../journal/presentation/widgets/journal_mood_picker.dart';
 import 'widgets/add_sheet.dart';
 import 'widgets/background_sheet.dart';
 import 'widgets/note_attachments_strip.dart';
@@ -106,7 +107,10 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
     sharesOf: (noteId) =>
         ref.read(noteSharesRepositoryProvider).getNoteShares(noteId),
     editor: _EditorContent(_editorKey),
-    newNoteTagId: () => ref.read(selectedTagFilterProvider),
+    newNoteTagId: () =>
+        widget.journal
+        ? ref.read(journalTagProvider)?.id
+        : ref.read(selectedTagFilterProvider),
     onNoteDeleted: _handleNoteDeleted,
     note: widget.note,
     noteId: widget.noteId,
@@ -136,6 +140,9 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
 
   void _toggleMoodPicker() =>
       setState(() => _moodPickerOpen = !_moodPickerOpen);
+
+  double _moodPickerBottom() =>
+      MediaQuery.viewInsetsOf(context).bottom + EditorToolbar.heightOf(1) + 8;
 
   late final EditorOverlayController _editorOverlay = EditorOverlayController(
     _editorKey,
@@ -905,9 +912,7 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
               Positioned(
                 left: 16,
                 right: 16,
-                bottom: MediaQuery.viewInsetsOf(context).bottom +
-                    EditorToolbar.heightOf(1) +
-                    8,
+                bottom: _moodPickerBottom(),
                 child: JournalMoodPicker(
                   selected: _meta.mood,
                   onPick: (mood) {

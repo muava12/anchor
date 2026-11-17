@@ -2109,6 +2109,42 @@
   "journalMoodGood": "Good",
   "journalMoodNeutral": "Neutral",
   "journalMoodRough": "Rough",
+  "@navJournal": {
+    "description": "Noun: the side menu item and list title for the journal."
+  },
+  "@journalSearchHint": {
+    "description": "Placeholder in the journal search field."
+  },
+  "@journalEmptyTitle": {
+    "description": "Heading on the empty journal page."
+  },
+  "@journalEmptyHelp": {
+    "description": "Line under the empty journal heading, inviting the first entry."
+  },
+  "@journalNew": {
+    "description": "Button that starts a new journal entry."
+  },
+  "@journalCalendar": {
+    "description": "Tool that shows the journal as a month calendar."
+  },
+  "@journalTimeline": {
+    "description": "Tool that shows the journal as a day timeline."
+  },
+  "@journalMood": {
+    "description": "Tool that opens the mood picker."
+  },
+  "@journalMoodAmazing": {
+    "description": "Mood label: a very good day."
+  },
+  "@journalMoodGood": {
+    "description": "Mood label: a good day."
+  },
+  "@journalMoodNeutral": {
+    "description": "Mood label: an ordinary day."
+  },
+  "@journalMoodRough": {
+    "description": "Mood label: a hard day."
+  },
   "@navTrash": {
     "description": "Noun: the side menu item and list title for deleted notes."
   },

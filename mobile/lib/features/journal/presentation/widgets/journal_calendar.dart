@@ -12,6 +12,7 @@ import '../../../notes/domain/note_dates.dart';
 /// A month grid with a dot under days that have an entry.
 class JournalCalendar extends StatelessWidget {
   const JournalCalendar({
+    super.key,
     required this.month,
     required this.entryDays,
     this.selectedDay,
@@ -123,8 +124,8 @@ class _NavButton extends StatelessWidget {
       onTap: onTap,
       semanticLabel: id,
       child: SizedBox(
-        width: 40,
-        height: 40,
+        width: 40, // off-scale: seven cells fit the phone
+        height: 40, // off-scale: seven cells fit the phone
         child: Center(
           child: Icon(
             key: ValueKey('calendar-$id'),

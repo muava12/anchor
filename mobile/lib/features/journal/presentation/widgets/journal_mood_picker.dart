@@ -12,6 +12,7 @@ import '../../domain/journal_meta.dart';
 /// The four journal moods, chosen above the keyboard.
 class JournalMoodPicker extends StatelessWidget {
   const JournalMoodPicker({
+    super.key,
     required this.selected,
     required this.onPick,
     required this.onClose,
@@ -35,7 +36,7 @@ class JournalMoodPicker extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.appSurface,
-        borderRadius: BorderRadius.circular(AnchorTokens.radiusXl),
+        borderRadius: BorderRadius.circular(AnchorTokens.radiusCard),
         border: Border.all(color: colors.appBorder),
         boxShadow: colors.shadowDialog,
       ),
@@ -111,8 +112,8 @@ class _MoodOption extends StatelessWidget {
         children: [
           AnimatedContainer(
             duration: context.motion(AnchorTokens.motionDurationHover),
-            width: 46,
-            height: 46,
+            width: 48,
+            height: 48,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
@@ -122,7 +123,7 @@ class _MoodOption extends StatelessWidget {
                 width: isSelected ? 2 : 1,
               ),
             ),
-            child: Text(mood.emoji, style: const TextStyle(fontSize: 22)),
+            child: Text(mood.emoji, style: const TextStyle(fontSize: 24)), // off-scale: emoji glyph
           ),
           SizedBox(height: context.density.space8),
           Text(
