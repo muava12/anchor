@@ -637,6 +637,9 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
       onReminder: _showReminder,
       onMore: isNew ? null : _showMore,
       onSearch: _openSearch,
+      leadingInset: widget.journal
+          ? JournalDatePill(entryAt: _meta.entryAt)
+          : null,
     );
 
     final content = Column(
@@ -685,13 +688,6 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
                   ),
                 ),
         ),
-        if (widget.journal)
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AnchorTokens.spaceGutterPhone,
-            ),
-            child: JournalDatePill(entryAt: _meta.entryAt),
-          ),
         if (note != null)
           Padding(
             padding: EdgeInsets.fromLTRB(

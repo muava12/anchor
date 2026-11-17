@@ -25,7 +25,7 @@ class JournalDatePill extends StatelessWidget {
     final pill = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: colors.appPage,
+        color: colors.appSurface,
         borderRadius: BorderRadius.circular(AnchorTokens.radiusPill),
         border: Border.all(color: colors.appBorder),
       ),

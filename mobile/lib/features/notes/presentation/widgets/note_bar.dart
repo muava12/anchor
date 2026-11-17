@@ -27,6 +27,7 @@ class NoteBar extends StatelessWidget {
     required this.onReminder,
     required this.onMore,
     required this.onSearch,
+    this.leadingInset,
   });
 
   final NoteAppearance appearance;
@@ -45,6 +46,9 @@ class NoteBar extends StatelessWidget {
 
   final VoidCallback onSearch;
 
+  /// A compact widget that sits in the bar, after the back button.
+  final Widget? leadingInset;
+
   @override
   Widget build(BuildContext context) {
     final leading = Row(
@@ -52,6 +56,11 @@ class NoteBar extends StatelessWidget {
       children: [
         PageBackButton(onPressed: onBack),
         if (isUnsynced) _UnsyncedBadge(appearance: appearance),
+        if (leadingInset != null)
+          Padding(
+            padding: const EdgeInsets.only(left: AnchorTokens.space8),
+            child: leadingInset,
+          ),
       ],
     );
     final actions = <Widget>[

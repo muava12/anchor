@@ -64,9 +64,17 @@ bool isTagNameTaken(Iterable<Tag> tags, String name, {String? exceptId}) {
 List<Tag> sortTagsByName(Iterable<Tag> tags) =>
     sortedByName(tags, (tag) => tag.name);
 
-/// A note's tags in the order they show.
-List<Tag> tagsByName(Iterable<String> ids, Map<String, Tag> byId) =>
-    sortTagsByName([for (final id in ids) ?byId[id]]);
+/// A note's tags in the order they show. Duplicate ids show once.
+List<Tag> tagsByName(Iterable<String> ids, Map<String, Tag> byId) {
+  final seen = <String>{};
+  final tags = <Tag>[];
+  for (final id in ids) {
+    if (!seen.add(id)) continue;
+    final tag = byId[id];
+    if (tag != null) tags.add(tag);
+  }
+  return sortTagsByName(tags);
+}
 
 class TagNameTakenException implements Exception {
   const TagNameTakenException(this.name);
