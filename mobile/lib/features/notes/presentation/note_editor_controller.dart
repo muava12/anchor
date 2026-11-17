@@ -12,6 +12,11 @@ import '../domain/note_blocks.dart';
 import '../domain/note_share.dart';
 import '../domain/user_summary.dart';
 
+typedef NoteContentCodec = ({
+  String? Function(String? content) toEditor,
+  String? Function(String? content) toStored,
+});
+
 /// Each member is null while there is no editor.
 abstract interface class NoteEditorContent {
   String? get content;
@@ -29,6 +34,7 @@ class NoteEditorController extends ChangeNotifier {
     required this.editor,
     required this.newNoteTagId,
     required this.onNoteDeleted,
+    this.codec,
     Note? note,
     String? noteId,
   }) : _notes = notes,
@@ -59,6 +65,9 @@ class NoteEditorController extends ChangeNotifier {
   /// is taken away.
   final VoidCallback onNoteDeleted;
 
+  /// Translates between the stored content and what the editor shows.
+  final NoteContentCodec? codec;
+
   final String? _openedId;
 
   final TextEditingController title = TextEditingController();
@@ -73,6 +82,7 @@ class NoteEditorController extends ChangeNotifier {
   // elsewhere; a save writes only the ones changed since.
   String _savedTitle = '';
   String? _savedContent;
+  String? _savedStoredContent;
   String? _savedBackground;
   String? _contentBeforeReload;
   List<UserSummary>? _sharedWith;
@@ -136,13 +146,14 @@ class NoteEditorController extends ChangeNotifier {
     _note = note;
     _lastTitleText = note.title;
     title.text = note.title;
-    _initialContent = note.content;
+    _initialContent = _toEditor(note.content);
     _background = note.background;
     _savedTitle = note.title;
-    _savedContent = note.content;
+    _savedContent = _toEditor(note.content);
+    _savedStoredContent = note.content;
     _savedBackground = note.background;
     _isLoaded = true;
-    words.value = wordCount(note.content);
+    words.value = wordCount(_toEditor(note.content));
     unawaited(_loadSharedWith(note));
   }
 
@@ -187,10 +198,10 @@ class NoteEditorController extends ChangeNotifier {
     if (isShareChanged) unawaited(_loadSharedWith(note));
     if (shouldReplaceDraft) {
       _showTitle(note.title);
-      _initialContent = note.content;
+      _initialContent = _toEditor(note.content);
       _contentVersion++;
       _background = note.background;
-      words.value = wordCount(note.content);
+      words.value = wordCount(_toEditor(note.content));
     } else {
       // Takes what changed elsewhere, where the draft hasn't changed it.
       if (storedTitleOf(title.text) == storedTitleOf(_savedTitle)) {
@@ -198,14 +209,15 @@ class NoteEditorController extends ChangeNotifier {
       }
       if (_editorMatches(_savedContent) && !_editorMatches(note.content)) {
         _contentBeforeReload = _savedContent;
-        _initialContent = note.content;
+        _initialContent = _toEditor(note.content);
         _contentVersion++;
-        words.value = wordCount(note.content);
+        words.value = wordCount(_toEditor(note.content));
       }
       if (_background == _savedBackground) _background = note.background;
     }
     _savedTitle = note.title;
-    _savedContent = note.content;
+    _savedContent = _toEditor(note.content);
+    _savedStoredContent = note.content;
     _savedBackground = note.background;
     _notify();
   }
@@ -221,8 +233,15 @@ class NoteEditorController extends ChangeNotifier {
       _editorMatches(note.content) &&
       note.background == _background;
 
-  bool _editorMatches(String? content) =>
-      editor.matches(content) ?? (content ?? '') == (_initialContent ?? '');
+  String? _toEditor(String? content) => codec?.toEditor(content) ?? content;
+
+  String? _toStored(String? content) => codec?.toStored(content) ?? content;
+
+  bool _editorMatches(String? content) {
+    final editorForm = _toEditor(content);
+    return editor.matches(editorForm) ??
+        (editorForm ?? '') == (_initialContent ?? '');
+  }
 
   void _handleNoteDeleted() {
     if (_isNew || _isDeleted) return;
@@ -318,7 +337,7 @@ class NoteEditorController extends ChangeNotifier {
     final note = Note(
       id: newId(),
       title: storedTitleOf(title.text),
-      content: editor.content ?? '',
+      content: _toStored(editor.content ?? ''),
       tagIds: [?newNoteTagId()],
       background: _background,
       isSynced: false,
@@ -328,7 +347,8 @@ class NoteEditorController extends ChangeNotifier {
       'createNote: id=${note.id} title.len=${note.title.length}',
     );
     _savedTitle = note.title;
-    _savedContent = note.content;
+    _savedContent = _toEditor(note.content);
+    _savedStoredContent = note.content;
     _savedBackground = note.background;
     await _notes.createNote(note);
     if (!_isDisposed) {
@@ -347,15 +367,15 @@ class NoteEditorController extends ChangeNotifier {
       return;
     }
     final storedTitle = storedTitleOf(title.text);
-    final content = editor.content ?? _initialContent ?? '';
+    final content = _toStored(editor.content ?? _initialContent ?? '');
     final existing = _note;
     if (existing == null) return;
     final isTitleChanged =
         storedTitle != storedTitleOf(_savedTitle) &&
         storedTitle != storedTitleOf(existing.title);
     final isContentChanged =
-        !(editor.matches(_savedContent) ?? true) &&
-        !(editor.matches(existing.content) ?? true) &&
+        content != _savedStoredContent &&
+        content != existing.content &&
         (_contentBeforeReload == null ||
             !(editor.matches(_contentBeforeReload) ?? false));
     final isBackgroundChanged =
@@ -368,7 +388,8 @@ class NoteEditorController extends ChangeNotifier {
       isSynced: false,
     );
     _savedTitle = updated.title;
-    _savedContent = updated.content;
+    _savedContent = _toEditor(updated.content);
+    _savedStoredContent = updated.content;
     _savedBackground = updated.background;
     _contentBeforeReload = null;
     await _notes.updateNote(updated);

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:anchor/features/journal/domain/journal_meta.dart';
 import 'package:anchor/features/notes/data/repository/notes_repository.dart';
 import 'package:anchor/features/notes/domain/note.dart';
 import 'package:anchor/features/notes/presentation/note_editor_controller.dart';
@@ -228,6 +229,77 @@ void main() {
     stored.add(null);
     await tester.pump();
     expect(closed, 1);
+    draft.dispose();
+  });
+
+  testWidgets('a codec strips a header on load and writes it back', (
+    tester,
+  ) async {
+    final meta = JournalMeta(
+      mood: JournalMood.good,
+      entryAt: DateTime(2026, 11, 17, 9, 41),
+    );
+    final codec = (
+      toEditor: (content) => parseJournalContent(content).body,
+      toStored: (content) => composeJournalContent(meta, content),
+    );
+    final editor = FakeEditor('');
+    final draft = NoteEditorController(
+      notes: repo,
+      sharesOf: (_) async => const [],
+      editor: editor,
+      newNoteTagId: () => null,
+      onNoteDeleted: () {},
+      note: Note(
+        id: 'n2',
+        title: 'Journal',
+        content: composeJournalContent(
+          meta,
+          '{"ops":[{"insert":"body\\n"}]}',
+        ),
+      ),
+      codec: codec,
+    );
+    expect(draft.initialContent, '{"ops":[{"insert":"body\\n"}]}');
+    editor.text = 'body changed';
+    draft.contentChanged();
+    await tester.pump(const Duration(seconds: 2));
+    final saved =
+        verify(() => repo.updateNote(captureAny())).captured.single as Note;
+    expect(saved.content, contains('mood: good'));
+    expect(saved.content, contains('body changed'));
+    draft.dispose();
+  });
+
+  testWidgets('a meta-only change is saved', (tester) async {
+    var meta = JournalMeta(
+      mood: JournalMood.good,
+      entryAt: DateTime(2026, 11, 17, 9, 41),
+    );
+    final codec = (
+      toEditor: (content) => parseJournalContent(content).body,
+      toStored: (content) => composeJournalContent(meta, content),
+    );
+    final editor = FakeEditor('body');
+    final draft = NoteEditorController(
+      notes: repo,
+      sharesOf: (_) async => const [],
+      editor: editor,
+      newNoteTagId: () => null,
+      onNoteDeleted: () {},
+      note: Note(
+        id: 'n3',
+        title: 'Journal',
+        content: composeJournalContent(meta, editor.content),
+      ),
+      codec: codec,
+    );
+    meta = JournalMeta(mood: JournalMood.rough, entryAt: meta.entryAt);
+    draft.contentChanged();
+    await tester.pump(const Duration(seconds: 2));
+    final saved =
+        verify(() => repo.updateNote(captureAny())).captured.single as Note;
+    expect(saved.content, contains('mood: rough'));
     draft.dispose();
   });
 }
