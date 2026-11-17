@@ -1559,6 +1559,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String journalMonthEntries(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entries this month',
+      one: '1 entry this month',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get journalCalendarLess => 'Less';
+
+  @override
+  String get journalCalendarMore => 'More';
+
+  @override
   String drawerAccount(String name) {
     return '$name, Settings';
   }

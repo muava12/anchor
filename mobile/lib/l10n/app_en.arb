@@ -2110,6 +2110,9 @@
   "journalMoodNeutral": "Neutral",
   "journalMoodRough": "Rough",
   "journalEntriesCount": "{count, plural, =1{1 entry} other{{count} entries}}",
+  "journalMonthEntries": "{count, plural, =1{1 entry this month} other{{count} entries this month}}",
+  "journalCalendarLess": "Less",
+  "journalCalendarMore": "More",
   "@navJournal": {
     "description": "Noun: the side menu item and list title for the journal."
   },
@@ -2154,6 +2157,21 @@
         "example": "3"
       }
     }
+  },
+  "@journalMonthEntries": {
+    "description": "The count of journal entries in the shown month, in the calendar footer.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "11"
+      }
+    }
+  },
+  "@journalCalendarLess": {
+    "description": "Left end of the calendar heat-map legend (fewer entries)."
+  },
+  "@journalCalendarMore": {
+    "description": "Right end of the calendar heat-map legend (more entries)."
   },
   "@navTrash": {
     "description": "Noun: the side menu item and list title for deleted notes."

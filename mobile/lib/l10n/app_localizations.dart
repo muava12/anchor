@@ -2501,6 +2501,9 @@ abstract class AppLocalizations {
   String get journalMoodNeutral;
   String get journalMoodRough;
   String journalEntriesCount(int count);
+  String journalMonthEntries(int count);
+  String get journalCalendarLess;
+  String get journalCalendarMore;
 
   /// Screen reader label of the account row at the bottom of the menu.
   ///
