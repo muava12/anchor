@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/text/date_formats.dart';
@@ -9,18 +10,29 @@ import '../../../../core/widgets/pressable.dart';
 import '../../../../l10n/l10n.dart';
 import '../../../notes/domain/note.dart';
 import '../../../notes/domain/note_dates.dart';
+import '../../../notes/presentation/widgets/note_chips.dart';
+import '../../../notes/presentation/widgets/note_surface.dart';
+import '../../../tags/domain/tag.dart';
+import '../../../tags/presentation/tags_controller.dart';
 import '../../domain/journal_day.dart';
+import '../../domain/journal_meta.dart';
 import '../journal_entry_text.dart';
 
 /// The selected day in the calendar: a day header, then a card per entry.
-class JournalDayCards extends StatelessWidget {
-  const JournalDayCards({super.key, required this.days, required this.onOpen});
+class JournalDayCards extends ConsumerWidget {
+  const JournalDayCards({
+    super.key,
+    required this.days,
+    required this.journalTagId,
+    required this.onOpen,
+  });
 
   final List<JournalDay> days;
+  final String? journalTagId;
   final ValueChanged<Note> onOpen;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return SliverList(
       delegate: SliverChildListDelegate([
         for (final day in days) ...[
@@ -33,7 +45,11 @@ class JournalDayCards extends StatelessWidget {
                 16,
                 context.density.space8,
               ),
-              child: _EntryCard(entry: entry, onOpen: onOpen),
+              child: _EntryCard(
+                entry: entry,
+                journalTagId: journalTagId,
+                onOpen: onOpen,
+              ),
             ),
         ],
       ]),
@@ -109,19 +125,30 @@ class _TodayPill extends StatelessWidget {
   }
 }
 
-class _EntryCard extends StatelessWidget {
-  const _EntryCard({required this.entry, required this.onOpen});
+class _EntryCard extends ConsumerWidget {
+  const _EntryCard({
+    required this.entry,
+    this.journalTagId,
+    required this.onOpen,
+  });
 
   final JournalDayEntry entry;
+  final String? journalTagId;
   final ValueChanged<Note> onOpen;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final note = entry.note;
     final colors = context.anchor;
     final title = journalTitleOf(note, context.l10n);
     final preview = journalPreviewOf(note, title);
-    final time = journalTimeOf(entry);
+    final meta = parseJournalContent(note.content).meta;
+    final time = meta.entryAt == null
+        ? ''
+        : clockLabel(meta.entryAt!);
+    final otherTag = _firstOtherTag(ref, note, journalTagId);
+    // TODO: mood emoji row is deferred; only the tag chip renders for now.
+    final hasMeta = time.isNotEmpty || otherTag != null;
 
     return Pressable(
       style: PressStyle.plain,
@@ -158,19 +185,43 @@ class _EntryCard extends StatelessWidget {
                   ),
                 ),
               ),
-            if (time.isNotEmpty)
+            if (hasMeta)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  time,
-                  style: AppTypography.footnote.copyWith(
-                    color: colors.appMuted,
-                  ),
+                child: Row(
+                  children: [
+                    if (time.isNotEmpty)
+                      Text(
+                        time,
+                        style: AppTypography.footnote.copyWith(
+                          color: colors.appMuted,
+                        ),
+                      ),
+                    if (otherTag != null) ...[
+                      if (time.isNotEmpty) const SizedBox(width: 8),
+                      TagChip(
+                        tag: otherTag,
+                        appearance: NoteAppearance.of(context, null),
+                      ),
+                    ],
+                  ],
                 ),
               ),
           ],
         ),
       ),
     );
+  }
+
+  /// The first tag on the note that is not the journal tag, if any.
+  Tag? _firstOtherTag(WidgetRef ref, Note note, String? journalTagId) {
+    final all = ref.watch(tagsControllerProvider).value ?? const <Tag>[];
+    for (final id in note.tagIds) {
+      if (id == journalTagId) continue;
+      for (final tag in all) {
+        if (tag.id == id) return tag;
+      }
+    }
+    return null;
   }
 }

@@ -151,7 +151,11 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                 onNextMonth: () => setState(() => _month = _nextMonth()),
               ),
             ),
-            JournalDayCards(days: shownDays, onOpen: _open),
+            JournalDayCards(
+              days: shownDays,
+              journalTagId: tag.id,
+              onOpen: _open,
+            ),
           ] else
             JournalTimeline(days: shownDays, onOpen: _open),
         ],
