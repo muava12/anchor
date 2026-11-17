@@ -96,4 +96,46 @@ void main() {
 
     expect(find.byType(Image), findsOneWidget);
   });
+
+  testWidgets('three or more pictures stack, with a count badge', (tester) async {
+    final now = DateTime.now();
+    final day = DateTime(now.year, now.month, now.day);
+    final note = Note(
+      id: 'n1',
+      title: 'Lots of pictures',
+      imagePreviewData: const [
+        NoteImagePreview(attachmentId: 'a1', noteId: 'n1', filename: 'a.jpg'),
+        NoteImagePreview(attachmentId: 'a2', noteId: 'n1', filename: 'b.jpg'),
+        NoteImagePreview(attachmentId: 'a3', noteId: 'n1', filename: 'c.jpg'),
+        NoteImagePreview(attachmentId: 'a4', noteId: 'n1', filename: 'd.jpg'),
+      ],
+    );
+    final entry = JournalDayEntry(note: note, meta: JournalMeta(entryAt: day));
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          attachmentFileProvider.overrideWith((ref, key) => '/tmp/a.jpg'),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.light(),
+          home: Scaffold(
+            body: CustomScrollView(
+              slivers: [
+                JournalTimeline(
+                  days: [JournalDay(day: day, entries: [entry])],
+                  onOpen: (_) {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    // Only the front picture is a real image; the badge carries the count.
+    expect(find.byType(Image), findsOneWidget);
+    expect(find.text('4'), findsOneWidget);
+  });
 }

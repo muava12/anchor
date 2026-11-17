@@ -182,7 +182,7 @@ class _EntryRow extends StatelessWidget {
                 ),
                 if (hasPicture) ...[
                   const SizedBox(width: 12),
-                  _EntryThumbnail(preview: note.imagePreviewData.first),
+                  _EntryThumbnails(previews: note.imagePreviewData),
                 ],
               ],
             ),
@@ -210,17 +210,26 @@ class _RailRing extends StatelessWidget {
   }
 }
 
-/// The entry's first picture, loaded from the attachment store.
-class _EntryThumbnail extends ConsumerWidget {
-  const _EntryThumbnail({required this.preview});
+/// The entry's pictures: one, a pair, or a stack of three, with a badge.
+class _EntryThumbnails extends ConsumerWidget {
+  const _EntryThumbnails({required this.previews});
 
-  final NoteImagePreview preview;
+  final List<NoteImagePreview> previews;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.anchor;
-    final loaded = ref.watch(attachmentFileProvider(previewFileKeyOf(preview)));
+    final count = previews.length;
+    // Only the front picture is a real image; the cards behind are plain, so
+    // a busy timeline keeps scrolling light.
+    final loaded = ref.watch(
+      attachmentFileProvider(previewFileKeyOf(previews.first)),
+    );
     final path = loaded.value;
+    const off = 6.0; // off-scale: the step between stacked pictures
+    final behind = count - 1 > 2 ? 2 : count - 1;
+    final side = AnchorTokens.sizeJournalThumb;
+
     final missing = ColoredBox(
       color: colors.appSurface,
       child: Center(
@@ -231,22 +240,88 @@ class _EntryThumbnail extends ConsumerWidget {
         ),
       ),
     );
-    return ClipRRect(
+    final front = ClipRRect(
       borderRadius: BorderRadius.circular(AnchorTokens.radiusTile),
       child: SizedBox(
-        width: 52, // off-scale: the list card's picture
-        height: 52, // off-scale: the list card's picture
+        width: side,
+        height: side,
         child: path != null
             ? Image.file(
                 File(path),
                 fit: BoxFit.cover,
-                cacheWidth: 400,
+                cacheWidth: 96,
                 gaplessPlayback: true,
                 errorBuilder: (_, _, _) => missing,
               )
             : loaded.isLoading
             ? ColoredBox(color: colors.appSurface)
             : missing,
+      ),
+    );
+
+    return SizedBox(
+      width: side + off * behind,
+      height: side + off * behind,
+      child: Stack(
+        alignment: Alignment.topLeft,
+        clipBehavior: Clip.none,
+        children: [
+          // The back cards, furthest first, peaking up and to the right.
+          for (var i = behind; i >= 1; i--)
+            Positioned(
+              left: off * i,
+              top: off * (behind - i),
+              child: Container(
+                width: side,
+                height: side,
+                decoration: BoxDecoration(
+                  color: colors.appSurface,
+                  borderRadius: BorderRadius.circular(AnchorTokens.radiusTile),
+                  border: Border.all(color: colors.appBorder),
+                ),
+              ),
+            ),
+          Positioned(left: 0, top: off * behind, child: front),
+          Positioned(
+            right: off * behind + 4,
+            bottom: 4,
+            child: _ThumbnailsBadge(count: count),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ThumbnailsBadge extends StatelessWidget {
+  const _ThumbnailsBadge({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.anchor;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      decoration: BoxDecoration(
+        color: colors.appInverse,
+        borderRadius: BorderRadius.circular(AnchorTokens.radiusSm),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 4,
+        children: [
+          Icon(
+            LucideIcons.image,
+            size: AnchorTokens.sizeIconSmall,
+            color: colors.appOnInverse,
+          ),
+          if (count > 1)
+            Text(
+              '$count',
+              style: AppTypography.chip.copyWith(color: colors.appOnInverse),
+            ),
+        ],
       ),
     );
   }
