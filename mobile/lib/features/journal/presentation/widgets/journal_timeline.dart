@@ -125,14 +125,14 @@ class _EntryRow extends StatelessWidget {
       onTap: () => onOpen(note),
       semanticLabel: time.isEmpty ? title : '$title · $time',
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
         child: Stack(
           clipBehavior: Clip.none,
           children: [
             if (!isLastOfDay)
               Positioned(
                 left: 7, // off-scale: the 16px ring's centre
-                top: 22, // off-scale: just under the ring
+                top: 0,
                 bottom: -8,
                 width: 2,
                 child: ColoredBox(color: colors.appBorder),
@@ -202,7 +202,6 @@ class _RailRing extends StatelessWidget {
     return Container(
       width: 16,
       height: 16,
-      margin: const EdgeInsets.only(top: 2), // off-scale: ring alignment
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(color: context.anchor.accentStrong, width: 2),
