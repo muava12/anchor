@@ -129,6 +129,17 @@ class AppDatabase extends _$AppDatabase {
           );
         }
       }
+      if (from < 13) {
+        await migrator.addColumn(notes, notes.createdAt);
+        await update(
+          notes,
+        ).write(NotesCompanion.custom(createdAt: notes.updatedAt));
+        // The server sends each feed entry once; a rebased cursor repeats them,
+        // and the created date must be filled from the server, not guessed.
+        await (update(syncState)..where((tbl) => tbl.cursor.isNotNull())).write(
+          const SyncStateCompanion(cursor: Value(null)),
+        );
+      }
     },
   );
 }
