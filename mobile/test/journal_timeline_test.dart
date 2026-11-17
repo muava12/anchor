@@ -47,7 +47,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('Today'), findsOneWidget);
+    expect(find.text('TODAY'), findsOneWidget);
     expect(find.text(clockLabel(entryTime)), findsOneWidget);
     expect(find.text('Morning pages'), findsOneWidget);
 
