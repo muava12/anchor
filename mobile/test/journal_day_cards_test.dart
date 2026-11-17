@@ -74,4 +74,54 @@ void main() {
 
     expect(find.textContaining('NOV'), findsNothing);
   });
+
+  testWidgets('a day equal to today shows the TODAY pill', (tester) async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    const entry = JournalDayEntry(
+      note: Note(id: 'n1', title: 'T', content: 'plain'),
+      meta: JournalMeta(),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: AppTheme.light(),
+          home: Scaffold(
+            body: CustomScrollView(
+              slivers: [
+                JournalDayCards(
+                  days: [JournalDay(day: today, entries: [entry])],
+                  onOpen: (_) {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('TODAY'), findsOneWidget);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: AppTheme.light(),
+          home: Scaffold(
+            body: CustomScrollView(
+              slivers: [
+                JournalDayCards(
+                  days: [JournalDay(day: yesterday, entries: const [])],
+                  onOpen: (_) {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('TODAY'), findsNothing);
+  });
 }

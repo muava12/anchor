@@ -8,6 +8,7 @@ import '../../../../core/theme/tokens/anchor_tokens.dart';
 import '../../../../core/widgets/pressable.dart';
 import '../../../../l10n/l10n.dart';
 import '../../../notes/domain/note.dart';
+import '../../../notes/domain/note_dates.dart';
 import '../../domain/journal_day.dart';
 import '../journal_entry_text.dart';
 
@@ -48,6 +49,7 @@ class _DayHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.anchor;
+    final isToday = isSameDay(day.day, DateTime.now());
     final label = DateFormat(
       'EEE, MMM d',
       dateLocale,
@@ -61,19 +63,47 @@ class _DayHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.label.copyWith(color: colors.appMuted),
-            ),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.label.copyWith(color: colors.appMuted),
           ),
+          if (isToday)
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: _TodayPill(),
+            ),
+          const Spacer(),
           Text(
             context.l10n.journalEntriesCount(day.entries.length),
             style: AppTypography.footnote.copyWith(color: colors.appMuted),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A small accent-tint "TODAY" pill beside the day label.
+class _TodayPill extends StatelessWidget {
+  const _TodayPill();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.anchor;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: colors.accentStrong.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(AnchorTokens.radiusPill),
+      ),
+      child: Text(
+        context.l10n.commonToday.toUpperCase(),
+        style: AppTypography.footnote.copyWith(
+          fontWeight: FontWeight.w700,
+          color: colors.accentStrong,
+        ),
       ),
     );
   }
