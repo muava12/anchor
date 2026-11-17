@@ -74,7 +74,6 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
     final query = ref.watch(journalQueryProvider);
 
     final empty = tag == null || days.isEmpty;
-    final entryDays = <DateTime>{for (final day in days) day.day};
 
     List<JournalDay> shownDays = days;
     final selected = _selectedDay;
@@ -141,7 +140,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
             SliverToBoxAdapter(
               child: JournalCalendar(
                 month: _month,
-                entryDays: entryDays,
+                entryCounts: ref.watch(journalEntryCountsProvider),
                 selectedDay: _selectedDay,
                 onPickDay: (day) => setState(() {
                   _selectedDay = day;

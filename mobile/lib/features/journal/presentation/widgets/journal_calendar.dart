@@ -7,15 +7,17 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/context_extensions.dart';
 import '../../../../core/theme/tokens/anchor_tokens.dart';
 import '../../../../core/widgets/pressable.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../notes/domain/note_dates.dart';
+import '../../domain/journal_day.dart';
 
-/// A month grid in a card: navigation, weekdays, and a dot on days that have
-/// an entry.
+/// A month grid in a card: the days are shaded by how many entries they hold,
+/// with a footer that counts the month and legends the scale.
 class JournalCalendar extends StatelessWidget {
   const JournalCalendar({
     super.key,
     required this.month,
-    required this.entryDays,
+    required this.entryCounts,
     this.selectedDay,
     required this.onPickDay,
     required this.onPreviousMonth,
@@ -24,13 +26,19 @@ class JournalCalendar extends StatelessWidget {
 
   /// The first day of the displayed month.
   final DateTime month;
-  final Set<DateTime> entryDays;
+
+  /// Every day's journal entry count, unfiltered by the search query.
+  final Map<DateTime, int> entryCounts;
   final DateTime? selectedDay;
   final ValueChanged<DateTime> onPickDay;
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
 
   static const _weekdays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  static const _heatAlpha = [0.0, 0.14, 0.30, 0.55];
+
+  Color _tint(int level, AnchorColors colors) =>
+      colors.accentStrong.withValues(alpha: _heatAlpha[level]);
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +49,11 @@ class JournalCalendar extends StatelessWidget {
     // The Monday of the week that holds the 1st, then six full weeks.
     final start = first.subtract(Duration(days: first.weekday - 1));
     DateTime dayAt(int i) => start.add(Duration(days: i));
+    final monthEntries = entryCounts.entries
+        .where(
+          (e) => e.key.year == month.year && e.key.month == month.month,
+        )
+        .fold(0, (sum, e) => sum + e.value);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(16, density.space8, 16, density.space8),
@@ -109,12 +122,30 @@ class JournalCalendar extends StatelessWidget {
                   _DayCell(
                     date: dayAt(i),
                     month: month,
-                    isEntry: entryDays.any((e) => isSameDay(e, dayAt(i))),
+                    count: entryCounts[dayAt(i)] ?? 0,
                     isSelected:
                         selectedDay != null && isSameDay(selectedDay!, dayAt(i)),
                     isToday: isSameDay(today, dayAt(i)),
+                    tintOf: (level) => _tint(level, colors),
                     onPick: onPickDay,
                   ),
+              ],
+            ),
+            SizedBox(height: density.space12),
+            Container(height: 1, color: colors.appBorder),
+            SizedBox(height: density.space8),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    context.l10n.journalMonthEntries(monthEntries),
+                    style: AppTypography.footnote.copyWith(
+                      color: colors.appMuted,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _HeatLegend(colors: colors, less: context.l10n.journalCalendarLess, more: context.l10n.journalCalendarMore),
               ],
             ),
           ],
@@ -158,21 +189,60 @@ class _NavButton extends StatelessWidget {
   }
 }
 
+/// The light → dark swatch with its "Less" / "More" ends.
+class _HeatLegend extends StatelessWidget {
+  const _HeatLegend({
+    required this.colors,
+    required this.less,
+    required this.more,
+  });
+
+  final AnchorColors colors;
+  final String less;
+  final String more;
+
+  @override
+  Widget build(BuildContext context) {
+    final alpha = [0.14, 0.30, 0.55];
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(less, style: AppTypography.footnote.copyWith(color: colors.appMuted)),
+        const SizedBox(width: 4),
+        for (final a in alpha)
+          Container(
+            width: 12,
+            height: 12,
+            margin: const EdgeInsets.symmetric(horizontal: 2),
+            decoration: BoxDecoration(
+              color: colors.accentStrong.withValues(alpha: a),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        const SizedBox(width: 4),
+        Text(more, style: AppTypography.footnote.copyWith(color: colors.appMuted)),
+      ],
+    );
+  }
+}
+
 class _DayCell extends StatelessWidget {
   const _DayCell({
     required this.date,
     required this.month,
-    required this.isEntry,
+    required this.count,
     required this.isSelected,
     required this.isToday,
+    required this.tintOf,
     required this.onPick,
   });
 
   final DateTime date;
   final DateTime month;
-  final bool isEntry;
+  final int count;
   final bool isSelected;
   final bool isToday;
+  final Color Function(int level) tintOf;
   final ValueChanged<DateTime> onPick;
 
   bool get _inMonth => date.year == month.year && date.month == month.month;
@@ -186,52 +256,39 @@ class _DayCell extends StatelessWidget {
       '${date.month.toString().padLeft(2, '0')}-'
       '${number.toString().padLeft(2, '0')}',
     );
-    final content = Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: AnchorTokens.sizeTargetPhone,
-          height: AnchorTokens.sizeTargetPhone,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isSelected ? colors.accentStrong : null,
-            border: isToday && !isSelected
-                ? Border.all(color: colors.accentStrong, width: 1.5)
-                : null,
-          ),
-          child: Text(
-            '$number',
-            style: AppTypography.row.copyWith(
-              color: isSelected
-                  ? colors.appOnInverse
-                  : _inMonth
-                  ? colors.appText
-                  : colors.appMuted,
-            ),
+    final level = heatLevelOf(_inMonth ? count : 0);
+    final background = isSelected ? colors.accentStrong : tintOf(level);
+    final cell = Container(
+      height: AnchorTokens.sizeControlMedium,
+      margin: const EdgeInsets.symmetric(horizontal: 2),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(AnchorTokens.radiusTile),
+        border: isToday && !isSelected && level == 0
+            ? Border.all(color: colors.accentStrong, width: 1.5)
+            : null,
+      ),
+      child: Center(
+        child: Text(
+          '$number',
+          style: AppTypography.row.copyWith(
+            color: isSelected
+                ? colors.appOnInverse
+                : _inMonth
+                ? colors.appText
+                : colors.appMuted,
           ),
         ),
-        if (_inMonth && isEntry)
-          Container(
-            key: const ValueKey('journal-entry-dot'),
-            width: 4,
-            height: 4,
-            margin: const EdgeInsets.only(top: 4),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: colors.accentStrong,
-            ),
-          ),
-      ],
+      ),
     );
 
     // A day from the month beside this one is shown, but not picked here.
-    if (!_inMonth) return IgnorePointer(key: key, child: content);
+    if (!_inMonth) return IgnorePointer(key: key, child: cell);
     return GestureDetector(
       key: key,
       behavior: HitTestBehavior.opaque,
       onTap: () => onPick(date),
-      child: content,
+      child: cell,
     );
   }
 }
