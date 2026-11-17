@@ -213,10 +213,12 @@ class _HeatLegend extends StatelessWidget {
           Container(
             width: 12,
             height: 12,
-            margin: const EdgeInsets.symmetric(horizontal: 2),
+            margin: const EdgeInsets.symmetric(
+              horizontal: AnchorTokens.space2,
+            ), // off-scale: heat swatch gap
             decoration: BoxDecoration(
               color: colors.accentStrong.withValues(alpha: a),
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(4), // off-scale: heat swatch
             ),
           ),
         const SizedBox(width: 4),
@@ -260,7 +262,9 @@ class _DayCell extends StatelessWidget {
     final background = isSelected ? colors.accentStrong : tintOf(level);
     final cell = Container(
       height: AnchorTokens.sizeControlMedium,
-      margin: const EdgeInsets.symmetric(horizontal: 2),
+      margin: const EdgeInsets.symmetric(
+        horizontal: AnchorTokens.space2,
+      ), // off-scale: heat cell gap
       decoration: BoxDecoration(
         color: background,
         borderRadius: BorderRadius.circular(AnchorTokens.radiusTile),
