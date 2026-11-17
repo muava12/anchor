@@ -38,6 +38,17 @@ class JournalMeta {
 
   bool get isEmpty => mood == null && entryAt == null && extras.isEmpty;
 
+  JournalMeta copyWith({
+    JournalMood? mood,
+    DateTime? entryAt,
+    Map<String, String>? extras,
+  }) =>
+      JournalMeta(
+        mood: mood ?? this.mood,
+        entryAt: entryAt ?? this.entryAt,
+        extras: extras ?? this.extras,
+      );
+
   @override
   bool operator ==(Object other) =>
       other is JournalMeta &&

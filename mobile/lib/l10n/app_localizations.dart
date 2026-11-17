@@ -2495,6 +2495,11 @@ abstract class AppLocalizations {
   String get journalNew;
   String get journalCalendar;
   String get journalTimeline;
+  String get journalMood;
+  String get journalMoodAmazing;
+  String get journalMoodGood;
+  String get journalMoodNeutral;
+  String get journalMoodRough;
 
   /// Screen reader label of the account row at the bottom of the menu.
   ///

@@ -37,6 +37,7 @@ class EditorOverlay extends StatelessWidget {
     required this.isTitleFocused,
     required this.titleHistory,
     required this.onAddAttachment,
+    this.editorMood,
   });
 
   final EditorOverlayController controller;
@@ -52,6 +53,8 @@ class EditorOverlay extends StatelessWidget {
   final UndoHistoryController titleHistory;
 
   final VoidCallback onAddAttachment;
+
+  final EditorMoodTool? editorMood;
 
   @override
   Widget build(BuildContext context) {
@@ -124,6 +127,7 @@ class EditorOverlay extends StatelessWidget {
       lastHighlight: this.controller.highlight,
       canUndo: isTitleFocused ? history.canUndo : controller.hasUndo,
       canRedo: isTitleFocused ? history.canRedo : controller.hasRedo,
+      moodEmoji: editorMood?.emoji,
     );
   }
 
@@ -176,6 +180,8 @@ class EditorOverlay extends StatelessWidget {
         isTitleFocused ? titleHistory.undo() : controller.undo();
       case EditorTool.redo:
         isTitleFocused ? titleHistory.redo() : controller.redo();
+      case EditorTool.mood:
+        editorMood?.onTap();
       case EditorTool.hideKeyboard:
         // The scope's unfocus gives the editor focus back when a sheet closes.
         FocusManager.instance.primaryFocus?.unfocus();
@@ -532,4 +538,12 @@ class _LeadThenSettle extends Simulation {
   @override
   bool isDone(double time) =>
       time >= _holdSeconds && _settle.isDone(time - _holdSeconds);
+}
+
+/// The journal mood tool: the emoji to show and how to open the picker.
+class EditorMoodTool {
+  const EditorMoodTool({required this.emoji, required this.onTap});
+
+  final String? emoji;
+  final VoidCallback onTap;
 }

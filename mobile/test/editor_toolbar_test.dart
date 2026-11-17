@@ -103,6 +103,7 @@ void main() {
         'checklist',
         'bullet',
         'add',
+        'mood',
         'space',
         'undo',
         'redo',
@@ -391,6 +392,34 @@ void main() {
         find.descendant(of: tool('Pink'), matching: find.byType(Icon)),
         findsNothing,
       );
+    });
+  });
+
+  group('journal mood tool', () {
+    test('the typing mode puts the mood tool after add, list does not', () {
+      final typing = toolbarToolsOf(EditorToolbarMode.typing).start;
+      expect(
+        typing.indexOf(EditorTool.mood),
+        greaterThan(typing.indexOf(EditorTool.add)),
+      );
+      expect(
+        toolbarToolsOf(EditorToolbarMode.list).start,
+        isNot(contains(EditorTool.mood)),
+      );
+    });
+
+    test('the model carries the selected mood emoji', () {
+      final model = EditorToolbarModel.of(
+        isInTitle: false,
+        hasWords: false,
+        lineKind: LineKind.text,
+        submenu: EditorSubmenu.none,
+        lastHighlight: 'yellow',
+        canUndo: false,
+        canRedo: false,
+        moodEmoji: '🙂',
+      );
+      expect(model.moodEmoji, '🙂');
     });
   });
 }

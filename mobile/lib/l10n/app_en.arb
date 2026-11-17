@@ -2104,6 +2104,11 @@
   "journalNew": "New entry",
   "journalCalendar": "Calendar",
   "journalTimeline": "Timeline",
+  "journalMood": "Mood",
+  "journalMoodAmazing": "Amazing",
+  "journalMoodGood": "Good",
+  "journalMoodNeutral": "Neutral",
+  "journalMoodRough": "Rough",
   "@navTrash": {
     "description": "Noun: the side menu item and list title for deleted notes."
   },

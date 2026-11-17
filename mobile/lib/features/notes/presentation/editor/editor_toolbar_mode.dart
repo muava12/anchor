@@ -45,6 +45,7 @@ enum EditorTool {
   removeHighlight(LucideIcons.eraser),
   undo(LucideIcons.undo2),
   redo(LucideIcons.redo2),
+  mood(LucideIcons.smile),
   hideKeyboard(LucideIcons.keyboardOff);
 
   const EditorTool(this.icon, {this.highlightName});
@@ -75,6 +76,7 @@ enum EditorTool {
     EditorTool.removeHighlight => l10n.toolRemoveHighlight,
     EditorTool.undo => l10n.commonUndo,
     EditorTool.redo => l10n.toolRedo,
+    EditorTool.mood => l10n.journalMood,
     EditorTool.hideKeyboard => l10n.toolHideKeyboard,
   };
 
@@ -130,6 +132,7 @@ EditorToolbarMode toolbarModeOf({
       EditorTool.checklist,
       EditorTool.bullet,
       EditorTool.add,
+      EditorTool.mood,
     ],
     EditorToolbarMode.list => const [
       EditorTool.styles,
@@ -176,6 +179,7 @@ class EditorToolbarModel {
     this.disabledTools = const {},
     this.lineKind = LineKind.text,
     this.highlightName = 'yellow',
+    this.moodEmoji,
   });
 
   factory EditorToolbarModel.of({
@@ -188,6 +192,7 @@ class EditorToolbarModel {
     required String lastHighlight,
     required bool canUndo,
     required bool canRedo,
+    String? moodEmoji,
   }) {
     final mode = toolbarModeOf(
       isInTitle: isInTitle,
@@ -224,6 +229,7 @@ class EditorToolbarModel {
         if (!canUndo) EditorTool.undo,
         if (!canRedo) EditorTool.redo,
       },
+      moodEmoji: moodEmoji,
     );
   }
 
@@ -239,6 +245,9 @@ class EditorToolbarModel {
 
   final String highlightName;
 
+  /// The emoji shown on the mood tool once a mood is chosen.
+  final String? moodEmoji;
+
   bool get hasLineStyles => mode == EditorToolbarMode.styles;
 
   int get rows => hasLineStyles ? 2 : 1;
@@ -252,7 +261,8 @@ class EditorToolbarModel {
       setEquals(other.activeTools, activeTools) &&
       setEquals(other.disabledTools, disabledTools) &&
       other.lineKind == lineKind &&
-      other.highlightName == highlightName;
+      other.highlightName == highlightName &&
+      other.moodEmoji == moodEmoji;
 
   @override
   int get hashCode => Object.hash(
@@ -263,5 +273,6 @@ class EditorToolbarModel {
     Object.hashAllUnordered(disabledTools),
     lineKind,
     highlightName,
+    moodEmoji,
   );
 }

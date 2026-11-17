@@ -34,6 +34,7 @@ import 'checked_folds_controller.dart';
 import 'editor/editor_overlay.dart';
 import 'editor/editor_overlay_controller.dart';
 import 'editor/editor_palette.dart';
+import 'editor/editor_toolbar.dart';
 import 'editor/line_kind.dart';
 import 'editor/note_search_controller.dart';
 import 'editor/rich_text_editor.dart';
@@ -41,6 +42,9 @@ import 'note_actions.dart';
 import 'note_editor_controller.dart';
 import 'note_labels.dart';
 import 'note_morph_route.dart';
+import '../../journal/domain/journal_meta.dart';
+import '../../journal/presentation/widgets/journal_date_pill.dart';
+import '../../journal/presentation/widgets/journal_mood_picker.dart';
 import 'widgets/add_sheet.dart';
 import 'widgets/background_sheet.dart';
 import 'widgets/note_attachments_strip.dart';
@@ -54,10 +58,18 @@ import 'widgets/share_sheet.dart';
 import 'widgets/title_input_formatter.dart';
 
 class NoteEditScreen extends ConsumerStatefulWidget {
-  const NoteEditScreen({super.key, this.noteId, this.note});
+  const NoteEditScreen({
+    super.key,
+    this.noteId,
+    this.note,
+    this.journal = false,
+  });
 
   final String? noteId;
   final Note? note;
+
+  /// The journal mode: a hidden metadata block and the mood tool.
+  final bool journal;
 
   @override
   ConsumerState<NoteEditScreen> createState() => _NoteEditScreenState();
@@ -98,7 +110,32 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
     onNoteDeleted: _handleNoteDeleted,
     note: widget.note,
     noteId: widget.noteId,
+    codec: _codec,
   );
+
+  bool _moodPickerOpen = false;
+  JournalMeta _meta = const JournalMeta();
+
+  NoteContentCodec? get _codec {
+    if (!widget.journal) return null;
+    return (
+      toEditor: (content) => parseJournalContent(content).body,
+      toStored: (content) => composeJournalContent(_meta, content),
+    );
+  }
+
+  JournalMeta _initialMeta() {
+    if (!widget.journal) return const JournalMeta();
+    final stored = widget.note?.content;
+    if (stored != null) return parseJournalContent(stored).meta;
+    final now = DateTime.now();
+    return JournalMeta(
+      entryAt: DateTime(now.year, now.month, now.day, now.hour, now.minute),
+    );
+  }
+
+  void _toggleMoodPicker() =>
+      setState(() => _moodPickerOpen = !_moodPickerOpen);
 
   late final EditorOverlayController _editorOverlay = EditorOverlayController(
     _editorKey,
@@ -120,6 +157,7 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
   @override
   void initState() {
     super.initState();
+    _meta = _initialMeta();
     WidgetsBinding.instance.addObserver(this);
     _draft.addListener(_draftChanged);
     _search.addListener(_searchChanged);
@@ -640,6 +678,13 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
                   ),
                 ),
         ),
+        if (widget.journal)
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AnchorTokens.spaceGutterPhone,
+            ),
+            child: JournalDatePill(entryAt: _meta.entryAt),
+          ),
         if (note != null)
           Padding(
             padding: EdgeInsets.fromLTRB(
@@ -848,8 +893,31 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
                 isTitleFocused: _titleFocus.hasFocus,
                 titleHistory: _titleHistory,
                 onAddAttachment: _showAdd,
+                editorMood: widget.journal
+                    ? EditorMoodTool(
+                        emoji: _meta.mood?.emoji,
+                        onTap: _toggleMoodPicker,
+                      )
+                    : null,
               ),
             ),
+            if (widget.journal && _moodPickerOpen)
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: MediaQuery.viewInsetsOf(context).bottom +
+                    EditorToolbar.heightOf(1) +
+                    8,
+                child: JournalMoodPicker(
+                  selected: _meta.mood,
+                  onPick: (mood) {
+                    _meta = _meta.copyWith(mood: mood);
+                    _draft.contentChanged();
+                    setState(() => _moodPickerOpen = false);
+                  },
+                  onClose: () => setState(() => _moodPickerOpen = false),
+                ),
+              ),
             if (_isReadOnly && note != null && !note.isDeleted)
               Positioned(
                 left: AnchorTokens.spaceGutterPhone,

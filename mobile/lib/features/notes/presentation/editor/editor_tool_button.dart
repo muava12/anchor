@@ -11,6 +11,7 @@ class EditorToolButton extends StatefulWidget {
     super.key,
     required this.label,
     this.icon,
+    this.emoji,
     this.swatch,
     this.highlightColor,
     this.isOn,
@@ -22,6 +23,9 @@ class EditorToolButton extends StatefulWidget {
 
   final String label;
   final IconData? icon;
+
+  /// Shown in place of [icon] when set (the journal mood tool).
+  final String? emoji;
 
   final ({Color fill, Color ink})? swatch;
 
@@ -93,6 +97,11 @@ class _EditorToolButtonState extends State<EditorToolButton> {
                   border: Border.all(color: swatch.ink, width: 1.5),
                 ),
               ),
+            )
+          else if (widget.emoji != null)
+            Text(
+              widget.emoji!,
+              style: const TextStyle(fontSize: 22),
             )
           else
             Icon(

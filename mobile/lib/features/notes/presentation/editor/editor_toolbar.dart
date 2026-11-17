@@ -83,6 +83,7 @@ class _EditorToolbarState extends State<EditorToolbar> {
                 return EditorToolButton(
                   key: ValueKey(tool),
                   icon: tool.icon,
+                  emoji: tool == EditorTool.mood ? model.moodEmoji : null,
                   label: tool.labelIn(context.l10n),
                   swatch: name == null
                       ? null

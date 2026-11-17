@@ -1541,6 +1541,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get journalNew => 'New entry';
   String get journalCalendar => 'Calendar';
   String get journalTimeline => 'Timeline';
+  String get journalMood => 'Mood';
+  String get journalMoodAmazing => 'Amazing';
+  String get journalMoodGood => 'Good';
+  String get journalMoodNeutral => 'Neutral';
+  String get journalMoodRough => 'Rough';
 
   @override
   String drawerAccount(String name) {
