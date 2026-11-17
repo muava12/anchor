@@ -183,6 +183,13 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                           isCurrent: current == 'trash',
                           onTap: () => _openFolder(NoteFolder.trash),
                         ),
+                        _Item(
+                          key: _key('journal'),
+                          icon: LucideIcons.notebookPen,
+                          label: context.l10n.navJournal,
+                          isCurrent: current == 'journal',
+                          onTap: () => _openFolder(NoteFolder.journal),
+                        ),
                         const _TagsHeading(),
                         for (final t in tags)
                           _Item(

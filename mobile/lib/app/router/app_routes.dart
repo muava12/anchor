@@ -8,6 +8,8 @@ class AppRoutes {
   static const register = '/register';
   static const trash = '/trash';
   static const archive = '/archive';
+  static const journal = '/journal';
+  static const journalNew = '/journal/new';
 
   static const newNote = '/note/new';
   static String note(String id) => '/note/$id';

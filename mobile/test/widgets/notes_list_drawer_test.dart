@@ -195,6 +195,20 @@ void main() {
     expect(tester.getTopLeft(find.byType(AppDrawer)).dx, 0);
     semantics.dispose();
   });
+
+  testWidgets('the drawer lists Journal', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpList(tester);
+    await openDrawer(tester);
+    expect(
+      find.descendant(
+        of: find.byType(AppDrawer),
+        matching: find.text('Journal'),
+      ),
+      findsOneWidget,
+    );
+    semantics.dispose();
+  });
 }
 
 class _SignedIn extends AuthController {

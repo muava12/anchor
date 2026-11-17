@@ -35,6 +35,7 @@ String? listTitleLine(
     NoteFolder.archive => l10n.listArchiveLine,
     NoteFolder.trash => l10n.listTrashLine(trashDays),
     NoteFolder.notes => null,
+    NoteFolder.journal => null,
   };
 }
 

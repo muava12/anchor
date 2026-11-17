@@ -2488,6 +2488,14 @@ abstract class AppLocalizations {
   /// **'Trash'**
   String get navTrash;
 
+  String get navJournal;
+  String get journalSearchHint;
+  String get journalEmptyTitle;
+  String get journalEmptyHelp;
+  String get journalNew;
+  String get journalCalendar;
+  String get journalTimeline;
+
   /// Screen reader label of the account row at the bottom of the menu.
   ///
   /// In en, this message translates to:

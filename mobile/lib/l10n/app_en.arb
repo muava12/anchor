@@ -2097,6 +2097,13 @@
     "description": "Noun: the side menu item and list title for archived notes."
   },
   "navTrash": "Trash",
+  "navJournal": "Journal",
+  "journalSearchHint": "Search journal",
+  "journalEmptyTitle": "No entries yet",
+  "journalEmptyHelp": "Write your first journal entry.",
+  "journalNew": "New entry",
+  "journalCalendar": "Calendar",
+  "journalTimeline": "Timeline",
   "@navTrash": {
     "description": "Noun: the side menu item and list title for deleted notes."
   },

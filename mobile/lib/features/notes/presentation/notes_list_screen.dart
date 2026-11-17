@@ -462,6 +462,16 @@ class _NotesListScreenState extends ConsumerState<NotesListScreen> {
           onPressed: _newNote,
         ),
       ),
+      NoteFolder.journal => AppEmptyState(
+        title: l10n.journalEmptyTitle,
+        message: l10n.journalEmptyHelp,
+        action: AppButton(
+          label: l10n.journalNew,
+          icon: LucideIcons.plus,
+          isExpanded: false,
+          onPressed: _newNote,
+        ),
+      ),
     };
   }
 }

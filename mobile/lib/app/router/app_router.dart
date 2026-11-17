@@ -15,11 +15,11 @@ import '../../features/notes/presentation/note_folder.dart';
 import '../../features/notes/presentation/note_history_screen.dart';
 import '../../features/notes/presentation/note_morph_route.dart';
 import '../../features/notes/presentation/note_revision_screen.dart';
-import '../../features/notes/presentation/notes_list_screen.dart';
 import '../../features/server/presentation/server_config_screen.dart';
 import '../../features/settings/presentation/log_viewer_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../app_bootstrap.dart';
+import '../home_screen.dart';
 import 'app_routes.dart';
 
 part 'app_router.g.dart';
@@ -83,12 +83,23 @@ GoRouter goRouter(Ref ref) {
       ),
       GoRoute(
         path: AppRoutes.home,
-        builder: (context, state) => const NotesListScreen(),
+        builder: (context, state) => const HomeScreen(),
         routes: [
           GoRoute(
             path: _newNotePath,
             pageBuilder: (context, state) => const NoteMorphPage(
               key: ValueKey('note/new'),
+              child: NoteEditScreen(),
+            ),
+          ),
+          GoRoute(
+            path: 'journal',
+            redirect: (_, _) => showFolder(NoteFolder.journal),
+          ),
+          GoRoute(
+            path: 'journal/new',
+            pageBuilder: (context, state) => const NoteMorphPage(
+              key: ValueKey('journal/new'),
               child: NoteEditScreen(),
             ),
           ),

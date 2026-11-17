@@ -1534,6 +1534,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get navTrash => 'Trash';
 
+  String get navJournal => 'Journal';
+  String get journalSearchHint => 'Search journal';
+  String get journalEmptyTitle => 'No entries yet';
+  String get journalEmptyHelp => 'Write your first journal entry.';
+  String get journalNew => 'New entry';
+  String get journalCalendar => 'Calendar';
+  String get journalTimeline => 'Timeline';
+
   @override
   String drawerAccount(String name) {
     return '$name, Settings';

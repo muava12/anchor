@@ -6,6 +6,7 @@ import '../../../app/app_bootstrap.dart';
 import '../../../core/motion/haptics.dart';
 import '../../../core/storage/preferences_repository.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../journal/presentation/journal_providers.dart';
 import '../../reminders/data/reminder_permissions.dart';
 import '../../tags/presentation/tags_controller.dart';
 import '../domain/note.dart';
@@ -76,6 +77,7 @@ VisibleNotes visibleNotes(Ref ref) {
     NoteFolder.notes => ref.watch(notesProvider),
     NoteFolder.archive => ref.watch(archivedNotesProvider),
     NoteFolder.trash => ref.watch(trashedNotesProvider),
+    NoteFolder.journal => ref.watch(journalNotesProvider),
   };
   final query = ref.watch(searchQueryProvider);
   final options =
