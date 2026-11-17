@@ -8,7 +8,6 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   testWidgets('shows the four moods and picks one', (tester) async {
     JournalMood? picked;
-    var closed = 0;
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(
       ProviderScope(
@@ -16,10 +15,12 @@ void main() {
           theme: AppTheme.light(),
           home: Scaffold(
             body: Center(
-              child: JournalMoodPicker(
-                selected: JournalMood.good,
-                onPick: (mood) => picked = mood,
-                onClose: () => closed++,
+              child: SizedBox(
+                width: 360,
+                child: JournalMoodPicker(
+                  selected: JournalMood.good,
+                  onPick: (mood) => picked = mood,
+                ),
               ),
             ),
           ),
@@ -33,9 +34,6 @@ void main() {
 
     await tester.tap(find.text('Rough'));
     expect(picked, JournalMood.rough);
-
-    await tester.tap(find.bySemanticsLabel('Cancel'));
-    expect(closed, 1);
     semantics.dispose();
   });
 }

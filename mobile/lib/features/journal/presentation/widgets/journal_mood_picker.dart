@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../../core/motion/springs.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -9,18 +8,16 @@ import '../../../../core/widgets/pressable.dart';
 import '../../../../l10n/l10n.dart';
 import '../../domain/journal_meta.dart';
 
-/// The four journal moods, chosen above the keyboard.
+/// The four journal moods, as a row of cards above the keyboard.
 class JournalMoodPicker extends StatelessWidget {
   const JournalMoodPicker({
     super.key,
     required this.selected,
     required this.onPick,
-    required this.onClose,
   });
 
   final JournalMood? selected;
   final ValueChanged<JournalMood> onPick;
-  final VoidCallback onClose;
 
   static String labelOf(JournalMood mood, AppLocalizations l10n) =>
       switch (mood) {
@@ -33,108 +30,75 @@ class JournalMoodPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.anchor;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.appSurface,
-        borderRadius: BorderRadius.circular(AnchorTokens.radiusCard),
-        border: Border.all(color: colors.appBorder),
-        boxShadow: colors.shadowDialog,
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(context.density.space16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                Text(
-                  context.l10n.journalMood,
-                  style: AppTypography.secondary.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colors.appMuted,
-                  ),
+    final selectedTint = colors.accentStrong.withValues(alpha: 0.1);
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          for (final mood in JournalMood.values)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: _MoodCard(
+                  mood: mood,
+                  isSelected: mood == selected,
+                  selectedTint: selectedTint,
+                  onTap: () => onPick(mood),
                 ),
-                const Spacer(),
-                Pressable(
-                  style: PressStyle.plain,
-                  onTap: onClose,
-                  semanticLabel: context.l10n.commonCancel,
-                  child: Icon(
-                    LucideIcons.x,
-                    size: AnchorTokens.sizeIconSmall,
-                    color: colors.appMuted,
-                  ),
-                ),
-              ],
+              ),
             ),
-            SizedBox(height: context.density.space12),
-            Row(
-              children: [
-                for (final mood in JournalMood.values)
-                  Expanded(
-                    child: _MoodOption(
-                      mood: mood,
-                      isSelected: mood == selected,
-                      label: labelOf(mood, context.l10n),
-                      onTap: () => onPick(mood),
-                    ),
-                  ),
-              ],
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
 }
 
-class _MoodOption extends StatelessWidget {
-  const _MoodOption({
+class _MoodCard extends StatelessWidget {
+  const _MoodCard({
     required this.mood,
     required this.isSelected,
-    required this.label,
+    required this.selectedTint,
     required this.onTap,
   });
 
   final JournalMood mood;
   final bool isSelected;
-  final String label;
+  final Color selectedTint;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.anchor;
+    final label = JournalMoodPicker.labelOf(mood, context.l10n);
     return Pressable(
       style: PressStyle.plain,
       onTap: onTap,
       semanticLabel: label,
-      child: Column(
-        children: [
-          AnimatedContainer(
-            duration: context.motion(AnchorTokens.motionDurationHover),
-            width: 48,
-            height: 48,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isSelected ? colors.appPage : null,
-              border: Border.all(
-                color: isSelected ? colors.accentStrong : colors.appBorder,
-                width: isSelected ? 2 : 1,
+      child: AnimatedContainer(
+        duration: context.motion(AnchorTokens.motionDurationHover),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? selectedTint : colors.appSurface,
+          borderRadius: BorderRadius.circular(AnchorTokens.radiusTile),
+          border: Border.all(
+            color: isSelected ? colors.accentStrong : colors.appBorder,
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(mood.emoji, style: const TextStyle(fontSize: 26)), // off-scale: emoji glyph
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: AppTypography.footnote.copyWith(
+                color: isSelected ? colors.accentStrong : colors.appMuted,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
               ),
             ),
-            child: Text(mood.emoji, style: const TextStyle(fontSize: 24)), // off-scale: emoji glyph
-          ),
-          SizedBox(height: context.density.space8),
-          Text(
-            label,
-            style: AppTypography.footnote.copyWith(
-              color: colors.appText,
-              fontWeight:
-                  isSelected ? FontWeight.w600 : FontWeight.w400,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

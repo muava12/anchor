@@ -142,7 +142,7 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
       setState(() => _moodPickerOpen = !_moodPickerOpen);
 
   double _moodPickerBottom() =>
-      MediaQuery.viewInsetsOf(context).bottom + EditorToolbar.heightOf(1) + 8;
+      MediaQuery.viewInsetsOf(context).bottom + EditorToolbar.heightOf(1);
 
   late final EditorOverlayController _editorOverlay = EditorOverlayController(
     _editorKey,
@@ -906,8 +906,8 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
             ),
             if (widget.journal && _moodPickerOpen)
               Positioned(
-                left: 16,
-                right: 16,
+                left: 0,
+                right: 0,
                 bottom: _moodPickerBottom(),
                 child: JournalMoodPicker(
                   selected: _meta.mood,
@@ -916,7 +916,6 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
                     _draft.contentChanged();
                     setState(() => _moodPickerOpen = false);
                   },
-                  onClose: () => setState(() => _moodPickerOpen = false),
                 ),
               ),
             if (_isReadOnly && note != null && !note.isDeleted)
