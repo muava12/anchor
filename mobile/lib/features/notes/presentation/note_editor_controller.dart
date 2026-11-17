@@ -373,9 +373,16 @@ class NoteEditorController extends ChangeNotifier {
     final isTitleChanged =
         storedTitle != storedTitleOf(_savedTitle) &&
         storedTitle != storedTitleOf(existing.title);
+    final editorFormChanged =
+        !(editor.matches(_savedContent) ?? true) &&
+        !(editor.matches(existing.content) ?? true);
+    // With a codec the stored form is the truth (a mood-only edit changes it
+    // while the editor body stays the same); without one, the editor's own
+    // serialization must stay byte-for-byte what was stored.
+    final storedFormChanged =
+        content != _savedStoredContent && content != existing.content;
     final isContentChanged =
-        content != _savedStoredContent &&
-        content != existing.content &&
+        (codec != null ? storedFormChanged : editorFormChanged) &&
         (_contentBeforeReload == null ||
             !(editor.matches(_contentBeforeReload) ?? false));
     final isBackgroundChanged =
