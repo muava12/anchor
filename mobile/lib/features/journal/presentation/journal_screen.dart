@@ -73,17 +73,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
     final query = ref.watch(journalQueryProvider);
 
     final empty = tag == null || days.isEmpty;
-    final entryDays = <DateTime>{
-      for (final day in days) day.day,
-      for (final day in days)
-        for (final entry in day.entries)
-          if (entry.meta.entryAt != null)
-            DateTime(
-              entry.meta.entryAt!.year,
-              entry.meta.entryAt!.month,
-              entry.meta.entryAt!.day,
-            ),
-    };
+    final entryDays = <DateTime>{for (final day in days) day.day};
 
     List<JournalDay> shownDays = days;
     final selected = _selectedDay;

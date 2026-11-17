@@ -1,4 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../../core/text/date_formats.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -6,6 +10,7 @@ import '../../../../core/theme/context_extensions.dart';
 import '../../../../core/theme/tokens/anchor_tokens.dart';
 import '../../../../core/widgets/pressable.dart';
 import '../../../../l10n/l10n.dart';
+import '../../../notes/data/repository/attachment_file_provider.dart';
 import '../../../notes/domain/note.dart';
 import '../../../notes/domain/note_blocks.dart';
 import '../../../notes/presentation/note_labels.dart';
@@ -129,7 +134,7 @@ class _EntryRow extends StatelessWidget {
             if (note.imagePreviewData.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(left: 8),
-                child: const _PlaceholderThumbnail(),
+                child: _EntryThumbnail(preview: note.imagePreviewData.first),
               ),
           ],
         ),
@@ -161,20 +166,43 @@ class _TimelineRail extends StatelessWidget {
   }
 }
 
-/// A placeholder for the entry's picture; the image load is a follow-up.
-class _PlaceholderThumbnail extends StatelessWidget {
-  const _PlaceholderThumbnail();
+/// The entry's first picture, loaded from the attachment store.
+class _EntryThumbnail extends ConsumerWidget {
+  const _EntryThumbnail({required this.preview});
+
+  final NoteImagePreview preview;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.anchor;
-    return Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        color: colors.appSurface,
-        borderRadius: BorderRadius.circular(AnchorTokens.radiusTile),
-        border: Border.all(color: colors.appBorder),
+    final loaded = ref.watch(attachmentFileProvider(previewFileKeyOf(preview)));
+    final path = loaded.value;
+    final missing = ColoredBox(
+      color: colors.appSurface,
+      child: Center(
+        child: Icon(
+          LucideIcons.imageOff,
+          size: AnchorTokens.sizeIconMedium,
+          color: colors.appMuted,
+        ),
+      ),
+    );
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AnchorTokens.radiusTile),
+      child: SizedBox(
+        width: 48,
+        height: 48,
+        child: path != null
+            ? Image.file(
+                File(path),
+                fit: BoxFit.cover,
+                cacheWidth: 400,
+                gaplessPlayback: true,
+                errorBuilder: (_, _, _) => missing,
+              )
+            : loaded.isLoading
+            ? ColoredBox(color: colors.appSurface)
+            : missing,
       ),
     );
   }
