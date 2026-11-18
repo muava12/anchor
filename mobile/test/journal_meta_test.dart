@@ -34,6 +34,28 @@ void main() {
     });
   });
 
+  group('JournalMeta', () {
+    test('clearMood drops the mood and keeps the rest', () {
+      final meta = JournalMeta(
+        mood: JournalMood.sad,
+        entryAt: DateTime(2026, 11, 17, 9, 41),
+        extras: {'weather': 'sunny'},
+      );
+
+      final cleared = meta.clearMood();
+
+      expect(cleared.mood, isNull);
+      expect(cleared.entryAt, DateTime(2026, 11, 17, 9, 41));
+      expect(cleared.extras['weather'], 'sunny');
+      expect(cleared.copyWith(mood: JournalMood.happy).mood, JournalMood.happy);
+      expect(
+        meta.copyWith(mood: null).mood,
+        JournalMood.sad,
+        reason: 'copyWith keeps the mood, so clearing needs clearMood',
+      );
+    });
+  });
+
   group('parseJournalContent', () {
     test('reads mood, date, time and the body', () {
       const content =

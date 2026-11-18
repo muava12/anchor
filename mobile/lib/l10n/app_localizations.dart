@@ -2594,6 +2594,7 @@ abstract class AppLocalizations {
   String get journalMoodPickerSubtitle;
   String get journalMoodClear;
   String get journalDateTimeTitle;
+  String get journalAddMood;
   String journalEntriesCount(int count);
   String journalMonthEntries(int count);
   String get journalCalendarLess;

@@ -132,7 +132,6 @@ EditorToolbarMode toolbarModeOf({
       EditorTool.checklist,
       EditorTool.bullet,
       EditorTool.add,
-      EditorTool.mood,
     ],
     EditorToolbarMode.list => const [
       EditorTool.styles,

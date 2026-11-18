@@ -47,6 +47,10 @@ class JournalMeta {
 
   bool get isEmpty => mood == null && entryAt == null && extras.isEmpty;
 
+  /// A copy with the given values, keeping the ones left out.
+  ///
+  /// A null [mood] keeps the current mood, so clearing one needs
+  /// [clearMood].
   JournalMeta copyWith({
     JournalMood? mood,
     DateTime? entryAt,
@@ -57,6 +61,9 @@ class JournalMeta {
         entryAt: entryAt ?? this.entryAt,
         extras: extras ?? this.extras,
       );
+
+  /// A copy without a mood.
+  JournalMeta clearMood() => JournalMeta(entryAt: entryAt, extras: extras);
 
   @override
   bool operator ==(Object other) =>
