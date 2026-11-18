@@ -225,13 +225,59 @@ void main() {
       SizedBox,
       MoodFace,
       SizedBox,
-      TagChip,
+      Flexible,
     ]);
     final timeIndex = tester.getTopLeft(find.byType(Text).first).dx;
     final faceIndex = tester.getTopLeft(find.byType(MoodFace)).dx;
     final chipIndex = tester.getTopLeft(find.byType(TagChip)).dx;
     expect(timeIndex < faceIndex, isTrue, reason: 'time before face');
     expect(faceIndex < chipIndex, isTrue, reason: 'face before tag chip');
+  });
+
+  testWidgets('a long tag name ellipsizes instead of overflowing the row', (
+    tester,
+  ) async {
+    // A narrow phone: the meta row has to give way somewhere.
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    const journalTag = Tag(id: 'j1', name: 'journal');
+    const longTag = Tag(
+      id: 't1',
+      name: 'a-very-long-tag-name-that-must-not-overflow-the-row',
+    );
+    final note = Note(
+      id: 'n1',
+      title: 'Slow morning',
+      content: 'body line',
+      tagIds: const ['j1', 't1'],
+    );
+
+    await tester.pumpWidget(
+      _wrap(
+        entry: JournalDayEntry(
+          note: note,
+          meta: JournalMeta(
+            mood: JournalMood.calm,
+            entryAt: _entryAt,
+          ),
+        ),
+        tags: const [journalTag, longTag],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // No overflow error (Flutter would report a painted overflow stripe).
+    expect(tester.takeException(), isNull);
+
+    // The chip stays inside the meta row's right edge.
+    final chip = tester.getRect(find.byType(TagChip));
+    final row = tester.getRect(
+      find.ancestor(of: find.byType(TagChip), matching: find.byType(Row)),
+    );
+    expect(chip.right, lessThanOrEqualTo(row.right + 0.01));
+    expect(chip.left, greaterThanOrEqualTo(row.left));
   });
 
   testWidgets('an old four-mood entry shows no face but keeps the tag chip', (

@@ -38,6 +38,9 @@ class _JournalDateTimeSheetState extends State<_JournalDateTimeSheet> {
   late DateTime _day;
 
   /// The picked date & time, kept whole.
+  ///
+  /// The minute is rounded down to the wheel's five-minute step, so the time
+  /// the sheet shows is the time it saves.
   late DateTime _at;
 
   @override
@@ -49,7 +52,13 @@ class _JournalDateTimeSheetState extends State<_JournalDateTimeSheet> {
       widget.initial.month,
       widget.initial.day,
     );
-    _at = widget.initial;
+    _at = DateTime(
+      widget.initial.year,
+      widget.initial.month,
+      widget.initial.day,
+      widget.initial.hour,
+      widget.initial.minute - widget.initial.minute % 5,
+    );
   }
 
   void _pickDay(DateTime day) {

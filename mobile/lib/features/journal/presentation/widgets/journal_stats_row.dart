@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/context_extensions.dart';
@@ -92,9 +93,9 @@ class _StatCard extends StatelessWidget {
           ),
           child: Icon(
             switch (icon) {
-              _StatIcon.history => Icons.history,
-              _StatIcon.streak => Icons.local_fire_department,
-              _StatIcon.throwback => Icons.replay,
+              _StatIcon.history => LucideIcons.history,
+              _StatIcon.streak => LucideIcons.flame,
+              _StatIcon.throwback => LucideIcons.rotateCcw,
             },
             size: AnchorTokens.sizeIconMedium,
             color: colors.accentStrong,

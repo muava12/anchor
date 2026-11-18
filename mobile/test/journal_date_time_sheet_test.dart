@@ -82,6 +82,22 @@ void main() {
     );
   });
 
+  testWidgets('Save rounds the minute to the wheel step (09:41 saves 09:40)', (
+    tester,
+  ) async {
+    // 41 is not a multiple of 5: the wheel seeds at 40.
+    await openSheet(tester, initial: DateTime(2026, 12, 20, 9, 41));
+
+    final wheel = tester.widget<TimeWheel>(find.byType(TimeWheel));
+    expect(wheel.at.minute, 40, reason: 'the wheel shows the rounded minute');
+
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final picked = await sheet;
+    expect(picked, DateTime(2026, 12, 20, 9, 40));
+  });
+
   testWidgets('Cancel returns null', (tester) async {
     await openSheet(tester, initial: DateTime(2026, 12, 20, 9, 30));
 

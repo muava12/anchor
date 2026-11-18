@@ -198,6 +198,6 @@ void main() {
       find.byType(JournalEntryMetaRow),
     );
     expect(meta.meta.mood, JournalMood.happy);
-    expect(meta.meta.entryAt, DateTime(2026, 11, 12, 9, 41));
+    expect(meta.meta.entryAt, DateTime(2026, 11, 12, 9, 40));
   });
 }

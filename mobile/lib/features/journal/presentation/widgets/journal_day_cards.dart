@@ -205,9 +205,11 @@ class _EntryCard extends ConsumerWidget {
                     ],
                     if (otherTag != null) ...[
                       if (time.isNotEmpty || mood != null) const SizedBox(width: 8),
-                      TagChip(
-                        tag: otherTag,
-                        appearance: NoteAppearance.of(context, null),
+                      Flexible(
+                        child: TagChip(
+                          tag: otherTag,
+                          appearance: NoteAppearance.of(context, null),
+                        ),
                       ),
                     ],
                   ],
