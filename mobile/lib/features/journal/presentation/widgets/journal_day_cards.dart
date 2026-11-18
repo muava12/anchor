@@ -34,24 +34,33 @@ class JournalDayCards extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.anchor;
     return SliverList(
       delegate: SliverChildListDelegate([
         for (final day in days) ...[
           _DayHeader(day: day),
-          for (final entry in day.entries)
+          for (var i = 0; i < day.entries.length; i++) ...[
+            if (i > 0)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  key: const ValueKey('journal-day-hairline'),
+                  height: 1,
+                  color: colors.appBorder,
+                ),
+              ),
             Padding(
-              padding: EdgeInsets.fromLTRB(
-                16,
-                0,
-                16,
-                context.density.space8,
+              padding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: context.density.space12,
               ),
               child: _EntryCard(
-                entry: entry,
+                entry: day.entries[i],
                 journalTagId: journalTagId,
                 onOpen: onOpen,
               ),
             ),
+          ],
         ],
       ]),
     );
@@ -155,68 +164,61 @@ class _EntryCard extends ConsumerWidget {
       style: PressStyle.plain,
       onTap: () => onOpen(note),
       semanticLabel: time.isEmpty ? title : '$title · $time',
-      child: Container(
-        decoration: BoxDecoration(
-          color: colors.appSurface,
-          borderRadius: BorderRadius.circular(AnchorTokens.radiusCard),
-          border: Border.all(color: colors.appBorder),
-        ),
-        padding: EdgeInsets.all(context.density.space16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.row.copyWith(
-                fontWeight: FontWeight.w600,
-                color: colors.appText,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.row.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colors.appText,
+            ),
+          ),
+          if (preview.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                preview,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.cardBody.copyWith(
+                  color: colors.appMuted,
+                ),
               ),
             ),
-            if (preview.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  preview,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.cardBody.copyWith(
-                    color: colors.appMuted,
-                  ),
-                ),
-              ),
-            if (hasMeta)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Row(
-                  children: [
-                    if (time.isNotEmpty)
-                      Text(
-                        time,
-                        style: AppTypography.footnote.copyWith(
-                          color: colors.appMuted,
-                        ),
+          if (hasMeta)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                children: [
+                  if (time.isNotEmpty)
+                    Text(
+                      time,
+                      style: AppTypography.footnote.copyWith(
+                        color: colors.appMuted,
                       ),
-                    if (mood != null) ...[
-                      if (time.isNotEmpty || otherTag != null)
-                        const SizedBox(width: 8),
-                      MoodFace(mood: mood, size: AnchorTokens.sizeIconMedium),
-                    ],
-                    if (otherTag != null) ...[
-                      if (time.isNotEmpty || mood != null) const SizedBox(width: 8),
-                      Flexible(
-                        child: TagChip(
-                          tag: otherTag,
-                          appearance: NoteAppearance.of(context, null),
-                        ),
-                      ),
-                    ],
+                    ),
+                  if (mood != null) ...[
+                    if (time.isNotEmpty || otherTag != null)
+                      const SizedBox(width: 8),
+                    MoodFace(mood: mood, size: AnchorTokens.sizeIconMedium),
                   ],
-                ),
+                  if (otherTag != null) ...[
+                    if (time.isNotEmpty || mood != null)
+                      const SizedBox(width: 8),
+                    Flexible(
+                      child: TagChip(
+                        tag: otherTag,
+                        appearance: NoteAppearance.of(context, null),
+                      ),
+                    ),
+                  ],
+                ],
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
