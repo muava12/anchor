@@ -1,4 +1,5 @@
 import 'package:anchor/core/theme/app_theme.dart';
+import 'package:anchor/core/widgets/selection_ring.dart';
 import 'package:anchor/features/journal/domain/journal_meta.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_mood_sheet.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,21 @@ void main() {
     );
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
+  }
+
+  /// Counts the [SelectionRing]s that are shown, so the selected tile is one
+  /// ring. With [label] it counts only the ring on that tile.
+  int shownRings(WidgetTester tester, {String? label}) {
+    final finder = label == null
+        ? find.byType(SelectionRing)
+        : find.ancestor(
+            of: find.text(label),
+            matching: find.byType(SelectionRing),
+          );
+    return tester
+        .widgetList<SelectionRing>(finder)
+        .where((ring) => ring.isShown)
+        .length;
   }
 
   testWidgets('shows the title, the subtitle and all 12 moods', (tester) async {
@@ -67,6 +83,52 @@ void main() {
 
     await tester.tap(find.text('Calm'));
     expect(picked, JournalMood.calm);
+  });
+
+  testWidgets('tapping a second mood moves the selection to it', (
+    tester,
+  ) async {
+    final picked = <JournalMood?>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => Center(
+              child: TextButton(
+                onPressed: () => showJournalMoodSheet(
+                  context,
+                  selected: JournalMood.happy,
+                  onPick: picked.add,
+                ),
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+    expect(shownRings(tester), 1);
+
+    await tester.tap(find.text('Calm'));
+    await tester.pumpAndSettle();
+
+    expect(picked, [JournalMood.calm]);
+    expect(shownRings(tester), 1);
+    expect(shownRings(tester, label: 'Calm'), 1);
+    expect(shownRings(tester, label: 'Happy'), 0);
+  });
+
+  testWidgets('Clear mood drops the selection ring', (tester) async {
+    await openSheet(tester, selected: JournalMood.tired);
+    expect(shownRings(tester), 1);
+
+    await tester.tap(find.text('Clear mood'));
+    await tester.pumpAndSettle();
+
+    expect(shownRings(tester), 0);
   });
 
   testWidgets('Clear mood fires onClear and onPick(null)', (tester) async {

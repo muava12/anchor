@@ -8,6 +8,7 @@ import '../../../../core/theme/tokens/anchor_tokens.dart';
 import '../../../../core/widgets/anchor_sheet.dart';
 import '../../../../core/widgets/app_buttons.dart';
 import '../../../../core/widgets/pressable.dart';
+import '../../../../core/widgets/selection_ring.dart';
 import '../../../../l10n/l10n.dart';
 import '../../domain/journal_meta.dart';
 import 'mood_face.dart';
@@ -48,7 +49,7 @@ String moodLabel(JournalMood mood, AppLocalizations l10n) => switch (mood) {
   JournalMood.sick => l10n.journalMoodSick,
 };
 
-class _JournalMoodSheet extends StatelessWidget {
+class _JournalMoodSheet extends StatefulWidget {
   const _JournalMoodSheet({
     required this.selected,
     required this.onPick,
@@ -58,6 +59,30 @@ class _JournalMoodSheet extends StatelessWidget {
   final JournalMood? selected;
   final ValueChanged<JournalMood?> onPick;
   final VoidCallback? onClear;
+
+  @override
+  State<_JournalMoodSheet> createState() => _JournalMoodSheetState();
+}
+
+class _JournalMoodSheetState extends State<_JournalMoodSheet> {
+  JournalMood? _picked;
+
+  @override
+  void initState() {
+    super.initState();
+    _picked = widget.selected;
+  }
+
+  void _pick(JournalMood mood) {
+    setState(() => _picked = mood);
+    widget.onPick(mood);
+  }
+
+  void _clear() {
+    setState(() => _picked = null);
+    widget.onClear?.call();
+    widget.onPick(null);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,8 +109,8 @@ class _JournalMoodSheet extends StatelessWidget {
                 for (final mood in JournalMood.values)
                   _MoodTile(
                     mood: mood,
-                    isSelected: mood == selected,
-                    onTap: () => onPick(mood),
+                    isSelected: mood == _picked,
+                    onTap: () => _pick(mood),
                   ),
               ],
             ),
@@ -96,12 +121,9 @@ class _JournalMoodSheet extends StatelessWidget {
             AppButton(
               label: l10n.journalMoodClear,
               kind: AppButtonKind.secondary,
-              onPressed: onClear == null && selected == null
+              onPressed: widget.onClear == null && _picked == null
                   ? null
-                  : () {
-                      onClear?.call();
-                      onPick(null);
-                    },
+                  : _clear,
             ),
             AppButton(
               label: l10n.commonDone,
@@ -129,63 +151,64 @@ class _MoodTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.anchor;
     final label = moodLabel(mood, context.l10n);
+    final radius = BorderRadius.circular(AnchorTokens.radiusTile);
     return Pressable(
       style: PressStyle.plain,
       onTap: onTap,
       semanticLabel: label,
-      child: AnimatedContainer(
-        duration: context.motion(AnchorTokens.motionDurationHover),
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? colors.accentStrong.withValues(alpha: 0.1)
-              : colors.appSurface,
-          borderRadius: BorderRadius.circular(AnchorTokens.radiusTile),
-          border: Border.all(
-            color: isSelected ? colors.accentStrong : colors.appBorder,
-            width: isSelected ? 1.5 : 1,
+      child: SelectionRing(
+        isShown: isSelected,
+        borderRadius: radius,
+        child: AnimatedContainer(
+          duration: context.motion(AnchorTokens.motionDurationHover),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? colors.accentStrong.withValues(alpha: 0.1)
+                : colors.appSurface,
+            borderRadius: radius,
           ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                MoodFace(mood: mood, size: AnchorTokens.sizeIconMedium),
-                if (isSelected)
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Container(
-                      width: AnchorTokens.sizeIconSmall,
-                      height: AnchorTokens.sizeIconSmall,
-                      decoration: BoxDecoration(
-                        color: colors.accentStrong,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        LucideIcons.check,
-                        size: AnchorTokens.space12,
-                        color: Colors.white,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  MoodFace(mood: mood, size: AnchorTokens.sizeIconMedium),
+                  if (isSelected)
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Container(
+                        width: AnchorTokens.sizeIconSmall,
+                        height: AnchorTokens.sizeIconSmall,
+                        decoration: BoxDecoration(
+                          color: colors.accentStrong,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          LucideIcons.check,
+                          size: AnchorTokens.space12,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
+                ],
+              ),
+              const SizedBox(height: AnchorTokens.space4),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.footnote.copyWith(
+                    color: isSelected ? colors.accentStrong : colors.appMuted,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   ),
-              ],
-            ),
-            const SizedBox(height: AnchorTokens.space4),
-            Flexible(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTypography.footnote.copyWith(
-                  color: isSelected ? colors.accentStrong : colors.appMuted,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
