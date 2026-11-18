@@ -916,7 +916,7 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
                 onAddAttachment: _showAdd,
                 editorMood: widget.journal
                     ? EditorMoodTool(
-                        emoji: _meta.mood?.emoji,
+                        emoji: null,
                         onTap: _toggleMoodPicker,
                       )
                     : null,

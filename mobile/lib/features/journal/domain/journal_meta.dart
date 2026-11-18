@@ -4,15 +4,24 @@ import 'package:flutter/foundation.dart';
 
 import '../../notes/domain/note_blocks.dart';
 
-enum JournalMood { amazing, good, neutral, rough }
+enum JournalMood {
+  happy,
+  calm,
+  grateful,
+  excited,
+  okay,
+  tired,
+  anxious,
+  sad,
+  angry,
+  lonely,
+  stressed,
+  sick,
+}
 
 extension JournalMoodX on JournalMood {
-  String get emoji => switch (this) {
-    JournalMood.amazing => '😄',
-    JournalMood.good => '🙂',
-    JournalMood.neutral => '😐',
-    JournalMood.rough => '🙁',
-  };
+  /// The Wangcai SVG for this mood.
+  String get asset => 'assets/mood/$name.svg';
 }
 
 JournalMood? journalMoodFromName(String? name) {

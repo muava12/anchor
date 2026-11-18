@@ -8,7 +8,7 @@ import '../../../../core/widgets/pressable.dart';
 import '../../../../l10n/l10n.dart';
 import '../../domain/journal_meta.dart';
 
-/// The four journal moods, as a row of cards above the keyboard.
+/// The journal moods, as a row of cards above the keyboard.
 class JournalMoodPicker extends StatelessWidget {
   const JournalMoodPicker({
     super.key,
@@ -19,13 +19,10 @@ class JournalMoodPicker extends StatelessWidget {
   final JournalMood? selected;
   final ValueChanged<JournalMood> onPick;
 
+  /// The label shown on a mood card. Localized strings land with the mood
+  /// faces (later task); until then the mood name is shown capitalized.
   static String labelOf(JournalMood mood, AppLocalizations l10n) =>
-      switch (mood) {
-        JournalMood.amazing => l10n.journalMoodAmazing,
-        JournalMood.good => l10n.journalMoodGood,
-        JournalMood.neutral => l10n.journalMoodNeutral,
-        JournalMood.rough => l10n.journalMoodRough,
-      };
+      '${mood.name[0].toUpperCase()}${mood.name.substring(1)}';
 
   @override
   Widget build(BuildContext context) {
@@ -88,8 +85,6 @@ class _MoodCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(mood.emoji, style: const TextStyle(fontSize: 26)), // off-scale: emoji glyph
-            const SizedBox(height: 4),
             Text(
               label,
               style: AppTypography.footnote.copyWith(

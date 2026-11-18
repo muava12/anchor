@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('shows the four moods and picks one', (tester) async {
+  testWidgets('shows the moods and picks one', (tester) async {
     JournalMood? picked;
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(
@@ -18,7 +18,7 @@ void main() {
               child: SizedBox(
                 width: 360,
                 child: JournalMoodPicker(
-                  selected: JournalMood.good,
+                  selected: JournalMood.happy,
                   onPick: (mood) => picked = mood,
                 ),
               ),
@@ -29,11 +29,11 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('Amazing'), findsOneWidget);
-    expect(find.text('Rough'), findsOneWidget);
+    expect(find.text('Happy'), findsOneWidget);
+    expect(find.text('Sad'), findsOneWidget);
 
-    await tester.tap(find.text('Rough'));
-    expect(picked, JournalMood.rough);
+    await tester.tap(find.text('Sad'));
+    expect(picked, JournalMood.sad);
     semantics.dispose();
   });
 }
