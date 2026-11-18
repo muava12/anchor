@@ -167,6 +167,7 @@ class _MoodTile extends StatelessWidget {
                 ? colors.accentStrong.withValues(alpha: 0.1)
                 : colors.appSurface,
             borderRadius: radius,
+            border: Border.all(color: colors.appBorder),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

@@ -1,4 +1,5 @@
 import 'package:anchor/core/theme/app_theme.dart';
+import 'package:anchor/core/theme/context_extensions.dart';
 import 'package:anchor/core/widgets/selection_ring.dart';
 import 'package:anchor/features/journal/domain/journal_meta.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_mood_sheet.dart';
@@ -171,5 +172,25 @@ void main() {
 
     expect(find.text('How are you feeling?'), findsNothing);
     expect(find.text('Open'), findsOneWidget);
+  });
+
+  testWidgets('unselected tiles show a resting appBorder', (tester) async {
+    // No selection, so every one of the 12 tiles is unselected.
+    await openSheet(tester);
+    final colors = tester.element(find.byType(SelectionRing).first).anchor;
+
+    // The visible resting card edge: a hairline in appBorder on each tile.
+    // Without it the faces + labels float on the appSurface sheet.
+    final tiles = find.descendant(
+      of: find.byType(SelectionRing),
+      matching: find.byType(AnimatedContainer),
+    );
+    expect(tiles, findsNWidgets(JournalMood.values.length));
+
+    for (final tile in tester.widgetList<AnimatedContainer>(tiles)) {
+      final border = (tile.decoration! as BoxDecoration).border;
+      expect(border, isNotNull, reason: 'each tile needs a resting border');
+      expect((border! as Border).top.color, colors.appBorder);
+    }
   });
 }
