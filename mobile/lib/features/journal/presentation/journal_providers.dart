@@ -65,10 +65,18 @@ final journalDaysProvider = Provider<List<JournalDay>>((ref) {
   return groupJournalDays(kept);
 });
 
+/// The full journal history grouped by day, unfiltered by the search query.
+///
+/// The stats row (streaks, on-this-day, throwback) reads this so its numbers
+/// do not change when a search is active.
+final journalAllDaysProvider = Provider<List<JournalDay>>((ref) {
+  final notes = ref.watch(journalNotesProvider).value ?? const <Note>[];
+  return groupJournalDays(notes);
+});
+
 /// Each day's journal entry count, unfiltered by the search query.
 final journalEntryCountsProvider = Provider<Map<DateTime, int>>((ref) {
-  final notes = ref.watch(journalNotesProvider).value ?? const <Note>[];
-  return journalEntryCounts(groupJournalDays(notes));
+  return journalEntryCounts(ref.watch(journalAllDaysProvider));
 });
 
 bool _matches(Note note, String query) {

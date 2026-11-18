@@ -2600,6 +2600,24 @@ abstract class AppLocalizations {
   String get journalCalendarLess;
   String get journalCalendarMore;
 
+  /// Caption of the stat card shown when an entry exists on today's month-day in a prior year.
+  ///
+  /// In en, this message translates to:
+  /// **'On this day'**
+  String get journalStatOnThisDay;
+
+  /// Caption of the stat card showing the run of consecutive entry days ending today or yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}-day streak'**
+  String journalStatStreak(int count);
+
+  /// Caption of the stat card showing the most recent prior year with an entry on today's month-day.
+  ///
+  /// In en, this message translates to:
+  /// **'Throwback · {year}'**
+  String journalStatThrowback(String year);
+
   /// Screen reader label of the account row at the bottom of the menu.
   ///
   /// In en, this message translates to:

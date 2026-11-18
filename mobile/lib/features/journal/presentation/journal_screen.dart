@@ -17,6 +17,7 @@ import '../domain/journal_day.dart';
 import 'journal_providers.dart';
 import 'widgets/journal_calendar.dart';
 import 'widgets/journal_day_cards.dart';
+import 'widgets/journal_stats_row.dart';
 import 'widgets/journal_timeline.dart';
 
 class JournalScreen extends ConsumerStatefulWidget {
@@ -156,8 +157,14 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
               journalTagId: tag.id,
               onOpen: _open,
             ),
-          ] else
+          ] else ...[
+            SliverToBoxAdapter(
+              child: JournalStatsRow(
+                days: ref.watch(journalAllDaysProvider),
+              ),
+            ),
             JournalTimeline(days: shownDays, onOpen: _open),
+          ],
         ],
       ],
       bottomBar: NotesBottomBar(
