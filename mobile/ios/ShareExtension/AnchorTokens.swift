@@ -193,6 +193,8 @@ enum AnchorTokens {
     static let sizeRow: CGFloat = 52
     /// Phone: the journal timeline's thumbnail, one picture or a stack of up to three. 56 is off the layout scale; the journal-v2 design fixes it.
     static let sizeJournalThumb: CGFloat = 56
+    /// Phone: the journal timeline's stats tiles (On this day, N-day streak, Throwback). 72 is off the layout scale; the journal-v2 design fixes it.
+    static let sizeJournalStatTile: CGFloat = 72
     static let densityDefaultSpace8: CGFloat = 8
     static let densityDefaultSpace12: CGFloat = 12
     static let densityDefaultSpace16: CGFloat = 16

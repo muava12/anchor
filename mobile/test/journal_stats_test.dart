@@ -1,4 +1,5 @@
 import 'package:anchor/core/theme/app_theme.dart';
+import 'package:anchor/core/theme/tokens/anchor_tokens.dart';
 import 'package:anchor/features/journal/domain/journal_day.dart';
 import 'package:anchor/features/journal/domain/journal_meta.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_stats_row.dart';
@@ -65,6 +66,31 @@ void main() {
     expect(find.textContaining('streak'), findsNothing);
     expect(find.textContaining('Throwback'), findsNothing);
     expect(find.byType(Row), findsNothing);
+  });
+
+  testWidgets('a stat tile keeps its own 72, not the 56 thumbnail', (
+    tester,
+  ) async {
+    // The timeline thumbnail is 56; the stats tiles kept their Task-8 72.
+    expect(AnchorTokens.sizeJournalStatTile, 72);
+    expect(AnchorTokens.sizeJournalThumb, 56);
+
+    final now = DateTime.now();
+    final priorYear = DateTime(now.year - 1, now.month, now.day);
+
+    await pump(tester, [
+      JournalDay(day: priorYear, entries: [entry('py', priorYear)]),
+    ]);
+
+    final tile = tester.getSize(
+      find
+          .descendant(
+            of: find.byType(JournalStatsRow),
+            matching: find.byType(Container),
+          )
+          .first,
+    );
+    expect(tile, const Size(72, 72));
   });
 
   testWidgets('streak of one (only today) shows no streak card', (

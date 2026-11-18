@@ -199,6 +199,8 @@ abstract final class AnchorTokens {
   static const double sizeRow = 52.0;
   /// Phone: the journal timeline's thumbnail, one picture or a stack of up to three. 56 is off the layout scale; the journal-v2 design fixes it.
   static const double sizeJournalThumb = 56.0;
+  /// Phone: the journal timeline's stats tiles (On this day, N-day streak, Throwback). 72 is off the layout scale; the journal-v2 design fixes it.
+  static const double sizeJournalStatTile = 72.0;
   static const double densityDefaultSpace8 = 8.0;
   static const double densityDefaultSpace12 = 12.0;
   static const double densityDefaultSpace16 = 16.0;

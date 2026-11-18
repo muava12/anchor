@@ -342,10 +342,15 @@ class _EntryThumbnails extends ConsumerWidget {
       ),
     );
 
+    // The design fans the stack: the furthest card leans the most and fades
+    // the most, the next one a little, the front card is square-on and solid.
+    const lean = [0.0, -0.07, 0.13]; // off-scale: the design's stack angles
+    const fade = [1.0, 0.8, 0.7]; // off-scale: the design's stack opacity
+
     // One card of the stack: the real picture, or blank while it is unresolved.
     Widget thumb(int index) {
       final path = paths[index];
-      return ClipRRect(
+      final card = ClipRRect(
         borderRadius: BorderRadius.circular(AnchorTokens.radiusTile),
         child: SizedBox(
           width: side,
@@ -360,6 +365,11 @@ class _EntryThumbnails extends ConsumerWidget {
                 )
               : ColoredBox(color: colors.appSurface),
         ),
+      );
+      if (index == 0) return card;
+      return Opacity(
+        opacity: fade[index],
+        child: Transform.rotate(angle: lean[index], child: card),
       );
     }
 

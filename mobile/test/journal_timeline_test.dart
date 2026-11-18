@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:anchor/core/text/date_formats.dart';
 import 'package:anchor/core/theme/app_theme.dart';
 import 'package:anchor/core/theme/app_typography.dart';
@@ -133,7 +135,7 @@ void main() {
     expect(tester.getSize(find.byType(Image)), const Size(56, 56));
   });
 
-  testWidgets('a stack of three loads every real file, with no count badge', (
+  testWidgets('a stack of three fans the back cards, no count badge', (
     tester,
   ) async {
     final now = DateTime.now();
@@ -171,6 +173,18 @@ void main() {
     for (final image in tester.widgetList<Image>(find.byType(Image))) {
       expect(tester.getSize(find.byWidget(image)), const Size(56, 56));
     }
+
+    // The design fans the stack: the back cards rotate and fade. The tree
+    // order is the furthest card first, then the middle one, then the front.
+    final images = tester.widgetList<Image>(find.byType(Image)).toList();
+    expect(images.length, 3);
+    expect(_angleAbove(tester, images[0]), closeTo(0.13, 1e-9));
+    expect(_opacityAbove(tester, images[0]), closeTo(0.7, 1e-9));
+    expect(_angleAbove(tester, images[1]), closeTo(-0.07, 1e-9));
+    expect(_opacityAbove(tester, images[1]), closeTo(0.8, 1e-9));
+    // The front card is square-on and solid.
+    expect(_angleAbove(tester, images[2]), 0);
+    expect(_opacityAbove(tester, images[2]), 1);
 
     // The stack carries no count badge.
     expect(find.text('3'), findsNothing);
@@ -465,6 +479,27 @@ String _filePathOf(ImageProvider provider) {
     current = current.imageProvider;
   }
   return (current as FileImage).file.path;
+}
+
+/// The z-rotation above [image], in radians; 0 when nothing rotates it.
+double _angleAbove(WidgetTester tester, Image image) {
+  final finder = find.ancestor(
+    of: find.byWidget(image),
+    matching: find.byType(Transform),
+  );
+  if (finder.evaluate().isEmpty) return 0;
+  final matrix = tester.widget<Transform>(finder.first).transform;
+  return math.atan2(matrix[1], matrix[0]);
+}
+
+/// The opacity above [image]; 1 when nothing fades it.
+double _opacityAbove(WidgetTester tester, Image image) {
+  final finder = find.ancestor(
+    of: find.byWidget(image),
+    matching: find.byType(Opacity),
+  );
+  if (finder.evaluate().isEmpty) return 1;
+  return tester.widget<Opacity>(finder.first).opacity;
 }
 
 /// The paragraph that draws [text], somewhere under [root].

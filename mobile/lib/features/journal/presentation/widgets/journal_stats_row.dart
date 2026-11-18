@@ -77,7 +77,7 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.anchor;
-    final tile = AnchorTokens.sizeJournalThumb;
+    final tile = AnchorTokens.sizeJournalStatTile;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
