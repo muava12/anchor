@@ -73,22 +73,31 @@ class _JournalDateTimeSheetState extends State<_JournalDateTimeSheet> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SheetHeader(title: l10n.journalDateTimeTitle),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: MonthGrid(
-            month: _month,
-            selected: _day,
-            now: DateTime.now(),
-            onDay: _pickDay,
-            onMonth: (month) => setState(() => _month = month),
+        Flexible(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                MonthGrid(
+                  month: _month,
+                  selected: _day,
+                  now: DateTime.now(),
+                  allowPastDays: true,
+                  onDay: _pickDay,
+                  onMonth: (month) => setState(() => _month = month),
+                ),
+                const SizedBox(height: AnchorTokens.space8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AnchorTokens.space8,
+                  ),
+                  child: TimeWheel(at: _at, onChanged: _pickTime),
+                ),
+              ],
+            ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: AnchorTokens.space8,
-          ),
-          child: TimeWheel(at: _at, onChanged: _pickTime),
         ),
         SheetFooter(
           children: [

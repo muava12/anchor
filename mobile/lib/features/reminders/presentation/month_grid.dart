@@ -20,6 +20,7 @@ class MonthGrid extends StatelessWidget {
     required this.now,
     required this.onDay,
     required this.onMonth,
+    this.allowPastDays = false,
   });
 
   final DateTime month;
@@ -27,6 +28,10 @@ class MonthGrid extends StatelessWidget {
   final DateTime now;
   final ValueChanged<DateTime> onDay;
   final ValueChanged<DateTime> onMonth;
+
+  /// Lets the grid reach days before today: a picker for a past entry needs it.
+  /// Off by default, so a forward-only picker such as a reminder is unchanged.
+  final bool allowPastDays;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +44,7 @@ class MonthGrid extends StatelessWidget {
       Duration(days: (first.weekday % 7 - firstWeekday) % 7),
     );
     final today = DateTime(now.year, now.month, now.day);
-    final canGoBack = DateTime(now.year, now.month).isBefore(first);
+    final canGoBack = allowPastDays || DateTime(now.year, now.month).isBefore(first);
     Widget arrow(IconData icon, String label, DateTime? to) => BarButton(
       icon: icon,
       label: label,
@@ -110,6 +115,7 @@ class MonthGrid extends StatelessWidget {
                         start.day + row * 7 + col,
                       );
                       final isPast = day.isBefore(today);
+                      final isDead = isPast && !allowPastDays;
                       final isToday = day == today;
                       final isOn =
                           selected != null &&
@@ -119,7 +125,9 @@ class MonthGrid extends StatelessWidget {
                       final outside = day.month != month.month;
                       final foreground = isOn
                           ? colors.appSurface
-                          : isPast || outside
+                          : outside
+                          ? colors.appMuted
+                          : isDead
                           ? colors.appMuted
                           : isToday
                           ? colors.accentInk
@@ -127,7 +135,7 @@ class MonthGrid extends StatelessWidget {
                       return Center(
                         child: Pressable(
                           style: PressStyle.barButton,
-                          onTap: isPast ? null : () => onDay(day),
+                          onTap: isDead ? null : () => onDay(day),
                           semanticLabel: DateFormat.MMMMEEEEd(
                             dateLocale,
                           ).format(day),
@@ -156,7 +164,7 @@ class MonthGrid extends StatelessWidget {
                                     ? FontWeight.w700
                                     : FontWeight.w500,
                                 color: foreground,
-                                decoration: isPast
+                                decoration: isDead
                                     ? TextDecoration.lineThrough
                                     : null,
                                 decorationColor: colors.appMuted.withValues(
