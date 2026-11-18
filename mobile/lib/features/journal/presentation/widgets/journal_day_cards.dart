@@ -17,6 +17,7 @@ import '../../../tags/presentation/tags_controller.dart';
 import '../../domain/journal_day.dart';
 import '../../domain/journal_meta.dart';
 import '../journal_entry_text.dart';
+import 'mood_face.dart';
 
 /// The selected day in the calendar: a day header, then a card per entry.
 class JournalDayCards extends ConsumerWidget {
@@ -147,8 +148,8 @@ class _EntryCard extends ConsumerWidget {
         ? ''
         : clockLabel(meta.entryAt!);
     final otherTag = _firstOtherTag(ref, note, journalTagId);
-    // TODO: mood emoji row is deferred; only the tag chip renders for now.
-    final hasMeta = time.isNotEmpty || otherTag != null;
+    final mood = meta.mood;
+    final hasMeta = time.isNotEmpty || mood != null || otherTag != null;
 
     return Pressable(
       style: PressStyle.plain,
@@ -197,8 +198,13 @@ class _EntryCard extends ConsumerWidget {
                           color: colors.appMuted,
                         ),
                       ),
+                    if (mood != null) ...[
+                      if (time.isNotEmpty || otherTag != null)
+                        const SizedBox(width: 8),
+                      MoodFace(mood: mood, size: AnchorTokens.sizeIconMedium),
+                    ],
                     if (otherTag != null) ...[
-                      if (time.isNotEmpty) const SizedBox(width: 8),
+                      if (time.isNotEmpty || mood != null) const SizedBox(width: 8),
                       TagChip(
                         tag: otherTag,
                         appearance: NoteAppearance.of(context, null),
