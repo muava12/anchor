@@ -56,6 +56,7 @@ dependencies:
 
   # UI
   lucide_icons_flutter: ^4.0.1
+  flutter_svg: ^2.2.3
 
   # Code Generation Annotations
   riverpod_annotation: ^4.0.7
@@ -135,6 +136,9 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/mood/
 
   # Licenses (SIL OFL 1.1) sit next to the files.
   fonts:
