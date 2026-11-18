@@ -197,8 +197,8 @@ abstract final class AnchorTokens {
   static const double sizeDock = 52.0;
   /// Phone: the least height of a row in a grouped list; a row with a second line grows, 12 above and below
   static const double sizeRow = 52.0;
-  /// Phone: the journal timeline's thumbnail, one picture or a stack of up to three
-  static const double sizeJournalThumb = 72.0;
+  /// Phone: the journal timeline's thumbnail, one picture or a stack of up to three. 56 is off the layout scale; the journal-v2 design fixes it.
+  static const double sizeJournalThumb = 56.0;
   static const double densityDefaultSpace8 = 8.0;
   static const double densityDefaultSpace12 = 12.0;
   static const double densityDefaultSpace16 = 16.0;

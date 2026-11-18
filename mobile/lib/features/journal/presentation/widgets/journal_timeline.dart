@@ -311,7 +311,7 @@ class _RailRing extends StatelessWidget {
   }
 }
 
-/// The entry's pictures: one, a pair, or a stack of three, with a badge.
+/// The entry's pictures: one, a pair, or a stack of three.
 class _EntryThumbnails extends ConsumerWidget {
   const _EntryThumbnails({required this.previews});
 
@@ -321,14 +321,14 @@ class _EntryThumbnails extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.anchor;
     final count = previews.length;
-    // Only the front picture is a real image; the cards behind are plain, so
-    // a busy timeline keeps scrolling light.
-    final loaded = ref.watch(
-      attachmentFileProvider(previewFileKeyOf(previews.first)),
-    );
-    final path = loaded.value;
+    // Every stacked picture loads its own real file, not a blank placeholder.
+    final paths = <String?>[
+      for (final preview in previews)
+        ref.watch(attachmentFileProvider(previewFileKeyOf(preview))).value,
+    ];
     const off = 6.0; // off-scale: the step between stacked pictures
     final behind = count - 1 > 2 ? 2 : count - 1;
+    // The token's 56 is off the layout scale; the design fixes that size.
     final side = AnchorTokens.sizeJournalThumb;
 
     final missing = ColoredBox(
@@ -341,24 +341,27 @@ class _EntryThumbnails extends ConsumerWidget {
         ),
       ),
     );
-    final front = ClipRRect(
-      borderRadius: BorderRadius.circular(AnchorTokens.radiusTile),
-      child: SizedBox(
-        width: side,
-        height: side,
-        child: path != null
-            ? Image.file(
-                File(path),
-                fit: BoxFit.cover,
-                cacheWidth: 96,
-                gaplessPlayback: true,
-                errorBuilder: (_, _, _) => missing,
-              )
-            : loaded.isLoading
-            ? ColoredBox(color: colors.appSurface)
-            : missing,
-      ),
-    );
+
+    // One card of the stack: the real picture, or blank while it is unresolved.
+    Widget thumb(int index) {
+      final path = paths[index];
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(AnchorTokens.radiusTile),
+        child: SizedBox(
+          width: side,
+          height: side,
+          child: path != null
+              ? Image.file(
+                  File(path),
+                  fit: BoxFit.cover,
+                  cacheWidth: 96,
+                  gaplessPlayback: true,
+                  errorBuilder: (_, _, _) => missing,
+                )
+              : ColoredBox(color: colors.appSurface),
+        ),
+      );
+    }
 
     return SizedBox(
       width: side + off * behind,
@@ -372,56 +375,9 @@ class _EntryThumbnails extends ConsumerWidget {
             Positioned(
               left: off * i,
               top: off * (behind - i),
-              child: Container(
-                width: side,
-                height: side,
-                decoration: BoxDecoration(
-                  color: colors.appSurface,
-                  borderRadius: BorderRadius.circular(AnchorTokens.radiusTile),
-                  border: Border.all(color: colors.appBorder),
-                ),
-              ),
+              child: thumb(i),
             ),
-          Positioned(left: 0, top: off * behind, child: front),
-          Positioned(
-            right: off * behind + 4,
-            bottom: 4,
-            child: _ThumbnailsBadge(count: count),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ThumbnailsBadge extends StatelessWidget {
-  const _ThumbnailsBadge({required this.count});
-
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.anchor;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: colors.appInverse,
-        borderRadius: BorderRadius.circular(8), // off-scale: badge corner
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        spacing: 4,
-        children: [
-          Icon(
-            LucideIcons.image,
-            size: AnchorTokens.sizeIconSmall,
-            color: colors.appOnInverse,
-          ),
-          if (count > 1)
-            Text(
-              '$count',
-              style: AppTypography.chip.copyWith(color: colors.appOnInverse),
-            ),
+          Positioned(left: 0, top: off * behind, child: thumb(0)),
         ],
       ),
     );

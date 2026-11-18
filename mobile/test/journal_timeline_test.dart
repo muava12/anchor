@@ -106,7 +106,80 @@ void main() {
     expect(find.byType(Image), findsOneWidget);
   });
 
-  testWidgets('three or more pictures stack, with a count badge', (tester) async {
+  testWidgets('a picture is 56, the size the token sets', (tester) async {
+    expect(AnchorTokens.sizeJournalThumb, 56);
+
+    final now = DateTime.now();
+    final day = DateTime(now.year, now.month, now.day);
+    final note = Note(
+      id: 'n1',
+      title: 'With a picture',
+      imagePreviewData: const [
+        NoteImagePreview(attachmentId: 'a1', noteId: 'n1', filename: 'pic.jpg'),
+      ],
+    );
+    final entry = JournalDayEntry(note: note, meta: JournalMeta(entryAt: day));
+
+    await tester.pumpWidget(
+      _wrapTimeline(
+        entry: entry,
+        files: const {'a1': '/tmp/pic.jpg'},
+      ),
+    );
+    await tester.pump();
+
+    final image = tester.widget<Image>(find.byType(Image));
+    expect(_filePathOf(image.image), '/tmp/pic.jpg');
+    expect(tester.getSize(find.byType(Image)), const Size(56, 56));
+  });
+
+  testWidgets('a stack of three loads every real file, with no count badge', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    final day = DateTime(now.year, now.month, now.day);
+    final note = Note(
+      id: 'n1',
+      title: 'Three pictures',
+      imagePreviewData: const [
+        NoteImagePreview(attachmentId: 'a1', noteId: 'n1', filename: 'a.jpg'),
+        NoteImagePreview(attachmentId: 'a2', noteId: 'n1', filename: 'b.jpg'),
+        NoteImagePreview(attachmentId: 'a3', noteId: 'n1', filename: 'c.jpg'),
+      ],
+    );
+    final entry = JournalDayEntry(note: note, meta: JournalMeta(entryAt: day));
+
+    await tester.pumpWidget(
+      _wrapTimeline(
+        entry: entry,
+        files: const {
+          'a1': '/tmp/a.jpg',
+          'a2': '/tmp/b.jpg',
+          'a3': '/tmp/c.jpg',
+        },
+      ),
+    );
+    await tester.pump();
+
+    // Every card in the stack is a real image, not a blank swatch.
+    final paths = tester
+        .widgetList<Image>(find.byType(Image))
+        .map((image) => _filePathOf(image.image))
+        .toList();
+    expect(paths.length, 3);
+    expect(paths.toSet(), {'/tmp/a.jpg', '/tmp/b.jpg', '/tmp/c.jpg'});
+    for (final image in tester.widgetList<Image>(find.byType(Image))) {
+      expect(tester.getSize(find.byWidget(image)), const Size(56, 56));
+    }
+
+    // The stack carries no count badge.
+    expect(find.text('3'), findsNothing);
+    expect(find.byIcon(LucideIcons.image), findsNothing);
+  });
+
+  testWidgets('four pictures still stack three, with no count badge', (
+    tester,
+  ) async {
     final now = DateTime.now();
     final day = DateTime(now.year, now.month, now.day);
     final note = Note(
@@ -122,30 +195,21 @@ void main() {
     final entry = JournalDayEntry(note: note, meta: JournalMeta(entryAt: day));
 
     await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          attachmentFileProvider.overrideWith((ref, key) => '/tmp/a.jpg'),
-        ],
-        child: MaterialApp(
-          theme: AppTheme.light(),
-          home: Scaffold(
-            body: CustomScrollView(
-              slivers: [
-                JournalTimeline(
-                  days: [JournalDay(day: day, entries: [entry])],
-                  onOpen: (_) {},
-                ),
-              ],
-            ),
-          ),
-        ),
+      _wrapTimeline(
+        entry: entry,
+        files: const {
+          'a1': '/tmp/a.jpg',
+          'a2': '/tmp/b.jpg',
+          'a3': '/tmp/c.jpg',
+          'a4': '/tmp/d.jpg',
+        },
       ),
     );
     await tester.pump();
 
-    // Only the front picture is a real image; the badge carries the count.
-    expect(find.byType(Image), findsOneWidget);
-    expect(find.text('4'), findsOneWidget);
+    expect(find.byType(Image), findsNWidgets(3));
+    expect(find.text('4'), findsNothing);
+    expect(find.byIcon(LucideIcons.image), findsNothing);
   });
 
   testWidgets('the meta row shows the time, the mood face and the tag chip', (
@@ -361,7 +425,47 @@ void main() {
   });
 }
 
+Widget _wrapTimeline({
+  required JournalDayEntry entry,
+  required Map<String, String> files,
+}) {
+  return ProviderScope(
+    overrides: [
+      attachmentFileProvider.overrideWith(
+        (ref, key) => files[key.attachmentId],
+      ),
+    ],
+    child: MaterialApp(
+      theme: AppTheme.light(),
+      home: Scaffold(
+        body: CustomScrollView(
+          slivers: [
+            JournalTimeline(
+              days: [
+                JournalDay(
+                  day: DateTime(entry.meta.entryAt!.year, entry.meta.entryAt!.month, entry.meta.entryAt!.day),
+                  entries: [entry],
+                ),
+              ],
+              onOpen: (_) {},
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
 final _entryAt = DateTime(2026, 11, 17, 8, 12);
+
+/// The file path an [ImageProvider] draws, through any `cacheWidth` wrapper.
+String _filePathOf(ImageProvider provider) {
+  var current = provider;
+  while (current is ResizeImage) {
+    current = current.imageProvider;
+  }
+  return (current as FileImage).file.path;
+}
 
 /// The paragraph that draws [text], somewhere under [root].
 RenderParagraph? _paragraphHolding(Element root, String text) {
