@@ -2176,6 +2176,7 @@
   "journalMoodPickerTitle": "How are you feeling?",
   "journalMoodPickerSubtitle": "Pick a mood for this entry",
   "journalMoodClear": "Clear mood",
+  "journalDateTimeTitle": "Date & time",
   "journalEntriesCount": "{count, plural, =1{1 entry} other{{count} entries}}",
   "journalMonthEntries": "{count, plural, =1{1 entry this month} other{{count} entries this month}}",
   "journalCalendarLess": "Less",
@@ -2260,6 +2261,9 @@
   },
   "@journalMoodClear": {
     "description": "Button in the journal mood sheet that removes the picked mood."
+  },
+  "@journalDateTimeTitle": {
+    "description": "Heading of the sheet that picks the date and time of a journal entry."
   },
   "@journalEntriesCount": {
     "description": "Number of entries for the selected day, under the calendar.",

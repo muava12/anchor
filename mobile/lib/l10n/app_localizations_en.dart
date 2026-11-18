@@ -1605,6 +1605,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get journalMoodPickerTitle => 'How are you feeling?';
   String get journalMoodPickerSubtitle => 'Pick a mood for this entry';
   String get journalMoodClear => 'Clear mood';
+  String get journalDateTimeTitle => 'Date & time';
 
   @override
   String journalEntriesCount(int count) {
