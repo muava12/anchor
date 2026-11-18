@@ -15,8 +15,15 @@ import '../../../notes/data/repository/attachment_file_provider.dart';
 import '../../../notes/domain/note.dart';
 import '../../../notes/domain/note_dates.dart';
 import '../../../notes/presentation/note_labels.dart';
+import '../../../notes/presentation/widgets/note_chips.dart';
+import '../../../notes/presentation/widgets/note_surface.dart';
+import '../../../tags/domain/tag.dart';
+import '../../../tags/presentation/tags_controller.dart';
 import '../../domain/journal_day.dart';
+import '../../domain/journal_meta.dart';
 import '../journal_entry_text.dart';
+import '../journal_providers.dart';
+import 'mood_face.dart';
 
 /// A day-grouped journal, as a sliver for a [CustomScrollView].
 class JournalTimeline extends StatelessWidget {
@@ -80,17 +87,37 @@ class _DayHeader extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.label.copyWith(color: colors.appMuted),
+            child: Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.label.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colors.appText,
+                    ),
+                  ),
+                ),
+                // The design pins today's group label.
+                if (rel == 0) ...[
+                  const SizedBox(width: AnchorTokens.space4),
+                  Icon(
+                    LucideIcons.pin,
+                    size: AnchorTokens.sizeIconSmall,
+                    color: colors.appMuted,
+                  ),
+                ],
+              ],
             ),
           ),
           if (date != null)
             Text(
               date,
-              style: AppTypography.footnote.copyWith(color: colors.appMuted),
+              style: AppTypography.caption.tabular.copyWith(
+                color: colors.appMuted,
+              ),
             ),
         ],
       ),
@@ -100,7 +127,7 @@ class _DayHeader extends StatelessWidget {
 
 /// One entry: the ring on the rail, the title, the body's first lines and the
 /// time under them, and the first picture on the right.
-class _EntryRow extends StatelessWidget {
+class _EntryRow extends ConsumerWidget {
   const _EntryRow({
     required this.entry,
     required this.onOpen,
@@ -112,12 +139,14 @@ class _EntryRow extends StatelessWidget {
   final bool isLastOfDay;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final note = entry.note;
     final colors = context.anchor;
     final time = journalTimeOf(entry);
     final title = journalTitleOf(note, context.l10n);
     final preview = journalPreviewOf(note, title);
+    final mood = entry.meta.mood;
+    final tag = _firstOtherTag(ref, note, ref.watch(journalTagProvider)?.id);
     final hasPicture = note.imagePreviewData.isNotEmpty;
 
     return Pressable(
@@ -152,6 +181,7 @@ class _EntryRow extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.cardTitle.copyWith(
+                          fontWeight: FontWeight.w700,
                           color: colors.appText,
                         ),
                       ),
@@ -167,14 +197,13 @@ class _EntryRow extends StatelessWidget {
                             ),
                           ),
                         ),
-                      if (time.isNotEmpty)
+                      if (time.isNotEmpty || mood != null || tag != null)
                         Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            time,
-                            style: AppTypography.footnote.copyWith(
-                              color: colors.appMuted,
-                            ),
+                          padding: const EdgeInsets.only(top: 8),
+                          child: _MetaRow(
+                            time: time,
+                            mood: mood,
+                            tag: tag,
                           ),
                         ),
                     ],
@@ -187,6 +216,71 @@ class _EntryRow extends StatelessWidget {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// The first tag on the note that is not the journal tag, if any.
+  Tag? _firstOtherTag(WidgetRef ref, Note note, String? journalTagId) {
+    final all = ref.watch(tagsControllerProvider).value ?? const <Tag>[];
+    for (final id in note.tagIds) {
+      if (id == journalTagId) continue;
+      for (final tag in all) {
+        if (tag.id == id) return tag;
+      }
+    }
+    return null;
+  }
+}
+
+/// The entry's meta line: time, mood face, tag chip, in one row.
+///
+/// Each part drops out when the entry has none; the dot separators only
+/// appear between two present parts.
+class _MetaRow extends StatelessWidget {
+  const _MetaRow({required this.time, required this.mood, required this.tag});
+
+  final String time;
+  final JournalMood? mood;
+  final Tag? tag;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.anchor;
+    final parts = <Widget>[
+      if (time.isNotEmpty)
+        Text(
+          time,
+          style: AppTypography.caption.tabular.copyWith(color: colors.appMuted),
+        ),
+      if (mood != null) MoodFace(mood: mood!, size: AnchorTokens.sizeIconMedium),
+      if (tag != null)
+        TagChip(tag: tag!, appearance: NoteAppearance.of(context, null)),
+    ];
+    final children = <Widget>[];
+    for (var i = 0; i < parts.length; i++) {
+      if (i > 0) children.add(const _MetaDot());
+      children.add(parts[i]);
+    }
+    return Row(children: children);
+  }
+}
+
+/// The dot between two meta parts.
+class _MetaDot extends StatelessWidget {
+  const _MetaDot();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AnchorTokens.space8),
+      child: Container(
+        width: 3, // off-scale: the meta row's separator dot
+        height: 3, // off-scale: the meta row's separator dot
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: context.anchor.appMuted,
         ),
       ),
     );

@@ -44,6 +44,9 @@ abstract final class AppTypography {
 
   static final TextStyle footnote = _sans(AnchorTokens.typeFootnote);
 
+  /// The smallest label: 11.5 / w500. Used for meta rows and key hints.
+  static final TextStyle caption = _sans(AnchorTokens.typeCaption);
+
   /// Set in capitals by the caller.
   static final TextStyle label = _sans(AnchorTokens.typeLabel);
 

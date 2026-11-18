@@ -1,13 +1,21 @@
 import 'package:anchor/core/text/date_formats.dart';
 import 'package:anchor/core/theme/app_theme.dart';
+import 'package:anchor/core/theme/app_typography.dart';
+import 'package:anchor/core/theme/tokens/anchor_tokens.dart';
 import 'package:anchor/features/journal/domain/journal_day.dart';
 import 'package:anchor/features/journal/domain/journal_meta.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_timeline.dart';
+import 'package:anchor/features/journal/presentation/widgets/mood_face.dart';
 import 'package:anchor/features/notes/data/repository/attachment_file_provider.dart';
 import 'package:anchor/features/notes/domain/note.dart';
+import 'package:anchor/features/notes/presentation/widgets/note_chips.dart';
+import 'package:anchor/features/tags/domain/tag.dart';
+import 'package:anchor/features/tags/presentation/tags_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 void main() {
   testWidgets('shows a day header, the time and title, and opens the note', (
@@ -138,4 +146,174 @@ void main() {
     expect(find.byType(Image), findsOneWidget);
     expect(find.text('4'), findsOneWidget);
   });
+
+  testWidgets('the meta row shows the time, the mood face and the tag chip', (
+    tester,
+  ) async {
+    const journalTag = Tag(id: 'j1', name: 'journal');
+    const morning = Tag(id: 't1', name: 'morning');
+    final content = composeJournalContent(
+      JournalMeta(mood: JournalMood.calm, entryAt: _entryAt),
+      'body line',
+    )!;
+    final note = Note(
+      id: 'n1',
+      title: 'Slow morning',
+      content: content,
+      tagIds: const ['j1', 't1'],
+    );
+
+    await tester.pumpWidget(
+      _wrap(
+        entry: JournalDayEntry(
+          note: note,
+          meta: parseJournalContent(content).meta,
+        ),
+        tags: const [journalTag, morning],
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text(clockLabel(_entryAt)), findsOneWidget);
+    expect(find.text('morning'), findsOneWidget);
+    expect(find.text('journal'), findsNothing);
+
+    final face = tester.widget<MoodFace>(find.byType(MoodFace));
+    expect(face.mood, JournalMood.calm);
+    expect(face.size, AnchorTokens.sizeIconMedium);
+    expect(find.byType(TagChip), findsOneWidget);
+
+    // One horizontal row: time, a dot, the face, a dot, the tag chip.
+    final row = tester
+        .widgetList<Row>(find.ancestor(of: find.byType(MoodFace), matching: find.byType(Row)))
+        .firstWhere((r) => r.children.any((c) => c is MoodFace));
+    expect(row.children.length, 5);
+    expect(row.children[0], isA<Text>());
+    expect(row.children[2], isA<MoodFace>());
+    expect(row.children[4], isA<TagChip>());
+    final time = tester.getCenter(find.text(clockLabel(_entryAt)));
+    final faceAt = tester.getCenter(find.byType(MoodFace));
+    final chipAt = tester.getCenter(find.byType(TagChip));
+    expect(time.dy, faceAt.dy, reason: 'the row is horizontal');
+    expect(time.dx < faceAt.dx, isTrue, reason: 'time before the face');
+    expect(faceAt.dx < chipAt.dx, isTrue, reason: 'face before the tag chip');
+  });
+
+  testWidgets('an entry without a mood or another tag shows only the time', (
+    tester,
+  ) async {
+    const journalTag = Tag(id: 'j1', name: 'journal');
+    final note = Note(
+      id: 'n1',
+      title: 'Plain day',
+      content: 'plain',
+      tagIds: const ['j1'],
+    );
+
+    await tester.pumpWidget(
+      _wrap(
+        entry: JournalDayEntry(
+          note: note,
+          meta: JournalMeta(entryAt: _entryAt),
+        ),
+        tags: const [journalTag],
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text(clockLabel(_entryAt)), findsOneWidget);
+    expect(find.byType(MoodFace), findsNothing);
+    expect(find.byType(TagChip), findsNothing);
+    expect(find.text('journal'), findsNothing);
+  });
+
+  testWidgets('the day label and the title use the design typography', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    final day = DateTime(now.year, now.month, now.day);
+    final colors = AppTheme.light().extension<AnchorColors>()!;
+    final note = Note(
+      id: 'n1',
+      title: 'Morning pages',
+      content: '{"ops":[{"insert":"body line\\n"}]}',
+    );
+    final entry = JournalDayEntry(
+      note: note,
+      meta: JournalMeta(entryAt: DateTime(now.year, now.month, now.day, 9, 41)),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: AppTheme.light(),
+          home: Scaffold(
+            body: CustomScrollView(
+              slivers: [
+                JournalTimeline(
+                  days: [JournalDay(day: day, entries: [entry])],
+                  onOpen: (_) {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    // The day label: 12 / w700 / appText, with a pin for today.
+    final label = tester.widget<Text>(find.text('TODAY'));
+    expect(label.style?.fontSize, 12);
+    expect(label.style?.fontWeight, FontWeight.w700);
+    expect(label.style?.color, colors.appText);
+    expect(find.byIcon(LucideIcons.pin), findsOneWidget);
+
+    // The date range beside it: caption 11.5 / 500 / tabular.
+    final date = tester.widget<Text>(
+      find.text(DateFormat('EEE, d MMM', dateLocale).format(day)),
+    );
+    expect(date.style, AppTypography.caption.tabular.copyWith(color: colors.appMuted));
+
+    // The entry title: cardTitle, bold.
+    final title = tester.widget<Text>(find.text('Morning pages'));
+    expect(title.style?.fontSize, AppTypography.cardTitle.fontSize);
+    expect(title.style?.fontWeight, FontWeight.w700);
+
+    // The meta time: caption 11.5 / 500 / tabular.
+    final time = tester.widget<Text>(
+      find.text(clockLabel(DateTime(now.year, now.month, now.day, 9, 41))),
+    );
+    expect(time.style, AppTypography.caption.tabular.copyWith(color: colors.appMuted));
+  });
+}
+
+final _entryAt = DateTime(2026, 11, 17, 8, 12);
+
+Widget _wrap({required JournalDayEntry entry, required List<Tag> tags}) {
+  return ProviderScope(
+    overrides: [tagsControllerProvider.overrideWith(() => _Tags(tags))],
+    child: MaterialApp(
+      theme: AppTheme.light(),
+      home: Scaffold(
+        body: CustomScrollView(
+          slivers: [
+            JournalTimeline(
+              days: [JournalDay(day: DateTime(2026, 11, 17), entries: [entry])],
+              onOpen: (_) {},
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+class _Tags extends TagsController {
+  _Tags(this.tags);
+
+  final List<Tag> tags;
+
+  @override
+  Stream<List<Tag>> build() => Stream.value(tags);
 }
