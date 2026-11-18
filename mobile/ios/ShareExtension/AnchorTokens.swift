@@ -191,6 +191,8 @@ enum AnchorTokens {
     static let sizeDock: CGFloat = 52
     /// Phone: the least height of a row in a grouped list; a row with a second line grows, 12 above and below
     static let sizeRow: CGFloat = 52
+    /// Phone: the journal timeline's thumbnail, one picture or a stack of up to three
+    static let sizeJournalThumb: CGFloat = 72
     static let densityDefaultSpace8: CGFloat = 8
     static let densityDefaultSpace12: CGFloat = 12
     static let densityDefaultSpace16: CGFloat = 16

@@ -1335,6 +1335,13 @@
     "row": {
       "$value": "{size.control.large}",
       "$description": "Phone: the least height of a row in a grouped list; a row with a second line grows, 12 above and below"
+    },
+    "journalThumb": {
+      "$value": {
+        "value": 72,
+        "unit": "px"
+      },
+      "$description": "Phone: the journal timeline's thumbnail, one picture or a stack of up to three"
     }
   },
   "density": {
