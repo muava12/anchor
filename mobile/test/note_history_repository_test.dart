@@ -34,10 +34,7 @@ void main() {
     'version': 1,
     'title': 'Groceries',
     'cause': 'edit',
-    'createdAt': DateTime.now()
-        .toUtc()
-        .subtract(const Duration(days: 1))
-        .toIso8601String(),
+    'createdAt': DateTime.now().toUtc().toIso8601String(),
     'content': null,
     'author': null,
   };

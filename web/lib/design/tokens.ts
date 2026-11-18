@@ -417,7 +417,8 @@ export const TAILWIND_THEME = {
     "sidebar-drawer",
     "button-phone",
     "dock",
-    "row"
+    "row",
+    "journal-thumb"
   ],
   "radius": [
     "xs",

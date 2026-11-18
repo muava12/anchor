@@ -107,10 +107,9 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
     sharesOf: (noteId) =>
         ref.read(noteSharesRepositoryProvider).getNoteShares(noteId),
     editor: _EditorContent(_editorKey),
-    newNoteTagId: () =>
-        widget.journal
+    newNoteTagIds: [?widget.journal
         ? ref.read(journalTagProvider)?.id
-        : ref.read(selectedTagFilterProvider),
+        : ref.read(selectedTagFilterProvider)],
     onNoteDeleted: _handleNoteDeleted,
     note: widget.note,
     noteId: widget.noteId,
@@ -494,9 +493,9 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
   }
 
   Future<void> _removeTag(Tag tag) async {
-    final note = _draft.note;
-    if (note == null) return;
     Haptics.selection();
+    final note = _draft.note;
+    if (note == null) return _draft.removeNewNoteTag(tag.id);
     await ref.read(notesRepositoryProvider).removeTags([note.id], [tag.id]);
   }
 
@@ -597,6 +596,12 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
     final writing = _writing && !_isReadOnly;
     final density = context.density;
     final titleStyle = context.noteTypography.title;
+    final titlePadding = EdgeInsets.fromLTRB(
+      AnchorTokens.spaceGutterPhone,
+      0,
+      AnchorTokens.spaceGutterPhone,
+      density.space8,
+    );
     final safeBottom = context.safeBottomAtRest;
     final underText = _isReadOnly
         ? safeBottom + 8 + _readOnlyBarHeight + density.space24
@@ -651,44 +656,39 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
               PageBar.heightOf(context) +
               4,
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AnchorTokens.spaceGutterPhone,
-          ),
-          child: _isReadOnly
-              ? GestureDetector(
-                  onTap: _shakeReadOnly,
-                  child: Padding(
-                    padding: EdgeInsets.only(bottom: density.space8),
-                    child: Text(
-                      displayTitleOf(note?.title ?? '', context.l10n),
-                      style: titleStyle.copyWith(color: colors.appText),
-                    ),
-                  ),
-                )
-              : TextField(
-                  controller: _draft.title,
-                  focusNode: _titleFocus,
-                  showCursor: _isOpen,
-                  undoController: _titleHistory,
-                  maxLines: null,
-                  keyboardType: TextInputType.text,
-                  textInputAction: TextInputAction.next,
-                  textCapitalization: TextCapitalization.sentences,
-                  inputFormatters: [TitleInputFormatter(onEnter: _splitTitle)],
-                  onEditingComplete: _splitTitle,
-                  style: titleStyle.copyWith(color: colors.appText),
-                  cursorColor: colors.accentStrong,
-                  decoration: InputDecoration(
-                    hintText: context.l10n.noteTitleHint,
-                    hintStyle: titleStyle.copyWith(
-                      color: appearance.colors.muted,
-                    ),
-                    contentPadding: EdgeInsets.only(bottom: density.space8),
+        _isReadOnly
+            ? GestureDetector(
+                onTap: _shakeReadOnly,
+                child: Padding(
+                  padding: titlePadding,
+                  child: Text(
+                    displayTitleOf(note?.title ?? '', context.l10n),
+                    style: titleStyle.copyWith(color: colors.appText),
                   ),
                 ),
-        ),
-        if (note != null)
+              )
+            : TextField(
+                controller: _draft.title,
+                focusNode: _titleFocus,
+                showCursor: _isOpen,
+                undoController: _titleHistory,
+                maxLines: null,
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.next,
+                textCapitalization: TextCapitalization.sentences,
+                inputFormatters: [TitleInputFormatter(onEnter: _splitTitle)],
+                onEditingComplete: _splitTitle,
+                style: titleStyle.copyWith(color: colors.appText),
+                cursorColor: colors.accentStrong,
+                decoration: InputDecoration(
+                  hintText: context.l10n.noteTitleHint,
+                  hintStyle: titleStyle.copyWith(
+                    color: appearance.colors.muted,
+                  ),
+                  contentPadding: titlePadding,
+                ),
+              ),
+        if (note != null || _draft.isNew)
           Padding(
             padding: EdgeInsets.fromLTRB(
               AnchorTokens.spaceGutterPhone,
@@ -711,7 +711,8 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
             density.space16,
           ),
           child: NoteTagRow(
-            note: note,
+            tagIds: _draft.tagIds,
+            reminder: note?.reminder,
             appearance: appearance,
             readOnly: isTrashed,
             onAdd: _addTags,
@@ -733,21 +734,38 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
           builder: (context, showsEmptyNoteActions, editor) => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AnchorTokens.spaceGutterPhone,
-                  AnchorTokens.space4,
-                  AnchorTokens.spaceGutterPhone,
-                  0,
-                ),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: showsEmptyNoteActions
-                        ? 40
-                        : 140, // off-scale: spacer
+              Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AnchorTokens.spaceGutterPhone,
+                      AnchorTokens.space4,
+                      AnchorTokens.spaceGutterPhone,
+                      0,
+                    ),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: showsEmptyNoteActions
+                            ? 40
+                            : 140, // off-scale: spacer
+                      ),
+                      child: editor,
+                    ),
                   ),
-                  child: editor,
-                ),
+                  for (final isLeft in [true, false])
+                    Positioned(
+                      left: isLeft ? 0 : null,
+                      right: isLeft ? null : 0,
+                      top: 0,
+                      bottom: 0,
+                      width: AnchorTokens.spaceGutterPhone,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTapUp: (details) =>
+                            _editor?.tapBeside(details.globalPosition),
+                      ),
+                    ),
+                ],
               ),
               if (showsEmptyNoteActions)
                 Padding(

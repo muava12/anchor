@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { isUUID } from 'class-validator';
 import { PrismaService } from '../prisma/prisma.service';
 import type { Note, Prisma } from 'src/generated/prisma/client';
 import {
@@ -31,6 +32,7 @@ import {
   reminderEmission,
   tagEmission,
 } from './sync-emitter.service';
+import { deviceTime } from './device-time.util';
 import { NoteRevisionsService, revisionsCover } from './note-revisions.service';
 import type {
   SyncChange,
@@ -116,6 +118,9 @@ export class SyncApplyService {
       // note was purged rather than never created. Recreating it would undo a
       // delete the client hasn't caught up with yet.
       if (change.baseVersion !== undefined) {
+        return { ...base, status: 'denied' };
+      }
+      if (!isUUID(change.id)) {
         return { ...base, status: 'denied' };
       }
       const version = await this.createNote(userId, change);
@@ -307,6 +312,7 @@ export class SyncApplyService {
           content: change.content,
           background: change.background,
           state: (change.state as NoteState | undefined) ?? NoteState.active,
+          createdAt: deviceTime(change.createdAt),
           userId,
           tags: validTagIds.length
             ? { connect: validTagIds.map((id) => ({ id })) }
