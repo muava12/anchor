@@ -315,6 +315,129 @@ void main() {
     expect(find.byType(TagChip), findsOneWidget);
     expect(find.text('morning'), findsOneWidget);
   });
+  testWidgets('two entries show a hairline between them, one entry shows none', (
+    tester,
+  ) async {
+    final entryA = JournalDayEntry(
+      note: Note(
+        id: 'a',
+        title: 'Entry A',
+        content: '{"ops":[{"insert":"Body A."}]}',
+      ),
+      meta: JournalMeta(entryAt: DateTime(2026, 11, 17, 8, 12)),
+    );
+    final entryB = JournalDayEntry(
+      note: Note(
+        id: 'b',
+        title: 'Entry B',
+        content: '{"ops":[{"insert":"Body B."}]}',
+      ),
+      meta: JournalMeta(entryAt: DateTime(2026, 11, 17, 9, 0)),
+    );
+
+    // Two entries: one hairline (a 1px Container with color appBorder).
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: AppTheme.light(),
+          home: Scaffold(
+            body: CustomScrollView(
+              slivers: [
+                JournalDayCards(
+                  days: [
+                    JournalDay(
+                      day: DateTime(2026, 11, 17),
+                      entries: [entryA, entryB],
+                    ),
+                  ],
+                  journalTagId: null,
+                  onOpen: (_) {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final hairline = find.byKey(const ValueKey('journal-day-hairline'));
+    expect(hairline, findsOneWidget, reason: 'one hairline between two entries');
+
+    // One entry: zero hairlines.
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: AppTheme.light(),
+          home: Scaffold(
+            body: CustomScrollView(
+              slivers: [
+                JournalDayCards(
+                  days: [
+                    JournalDay(day: DateTime(2026, 11, 17), entries: [entryA]),
+                  ],
+                  journalTagId: null,
+                  onOpen: (_) {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final singleHairline = find.byKey(const ValueKey('journal-day-hairline'));
+    expect(singleHairline, findsNothing, reason: 'no hairline for a single entry');
+  });
+
+  testWidgets('the entry has no card decoration (flat)', (tester) async {
+    final entry = JournalDayEntry(
+      note: Note(
+        id: 'n1',
+        title: 'Morning pages',
+        content: '{"ops":[{"insert":"Body."}]}',
+      ),
+      meta: JournalMeta(entryAt: DateTime(2026, 11, 17, 8, 12)),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: AppTheme.light(),
+          home: Scaffold(
+            body: CustomScrollView(
+              slivers: [
+                JournalDayCards(
+                  days: [
+                    JournalDay(day: DateTime(2026, 11, 17), entries: [entry]),
+                  ],
+                  journalTagId: null,
+                  onOpen: (_) {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    // The entry's tap target (Pressable) must NOT wrap a Container with a
+    // BoxDecoration (the old card style). The flat entry is a bare Column.
+    final pressable = find.byWidgetPredicate(
+      (w) => w.runtimeType.toString() == 'Pressable',
+      description: 'Pressable (entry tap target)',
+    );
+    expect(pressable, findsOneWidget);
+    final pressableWidget = tester.widget(pressable);
+    final child = (pressableWidget as dynamic).child as Widget;
+    expect(
+      child is Container,
+      isFalse,
+      reason: 'the flat entry is not a Container (no card decoration)',
+    );
+  });
 }
 
 final _entryAt = DateTime(2026, 11, 17, 8, 12);

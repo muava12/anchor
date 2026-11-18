@@ -14,7 +14,6 @@ import 'package:anchor/features/journal/presentation/journal_providers.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_day_cards.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_stats_row.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_timeline.dart';
-import 'package:anchor/features/journal/presentation/widgets/mood_face.dart';
 import 'package:anchor/features/notes/domain/note.dart';
 import 'package:anchor/features/tags/domain/tag.dart';
 import 'package:anchor/features/tags/presentation/tags_controller.dart';
