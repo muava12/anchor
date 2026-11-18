@@ -2578,10 +2578,45 @@ abstract class AppLocalizations {
   String get journalMoodGood;
   String get journalMoodNeutral;
   String get journalMoodRough;
+  String get journalMoodHappy;
+  String get journalMoodCalm;
+  String get journalMoodGrateful;
+  String get journalMoodExcited;
+  String get journalMoodOkay;
+  String get journalMoodTired;
+  String get journalMoodAnxious;
+  String get journalMoodSad;
+  String get journalMoodAngry;
+  String get journalMoodLonely;
+  String get journalMoodStressed;
+  String get journalMoodSick;
+  String get journalMoodPickerTitle;
+  String get journalMoodPickerSubtitle;
+  String get journalMoodClear;
+  String get journalDateTimeTitle;
+  String get journalAddMood;
   String journalEntriesCount(int count);
   String journalMonthEntries(int count);
   String get journalCalendarLess;
   String get journalCalendarMore;
+
+  /// Caption of the stat card shown when an entry exists on today's month-day in a prior year.
+  ///
+  /// In en, this message translates to:
+  /// **'On this day'**
+  String get journalStatOnThisDay;
+
+  /// Caption of the stat card showing the run of consecutive entry days ending today or yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}-day streak'**
+  String journalStatStreak(int count);
+
+  /// Caption of the stat card showing the most recent prior year with an entry on today's month-day.
+  ///
+  /// In en, this message translates to:
+  /// **'Throwback · {year}'**
+  String journalStatThrowback(String year);
 
   /// Screen reader label of the account row at the bottom of the menu.
   ///

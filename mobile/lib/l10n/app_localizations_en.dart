@@ -1590,6 +1590,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get journalMoodGood => 'Good';
   String get journalMoodNeutral => 'Neutral';
   String get journalMoodRough => 'Rough';
+  String get journalMoodHappy => 'Happy';
+  String get journalMoodCalm => 'Calm';
+  String get journalMoodGrateful => 'Grateful';
+  String get journalMoodExcited => 'Excited';
+  String get journalMoodOkay => 'Okay';
+  String get journalMoodTired => 'Tired';
+  String get journalMoodAnxious => 'Anxious';
+  String get journalMoodSad => 'Sad';
+  String get journalMoodAngry => 'Angry';
+  String get journalMoodLonely => 'Lonely';
+  String get journalMoodStressed => 'Stressed';
+  String get journalMoodSick => 'Sick';
+  String get journalMoodPickerTitle => 'How are you feeling?';
+  String get journalMoodPickerSubtitle => 'Pick a mood for this entry';
+  String get journalMoodClear => 'Clear mood';
+  String get journalDateTimeTitle => 'Date & time';
+  @override
+  String get journalAddMood => 'Add mood';
 
   @override
   String journalEntriesCount(int count) {
@@ -1618,6 +1636,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get journalCalendarMore => 'More';
+
+  @override
+  String get journalStatOnThisDay => 'On this day';
+
+  @override
+  String journalStatStreak(int count) {
+    return '$count-day streak';
+  }
+
+  @override
+  String journalStatThrowback(String year) {
+    return 'Throwback · $year';
+  }
 
   @override
   String drawerAccount(String name) {

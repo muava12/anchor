@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 Note note(String id, String iso) {
   final at = DateTime.parse(iso);
   String pad(int value) => value.toString().padLeft(2, '0');
-  final content = '{"ops":[{"insert":"mood: good\\n'
+  final content = '{"ops":[{"insert":"mood: happy\\n'
       'date: ${at.year.toString().padLeft(4, '0')}-${pad(at.month)}-${pad(at.day)}\\n'
       'time: ${pad(at.hour)}:${pad(at.minute)}\\n'
       '---\\n$id\\n"}]}';

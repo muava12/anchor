@@ -223,6 +223,7 @@
   --spacing-dock: var(--size-dock);
   --spacing-row: var(--size-row);
   --spacing-journal-thumb: var(--size-journal-thumb);
+  --spacing-journal-stat-tile: var(--size-journal-stat-tile);
   --color-note: var(--note);
   --color-note-surface: var(--note-surface);
   --color-note-border: var(--note-border);
@@ -313,7 +314,8 @@
   --size-button-phone: 52px;
   --size-dock: 52px;
   --size-row: 52px;
-  --size-journal-thumb: 72px;
+  --size-journal-thumb: 56px;
+  --size-journal-stat-tile: 72px;
   --heading-h1: 1.55em;
   --heading-h1--line-height: 1.22;
   --heading-h1--letter-spacing: -0.022em;

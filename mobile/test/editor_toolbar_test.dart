@@ -103,7 +103,6 @@ void main() {
         'checklist',
         'bullet',
         'add',
-        'mood',
         'space',
         'undo',
         'redo',
@@ -396,16 +395,14 @@ void main() {
   });
 
   group('journal mood tool', () {
-    test('the typing mode puts the mood tool after add, list does not', () {
-      final typing = toolbarToolsOf(EditorToolbarMode.typing).start;
-      expect(
-        typing.indexOf(EditorTool.mood),
-        greaterThan(typing.indexOf(EditorTool.add)),
-      );
-      expect(
-        toolbarToolsOf(EditorToolbarMode.list).start,
-        isNot(contains(EditorTool.mood)),
-      );
+    test('no mode offers the mood tool since the pills replaced it', () {
+      for (final mode in EditorToolbarMode.values) {
+        expect(
+          toolbarToolsOf(mode).start,
+          isNot(contains(EditorTool.mood)),
+          reason: mode.name,
+        );
+      }
     });
 
     test('the model carries the selected mood emoji', () {

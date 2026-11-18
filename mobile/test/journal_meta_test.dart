@@ -3,21 +3,74 @@ import 'package:anchor/features/notes/domain/note_blocks.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  group('JournalMood (Wangcai)', () {
+    const moods = [
+      'happy',
+      'calm',
+      'grateful',
+      'excited',
+      'okay',
+      'tired',
+      'anxious',
+      'sad',
+      'angry',
+      'lonely',
+      'stressed',
+      'sick',
+    ];
+
+    test('has the 12 Wangcai moods', () {
+      expect(JournalMood.values.length, 12);
+      expect(JournalMood.values.map((m) => m.name), moods);
+    });
+
+    test('journalMoodFromName reads new names and drops old ones', () {
+      expect(journalMoodFromName('happy'), JournalMood.happy);
+      expect(journalMoodFromName('amazing'), isNull);
+    });
+
+    test('asset points at the SVG', () {
+      expect(JournalMood.happy.asset, 'assets/mood/happy.svg');
+    });
+  });
+
+  group('JournalMeta', () {
+    test('clearMood drops the mood and keeps the rest', () {
+      final meta = JournalMeta(
+        mood: JournalMood.sad,
+        entryAt: DateTime(2026, 11, 17, 9, 41),
+        extras: {'weather': 'sunny'},
+      );
+
+      final cleared = meta.clearMood();
+
+      expect(cleared.mood, isNull);
+      expect(cleared.entryAt, DateTime(2026, 11, 17, 9, 41));
+      expect(cleared.extras['weather'], 'sunny');
+      expect(cleared.copyWith(mood: JournalMood.happy).mood, JournalMood.happy);
+      expect(
+        meta.copyWith(mood: null).mood,
+        JournalMood.sad,
+        reason: 'copyWith keeps the mood, so clearing needs clearMood',
+      );
+    });
+  });
+
   group('parseJournalContent', () {
     test('reads mood, date, time and the body', () {
       const content =
-          '{"ops":[{"insert":"mood: good\\ndate: 2026-11-17\\ntime: 09:41\\n---\\nMorning pages\\n"}]}';
+          '{"ops":[{"insert":"mood: happy\\ndate: 2026-11-17\\ntime: 09:41\\n---\\nMorning pages\\n"}]}';
       final entry = parseJournalContent(content);
-      expect(entry.meta.mood, JournalMood.good);
+      expect(entry.meta.mood, JournalMood.happy);
       expect(entry.meta.entryAt, DateTime(2026, 11, 17, 9, 41));
       expect(entry.body, contains('Morning pages'));
     });
 
     test('keys are case-insensitive and in any order', () {
       const content =
-          '{"ops":[{"insert":"Mood: Rough\\nTIME: 21:05\\nDate: 2026-01-02\\n---\\nx\\n"}]}';
+          '{"ops":[{"insert":"Mood: Sad\\nTIME: 21:05\\nDate: 2026-01-02\\n---\\nx\\n"}]}';
       final entry = parseJournalContent(content);
-      expect(entry.meta.mood, JournalMood.rough);
+      expect(entry.meta.mood, JournalMood.sad);
       expect(entry.meta.entryAt, DateTime(2026, 1, 2, 21, 5));
     });
 
@@ -44,7 +97,7 @@ void main() {
 
     test('unknown keys are kept in extras', () {
       const content =
-          '{"ops":[{"insert":"mood: good\\nweather: sunny\\n---\\nx\\n"}]}';
+          '{"ops":[{"insert":"mood: happy\\nweather: sunny\\n---\\nx\\n"}]}';
       final entry = parseJournalContent(content);
       expect(entry.meta.extras['weather'], 'sunny');
       final composed = composeJournalContent(entry.meta, entry.body)!;
@@ -53,7 +106,7 @@ void main() {
 
     test('an empty body composes to one header op only', () {
       final meta = JournalMeta(
-        mood: JournalMood.good,
+        mood: JournalMood.happy,
         entryAt: DateTime(2026, 11, 17, 9, 41),
       );
       final composed = composeJournalContent(meta, null)!;
@@ -64,11 +117,11 @@ void main() {
       const body =
           '{"ops":[{"insert":"bold","attributes":{"bold":true}},{"insert":"\\n"}]}';
       final meta = JournalMeta(
-        mood: JournalMood.neutral,
+        mood: JournalMood.okay,
         entryAt: DateTime(2026, 11, 17, 9, 41),
       );
       final entry = parseJournalContent(composeJournalContent(meta, body));
-      expect(entry.meta.mood, JournalMood.neutral);
+      expect(entry.meta.mood, JournalMood.okay);
       expect(entry.body, contains('"bold":true'));
     });
   });

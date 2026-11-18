@@ -306,7 +306,7 @@ void main() {
     tester,
   ) async {
     final meta = JournalMeta(
-      mood: JournalMood.good,
+      mood: JournalMood.happy,
       entryAt: DateTime(2026, 11, 17, 9, 41),
     );
     final codec = (
@@ -336,14 +336,14 @@ void main() {
     await tester.pump(const Duration(seconds: 2));
     final saved =
         verify(() => repo.updateNote(captureAny())).captured.single as Note;
-    expect(saved.content, contains('mood: good'));
+    expect(saved.content, contains('mood: happy'));
     expect(saved.content, contains('body changed'));
     draft.dispose();
   });
 
   testWidgets('a meta-only change is saved', (tester) async {
     var meta = JournalMeta(
-      mood: JournalMood.good,
+      mood: JournalMood.happy,
       entryAt: DateTime(2026, 11, 17, 9, 41),
     );
     final codec = (
@@ -364,12 +364,12 @@ void main() {
       ),
       codec: codec,
     );
-    meta = JournalMeta(mood: JournalMood.rough, entryAt: meta.entryAt);
+    meta = JournalMeta(mood: JournalMood.sad, entryAt: meta.entryAt);
     draft.contentChanged();
     await tester.pump(const Duration(seconds: 2));
     final saved =
         verify(() => repo.updateNote(captureAny())).captured.single as Note;
-    expect(saved.content, contains('mood: rough'));
+    expect(saved.content, contains('mood: sad'));
     draft.dispose();
   });
 }

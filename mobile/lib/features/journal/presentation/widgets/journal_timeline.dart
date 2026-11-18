@@ -15,8 +15,15 @@ import '../../../notes/data/repository/attachment_file_provider.dart';
 import '../../../notes/domain/note.dart';
 import '../../../notes/domain/note_dates.dart';
 import '../../../notes/presentation/note_labels.dart';
+import '../../../notes/presentation/widgets/note_chips.dart';
+import '../../../notes/presentation/widgets/note_surface.dart';
+import '../../../tags/domain/tag.dart';
+import '../../../tags/presentation/tags_controller.dart';
 import '../../domain/journal_day.dart';
+import '../../domain/journal_meta.dart';
 import '../journal_entry_text.dart';
+import '../journal_providers.dart';
+import 'mood_face.dart';
 
 /// A day-grouped journal, as a sliver for a [CustomScrollView].
 class JournalTimeline extends StatelessWidget {
@@ -80,17 +87,37 @@ class _DayHeader extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.label.copyWith(color: colors.appMuted),
+            child: Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.label.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colors.appText,
+                    ),
+                  ),
+                ),
+                // The design pins today's group label.
+                if (rel == 0) ...[
+                  const SizedBox(width: AnchorTokens.space4),
+                  Icon(
+                    LucideIcons.pin,
+                    size: AnchorTokens.sizeIconSmall,
+                    color: colors.appMuted,
+                  ),
+                ],
+              ],
             ),
           ),
           if (date != null)
             Text(
               date,
-              style: AppTypography.footnote.copyWith(color: colors.appMuted),
+              style: AppTypography.caption.tabular.copyWith(
+                color: colors.appMuted,
+              ),
             ),
         ],
       ),
@@ -100,7 +127,7 @@ class _DayHeader extends StatelessWidget {
 
 /// One entry: the ring on the rail, the title, the body's first lines and the
 /// time under them, and the first picture on the right.
-class _EntryRow extends StatelessWidget {
+class _EntryRow extends ConsumerWidget {
   const _EntryRow({
     required this.entry,
     required this.onOpen,
@@ -112,12 +139,14 @@ class _EntryRow extends StatelessWidget {
   final bool isLastOfDay;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final note = entry.note;
     final colors = context.anchor;
     final time = journalTimeOf(entry);
     final title = journalTitleOf(note, context.l10n);
     final preview = journalPreviewOf(note, title);
+    final mood = entry.meta.mood;
+    final tag = _firstOtherTag(ref, note, ref.watch(journalTagProvider)?.id);
     final hasPicture = note.imagePreviewData.isNotEmpty;
 
     return Pressable(
@@ -152,6 +181,7 @@ class _EntryRow extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.cardTitle.copyWith(
+                          fontWeight: FontWeight.w700,
                           color: colors.appText,
                         ),
                       ),
@@ -167,14 +197,13 @@ class _EntryRow extends StatelessWidget {
                             ),
                           ),
                         ),
-                      if (time.isNotEmpty)
+                      if (time.isNotEmpty || mood != null || tag != null)
                         Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            time,
-                            style: AppTypography.footnote.copyWith(
-                              color: colors.appMuted,
-                            ),
+                          padding: const EdgeInsets.only(top: 8),
+                          child: _MetaRow(
+                            time: time,
+                            mood: mood,
+                            tag: tag,
                           ),
                         ),
                     ],
@@ -187,6 +216,78 @@ class _EntryRow extends StatelessWidget {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// The first tag on the note that is not the journal tag, if any.
+  Tag? _firstOtherTag(WidgetRef ref, Note note, String? journalTagId) {
+    final all = ref.watch(tagsControllerProvider).value ?? const <Tag>[];
+    for (final id in note.tagIds) {
+      if (id == journalTagId) continue;
+      for (final tag in all) {
+        if (tag.id == id) return tag;
+      }
+    }
+    return null;
+  }
+}
+
+/// The entry's meta line: time, mood face, tag chip, in one row.
+///
+/// Each part drops out when the entry has none; the dot separators only
+/// appear between two present parts.
+class _MetaRow extends StatelessWidget {
+  const _MetaRow({required this.time, required this.mood, required this.tag});
+
+  final String time;
+  final JournalMood? mood;
+  final Tag? tag;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.anchor;
+    final parts = <Widget>[
+      if (time.isNotEmpty)
+        Text(
+          time,
+          style: AppTypography.caption.tabular.copyWith(color: colors.appMuted),
+        ),
+      if (mood != null) MoodFace(mood: mood!, size: AnchorTokens.sizeIconMedium),
+      if (tag != null)
+        // The chip is the only part that can give way, so a long tag name
+        // ellipsizes instead of overflowing the row.
+        Flexible(
+          child: TagChip(
+            tag: tag!,
+            appearance: NoteAppearance.of(context, null),
+          ),
+        ),
+    ];
+    final children = <Widget>[];
+    for (var i = 0; i < parts.length; i++) {
+      if (i > 0) children.add(const _MetaDot());
+      children.add(parts[i]);
+    }
+    return Row(children: children);
+  }
+}
+
+/// The dot between two meta parts.
+class _MetaDot extends StatelessWidget {
+  const _MetaDot();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AnchorTokens.space8),
+      child: Container(
+        width: 3, // off-scale: the meta row's separator dot
+        height: 3, // off-scale: the meta row's separator dot
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: context.anchor.appMuted,
         ),
       ),
     );
@@ -210,7 +311,7 @@ class _RailRing extends StatelessWidget {
   }
 }
 
-/// The entry's pictures: one, a pair, or a stack of three, with a badge.
+/// The entry's pictures: one, a pair, or a stack of three.
 class _EntryThumbnails extends ConsumerWidget {
   const _EntryThumbnails({required this.previews});
 
@@ -220,14 +321,14 @@ class _EntryThumbnails extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.anchor;
     final count = previews.length;
-    // Only the front picture is a real image; the cards behind are plain, so
-    // a busy timeline keeps scrolling light.
-    final loaded = ref.watch(
-      attachmentFileProvider(previewFileKeyOf(previews.first)),
-    );
-    final path = loaded.value;
+    // Every stacked picture loads its own real file, not a blank placeholder.
+    final paths = <String?>[
+      for (final preview in previews)
+        ref.watch(attachmentFileProvider(previewFileKeyOf(preview))).value,
+    ];
     const off = 6.0; // off-scale: the step between stacked pictures
     final behind = count - 1 > 2 ? 2 : count - 1;
+    // The token's 56 is off the layout scale; the design fixes that size.
     final side = AnchorTokens.sizeJournalThumb;
 
     final missing = ColoredBox(
@@ -240,24 +341,37 @@ class _EntryThumbnails extends ConsumerWidget {
         ),
       ),
     );
-    final front = ClipRRect(
-      borderRadius: BorderRadius.circular(AnchorTokens.radiusTile),
-      child: SizedBox(
-        width: side,
-        height: side,
-        child: path != null
-            ? Image.file(
-                File(path),
-                fit: BoxFit.cover,
-                cacheWidth: 96,
-                gaplessPlayback: true,
-                errorBuilder: (_, _, _) => missing,
-              )
-            : loaded.isLoading
-            ? ColoredBox(color: colors.appSurface)
-            : missing,
-      ),
-    );
+
+    // The design fans the stack: the furthest card leans the most and fades
+    // the most, the next one a little, the front card is square-on and solid.
+    const lean = [0.0, -0.07, 0.13]; // off-scale: the design's stack angles
+    const fade = [1.0, 0.8, 0.7]; // off-scale: the design's stack opacity
+
+    // One card of the stack: the real picture, or blank while it is unresolved.
+    Widget thumb(int index) {
+      final path = paths[index];
+      final card = ClipRRect(
+        borderRadius: BorderRadius.circular(AnchorTokens.radiusTile),
+        child: SizedBox(
+          width: side,
+          height: side,
+          child: path != null
+              ? Image.file(
+                  File(path),
+                  fit: BoxFit.cover,
+                  cacheWidth: 96,
+                  gaplessPlayback: true,
+                  errorBuilder: (_, _, _) => missing,
+                )
+              : ColoredBox(color: colors.appSurface),
+        ),
+      );
+      if (index == 0) return card;
+      return Opacity(
+        opacity: fade[index],
+        child: Transform.rotate(angle: lean[index], child: card),
+      );
+    }
 
     return SizedBox(
       width: side + off * behind,
@@ -271,56 +385,9 @@ class _EntryThumbnails extends ConsumerWidget {
             Positioned(
               left: off * i,
               top: off * (behind - i),
-              child: Container(
-                width: side,
-                height: side,
-                decoration: BoxDecoration(
-                  color: colors.appSurface,
-                  borderRadius: BorderRadius.circular(AnchorTokens.radiusTile),
-                  border: Border.all(color: colors.appBorder),
-                ),
-              ),
+              child: thumb(i),
             ),
-          Positioned(left: 0, top: off * behind, child: front),
-          Positioned(
-            right: off * behind + 4,
-            bottom: 4,
-            child: _ThumbnailsBadge(count: count),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ThumbnailsBadge extends StatelessWidget {
-  const _ThumbnailsBadge({required this.count});
-
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.anchor;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: colors.appInverse,
-        borderRadius: BorderRadius.circular(8), // off-scale: badge corner
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        spacing: 4,
-        children: [
-          Icon(
-            LucideIcons.image,
-            size: AnchorTokens.sizeIconSmall,
-            color: colors.appOnInverse,
-          ),
-          if (count > 1)
-            Text(
-              '$count',
-              style: AppTypography.chip.copyWith(color: colors.appOnInverse),
-            ),
+          Positioned(left: 0, top: off * behind, child: thumb(0)),
         ],
       ),
     );

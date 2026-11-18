@@ -17,6 +17,7 @@ import '../domain/journal_day.dart';
 import 'journal_providers.dart';
 import 'widgets/journal_calendar.dart';
 import 'widgets/journal_day_cards.dart';
+import 'widgets/journal_stats_row.dart';
 import 'widgets/journal_timeline.dart';
 
 class JournalScreen extends ConsumerStatefulWidget {
@@ -104,6 +105,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
         BarButton(
           icon: _calendar ? LucideIcons.rows3 : LucideIcons.calendarDays,
           label: _calendar ? l10n.journalTimeline : l10n.journalCalendar,
+          isOn: _calendar ? true : null,
           onPressed: () => setState(() {
             _calendar = !_calendar;
             if (_calendar) {
@@ -115,6 +117,12 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
               _selectedDay = null;
             }
           }),
+        ),
+        // Placeholder for a future Notes-style view menu; no action yet.
+        BarButton(
+          icon: LucideIcons.layoutGrid,
+          label: l10n.viewGrid,
+          onPressed: null,
         ),
       ],
       physics: const BouncingScrollPhysics(
@@ -156,8 +164,14 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
               journalTagId: tag.id,
               onOpen: _open,
             ),
-          ] else
+          ] else ...[
+            SliverToBoxAdapter(
+              child: JournalStatsRow(
+                days: ref.watch(journalAllDaysProvider),
+              ),
+            ),
             JournalTimeline(days: shownDays, onOpen: _open),
+          ],
         ],
       ],
       bottomBar: NotesBottomBar(

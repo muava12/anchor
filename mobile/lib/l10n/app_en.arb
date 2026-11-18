@@ -2161,10 +2161,30 @@
   "journalMoodGood": "Good",
   "journalMoodNeutral": "Neutral",
   "journalMoodRough": "Rough",
+  "journalMoodHappy": "Happy",
+  "journalMoodCalm": "Calm",
+  "journalMoodGrateful": "Grateful",
+  "journalMoodExcited": "Excited",
+  "journalMoodOkay": "Okay",
+  "journalMoodTired": "Tired",
+  "journalMoodAnxious": "Anxious",
+  "journalMoodSad": "Sad",
+  "journalMoodAngry": "Angry",
+  "journalMoodLonely": "Lonely",
+  "journalMoodStressed": "Stressed",
+  "journalMoodSick": "Sick",
+  "journalMoodPickerTitle": "How are you feeling?",
+  "journalMoodPickerSubtitle": "Pick a mood for this entry",
+  "journalMoodClear": "Clear mood",
+  "journalDateTimeTitle": "Date & time",
+  "journalAddMood": "Add mood",
   "journalEntriesCount": "{count, plural, =1{1 entry} other{{count} entries}}",
   "journalMonthEntries": "{count, plural, =1{1 entry this month} other{{count} entries this month}}",
   "journalCalendarLess": "Less",
   "journalCalendarMore": "More",
+  "journalStatOnThisDay": "On this day",
+  "journalStatStreak": "{count}-day streak",
+  "journalStatThrowback": "Throwback · {year}",
   "@navJournal": {
     "description": "Noun: the side menu item and list title for the journal."
   },
@@ -2201,6 +2221,57 @@
   "@journalMoodRough": {
     "description": "Mood label: a hard day."
   },
+  "@journalMoodHappy": {
+    "description": "Mood label in the journal mood sheet: happy."
+  },
+  "@journalMoodCalm": {
+    "description": "Mood label in the journal mood sheet: calm."
+  },
+  "@journalMoodGrateful": {
+    "description": "Mood label in the journal mood sheet: grateful."
+  },
+  "@journalMoodExcited": {
+    "description": "Mood label in the journal mood sheet: excited."
+  },
+  "@journalMoodOkay": {
+    "description": "Mood label in the journal mood sheet: okay."
+  },
+  "@journalMoodTired": {
+    "description": "Mood label in the journal mood sheet: tired."
+  },
+  "@journalMoodAnxious": {
+    "description": "Mood label in the journal mood sheet: anxious."
+  },
+  "@journalMoodSad": {
+    "description": "Mood label in the journal mood sheet: sad."
+  },
+  "@journalMoodAngry": {
+    "description": "Mood label in the journal mood sheet: angry."
+  },
+  "@journalMoodLonely": {
+    "description": "Mood label in the journal mood sheet: lonely."
+  },
+  "@journalMoodStressed": {
+    "description": "Mood label in the journal mood sheet: stressed."
+  },
+  "@journalMoodSick": {
+    "description": "Mood label in the journal mood sheet: sick."
+  },
+  "@journalMoodPickerTitle": {
+    "description": "Heading of the sheet that picks the mood of a journal entry."
+  },
+  "@journalMoodPickerSubtitle": {
+    "description": "Line under the heading of the journal mood sheet."
+  },
+  "@journalMoodClear": {
+    "description": "Button in the journal mood sheet that removes the picked mood."
+  },
+  "@journalDateTimeTitle": {
+    "description": "Heading of the sheet that picks the date and time of a journal entry."
+  },
+  "@journalAddMood": {
+    "description": "Label of the pill under the title of a journal entry that has no mood yet."
+  },
   "@journalEntriesCount": {
     "description": "Number of entries for the selected day, under the calendar.",
     "placeholders": {
@@ -2224,6 +2295,27 @@
   },
   "@journalCalendarMore": {
     "description": "Right end of the calendar heat-map legend (more entries)."
+  },
+  "@journalStatOnThisDay": {
+    "description": "Caption of the stat card shown when an entry exists on today's month-day in a prior year."
+  },
+  "@journalStatStreak": {
+    "description": "Caption of the stat card showing the run of consecutive entry days ending today or yesterday.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "@journalStatThrowback": {
+    "description": "Caption of the stat card showing the most recent prior year with an entry on today's month-day.",
+    "placeholders": {
+      "year": {
+        "type": "String",
+        "example": "2024"
+      }
+    }
   },
   "@navTrash": {
     "description": "Noun: the side menu item and list title for deleted notes."

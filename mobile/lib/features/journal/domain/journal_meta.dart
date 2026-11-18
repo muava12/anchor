@@ -4,15 +4,24 @@ import 'package:flutter/foundation.dart';
 
 import '../../notes/domain/note_blocks.dart';
 
-enum JournalMood { amazing, good, neutral, rough }
+enum JournalMood {
+  happy,
+  calm,
+  grateful,
+  excited,
+  okay,
+  tired,
+  anxious,
+  sad,
+  angry,
+  lonely,
+  stressed,
+  sick,
+}
 
 extension JournalMoodX on JournalMood {
-  String get emoji => switch (this) {
-    JournalMood.amazing => '😄',
-    JournalMood.good => '🙂',
-    JournalMood.neutral => '😐',
-    JournalMood.rough => '🙁',
-  };
+  /// The Wangcai SVG for this mood.
+  String get asset => 'assets/mood/$name.svg';
 }
 
 JournalMood? journalMoodFromName(String? name) {
@@ -38,6 +47,10 @@ class JournalMeta {
 
   bool get isEmpty => mood == null && entryAt == null && extras.isEmpty;
 
+  /// A copy with the given values, keeping the ones left out.
+  ///
+  /// A null [mood] keeps the current mood, so clearing one needs
+  /// [clearMood].
   JournalMeta copyWith({
     JournalMood? mood,
     DateTime? entryAt,
@@ -48,6 +61,9 @@ class JournalMeta {
         entryAt: entryAt ?? this.entryAt,
         extras: extras ?? this.extras,
       );
+
+  /// A copy without a mood.
+  JournalMeta clearMood() => JournalMeta(entryAt: entryAt, extras: extras);
 
   @override
   bool operator ==(Object other) =>

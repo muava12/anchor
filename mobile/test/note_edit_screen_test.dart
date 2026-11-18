@@ -1280,7 +1280,6 @@ void main() {
         'Checklist',
         'Bullet list',
         'Add picture or audio',
-        'Mood',
         'Undo',
         'Redo',
         'Hide keyboard',

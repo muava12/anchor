@@ -1338,10 +1338,17 @@
     },
     "journalThumb": {
       "$value": {
+        "value": 56,
+        "unit": "px"
+      },
+      "$description": "Phone: the journal timeline's thumbnail, one picture or a stack of up to three. 56 is off the layout scale; the journal-v2 design fixes it."
+    },
+    "journalStatTile": {
+      "$value": {
         "value": 72,
         "unit": "px"
       },
-      "$description": "Phone: the journal timeline's thumbnail, one picture or a stack of up to three"
+      "$description": "Phone: the journal timeline's stats tiles (On this day, N-day streak, Throwback). 72 is off the layout scale; the journal-v2 design fixes it."
     }
   },
   "density": {

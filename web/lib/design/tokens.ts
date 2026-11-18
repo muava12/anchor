@@ -418,7 +418,8 @@ export const TAILWIND_THEME = {
     "button-phone",
     "dock",
     "row",
-    "journal-thumb"
+    "journal-thumb",
+    "journal-stat-tile"
   ],
   "radius": [
     "xs",
