@@ -318,7 +318,7 @@ void main() {
       notes: repo,
       sharesOf: (_) async => const [],
       editor: editor,
-      newNoteTagId: () => null,
+      newNoteTagIds: const [],
       onNoteDeleted: () {},
       note: Note(
         id: 'n2',
@@ -355,7 +355,7 @@ void main() {
       notes: repo,
       sharesOf: (_) async => const [],
       editor: editor,
-      newNoteTagId: () => null,
+      newNoteTagIds: const [],
       onNoteDeleted: () {},
       note: Note(
         id: 'n3',

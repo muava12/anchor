@@ -303,7 +303,10 @@ void main() {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     await pumpSettings(tester);
 
-    expect(find.text('Support Anchor', skipOffstage: false), findsOneWidget);
+    final support = find.text('Support Anchor', skipOffstage: false);
+    await tester.scrollUntilVisible(support, 200);
+
+    expect(support, findsOneWidget);
     debugDefaultTargetPlatformOverride = null;
   });
 

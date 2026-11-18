@@ -666,7 +666,28 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
                     style: titleStyle.copyWith(color: colors.appText),
                   ),
                 ),
-        ),
+              )
+            : TextField(
+                controller: _draft.title,
+                focusNode: _titleFocus,
+                showCursor: _isOpen,
+                undoController: _titleHistory,
+                maxLines: null,
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.next,
+                textCapitalization: TextCapitalization.sentences,
+                inputFormatters: [TitleInputFormatter(onEnter: _splitTitle)],
+                onEditingComplete: _splitTitle,
+                style: titleStyle.copyWith(color: colors.appText),
+                cursorColor: colors.accentStrong,
+                decoration: InputDecoration(
+                  hintText: context.l10n.noteTitleHint,
+                  hintStyle: titleStyle.copyWith(
+                    color: appearance.colors.muted,
+                  ),
+                  contentPadding: titlePadding,
+                ),
+              ),
         if (note != null || _draft.isNew)
           Padding(
             padding: EdgeInsets.fromLTRB(

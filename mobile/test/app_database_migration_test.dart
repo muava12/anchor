@@ -220,6 +220,7 @@ void main() {
           'ALTER TABLE note_attachments '
           'DROP COLUMN compressed_path',
         );
+        await dropColumns(db, _createdAtColumns);
         await db
             .into(db.noteAttachments)
             .insert(
