@@ -52,6 +52,36 @@ void main() {
     expect(find.byType(JournalCalendar), findsOneWidget);
   });
 
+  testWidgets('the top bar shows the calendar and grid icons', (tester) async {
+    await pump(tester, [entry('a', 'Morning pages', 'good')]);
+    expect(find.byIcon(LucideIcons.calendarDays), findsOneWidget);
+    expect(find.byIcon(LucideIcons.layoutGrid), findsOneWidget);
+    expect(find.byIcon(LucideIcons.rows3), findsNothing);
+  });
+
+  testWidgets('tapping the calendar icon twice returns to the timeline', (
+    tester,
+  ) async {
+    await pump(tester, [entry('a', 'Morning pages', 'good')]);
+    await tester.tap(find.byIcon(LucideIcons.calendarDays));
+    await tester.pump();
+    expect(find.byType(JournalCalendar), findsOneWidget);
+    expect(find.byIcon(LucideIcons.rows3), findsOneWidget);
+    await tester.tap(find.byIcon(LucideIcons.rows3));
+    await tester.pump();
+    expect(find.byType(JournalCalendar), findsNothing);
+    expect(find.byIcon(LucideIcons.calendarDays), findsOneWidget);
+  });
+
+  testWidgets('the grid icon has no effect', (tester) async {
+    await pump(tester, [entry('a', 'Morning pages', 'good')]);
+    await tester.tap(find.byIcon(LucideIcons.layoutGrid));
+    await tester.pump();
+    expect(find.byType(JournalCalendar), findsNothing);
+    expect(find.byIcon(LucideIcons.calendarDays), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('a missing tag shows the empty state', (tester) async {
     await pump(tester, const [], journalTag: null);
     expect(find.text('No entries yet'), findsOneWidget);

@@ -105,6 +105,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
         BarButton(
           icon: _calendar ? LucideIcons.rows3 : LucideIcons.calendarDays,
           label: _calendar ? l10n.journalTimeline : l10n.journalCalendar,
+          isOn: _calendar ? true : null,
           onPressed: () => setState(() {
             _calendar = !_calendar;
             if (_calendar) {
@@ -116,6 +117,12 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
               _selectedDay = null;
             }
           }),
+        ),
+        // Placeholder for a future Notes-style view menu; no action yet.
+        BarButton(
+          icon: LucideIcons.layoutGrid,
+          label: l10n.viewGrid,
+          onPressed: null,
         ),
       ],
       physics: const BouncingScrollPhysics(
