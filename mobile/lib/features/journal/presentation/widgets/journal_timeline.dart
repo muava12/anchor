@@ -256,7 +256,14 @@ class _MetaRow extends StatelessWidget {
         ),
       if (mood != null) MoodFace(mood: mood!, size: AnchorTokens.sizeIconMedium),
       if (tag != null)
-        TagChip(tag: tag!, appearance: NoteAppearance.of(context, null)),
+        // The chip is the only part that can give way, so a long tag name
+        // ellipsizes instead of overflowing the row.
+        Flexible(
+          child: TagChip(
+            tag: tag!,
+            appearance: NoteAppearance.of(context, null),
+          ),
+        ),
     ];
     final children = <Widget>[];
     for (var i = 0; i < parts.length; i++) {

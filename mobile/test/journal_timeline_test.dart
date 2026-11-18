@@ -12,6 +12,7 @@ import 'package:anchor/features/notes/presentation/widgets/note_chips.dart';
 import 'package:anchor/features/tags/domain/tag.dart';
 import 'package:anchor/features/tags/presentation/tags_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
@@ -190,13 +191,85 @@ void main() {
     expect(row.children.length, 5);
     expect(row.children[0], isA<Text>());
     expect(row.children[2], isA<MoodFace>());
-    expect(row.children[4], isA<TagChip>());
+    // The chip is wrapped in a Flexible so a long tag name can shrink.
+    final chipSlot = row.children[4];
+    expect(chipSlot, isA<Flexible>());
+    expect((chipSlot as Flexible).child, isA<TagChip>());
     final time = tester.getCenter(find.text(clockLabel(_entryAt)));
     final faceAt = tester.getCenter(find.byType(MoodFace));
     final chipAt = tester.getCenter(find.byType(TagChip));
     expect(time.dy, faceAt.dy, reason: 'the row is horizontal');
     expect(time.dx < faceAt.dx, isTrue, reason: 'time before the face');
     expect(faceAt.dx < chipAt.dx, isTrue, reason: 'face before the tag chip');
+  });
+
+  testWidgets('a long tag name ellipsizes instead of overflowing the row', (
+    tester,
+  ) async {
+    // A narrow phone: the meta row has to give way somewhere.
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    const journalTag = Tag(id: 'j1', name: 'journal');
+    const longTag = Tag(
+      id: 't1',
+      name: 'a-very-long-tag-name-that-must-not-overflow-the-row',
+    );
+    final content = composeJournalContent(
+      JournalMeta(mood: JournalMood.calm, entryAt: _entryAt),
+      'body line',
+    )!;
+    final note = Note(
+      id: 'n1',
+      title: 'Slow morning',
+      content: content,
+      tagIds: const ['j1', 't1'],
+    );
+
+    await tester.pumpWidget(
+      _wrap(
+        entry: JournalDayEntry(
+          note: note,
+          meta: parseJournalContent(content).meta,
+        ),
+        tags: const [journalTag, longTag],
+      ),
+    );
+    await tester.pump();
+
+    // No overflow error (Flutter would report a painted overflow stripe).
+    expect(tester.takeException(), isNull);
+
+    // The other parts survive; the chip stays inside the row's right edge.
+    expect(find.text(clockLabel(_entryAt)), findsOneWidget);
+    expect(find.byType(MoodFace), findsOneWidget);
+    final chip = tester.getRect(find.byType(TagChip));
+    final row = tester.getRect(
+      find
+          .ancestor(
+            of: find.byType(TagChip),
+            matching: find.byType(Row),
+          )
+          .first,
+    );
+    expect(chip.right, lessThanOrEqualTo(row.right + 0.01));
+    expect(chip.left, greaterThanOrEqualTo(row.left));
+
+    // The tag text is the part that gave way: it ellipsizes in the chip.
+    final tagText = tester.widget<Text>(
+      find
+          .descendant(of: find.byType(TagChip), matching: find.byType(Text))
+          .first,
+    );
+    expect(tagText.maxLines, 1);
+    expect(tagText.overflow, TextOverflow.ellipsis);
+    final paragraph = _paragraphHolding(
+      tester.element(find.byType(TagChip)),
+      longTag.name,
+    );
+    expect(paragraph, isNotNull, reason: 'the tag text is laid out');
+    expect(paragraph!.didExceedMaxLines, isTrue, reason: 'the tag name is cut');
   });
 
   testWidgets('an entry without a mood or another tag shows only the time', (
@@ -290,6 +363,21 @@ void main() {
 
 final _entryAt = DateTime(2026, 11, 17, 8, 12);
 
+/// The paragraph that draws [text], somewhere under [root].
+RenderParagraph? _paragraphHolding(Element root, String text) {
+  RenderParagraph? found;
+  void walk(Element element) {
+    final render = element.renderObject;
+    if (render is RenderParagraph && render.text.toPlainText() == text) {
+      found = render;
+      return;
+    }
+    element.visitChildren(walk);
+  }
+
+  walk(root);
+  return found;
+}
 Widget _wrap({required JournalDayEntry entry, required List<Tag> tags}) {
   return ProviderScope(
     overrides: [tagsControllerProvider.overrideWith(() => _Tags(tags))],
