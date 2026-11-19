@@ -65,5 +65,45 @@ void main() {
 
       expect(notification.tier, NotificationTier.silent);
     });
+
+    test('the important tier is individual: no group key', () {
+      final details = LocalNotificationGateway.detailsForTier(
+        NotificationTier.important,
+        english,
+        bigText: 'Two litres of oat milk, and a bagel while you are there.',
+      );
+
+      expect(details.groupKey, isNull);
+      expect(details.setAsGroupSummary, isFalse);
+    });
+
+    test('reminders use the expanded BigText style with the full body', () {
+      const body = 'Two litres of oat milk, and a bagel while you are there.';
+      final details = LocalNotificationGateway.detailsForTier(
+        NotificationTier.important,
+        english,
+        bigText: body,
+      );
+
+      final style = details.styleInformation;
+      expect(style, isA<BigTextStyleInformation>());
+      expect((style! as BigTextStyleInformation).bigText, body);
+    });
+
+    test('the important tier stays ongoing until it is handled', () {
+      final important = LocalNotificationGateway.detailsForTier(
+        NotificationTier.important,
+        english,
+        bigText: 'body',
+      );
+      final silent = LocalNotificationGateway.detailsForTier(
+        NotificationTier.silent,
+        english,
+        bigText: 'body',
+      );
+
+      expect(important.ongoing, isTrue);
+      expect(silent.ongoing, isFalse);
+    });
   });
 }

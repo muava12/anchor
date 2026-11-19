@@ -79,10 +79,16 @@ class LocalNotificationGateway implements NotificationGateway {
   static const silentChannelId = 'pinned_notes';
 
   /// The Android notification details for a [tier].
+  ///
+  /// When [bigText] is given, the card opens expanded (big text style) and
+  /// shows the full body; a reminder is the note's whole content, one card
+  /// per reminder, never grouped. [ongoing] keeps a reminder in the shade
+  /// until it is handled; quiet notifications (silent tier) stay dismissible.
   static AndroidNotificationDetails detailsForTier(
     NotificationTier tier,
-    AppLocalizations l10n,
-  ) {
+    AppLocalizations l10n, {
+    String? bigText,
+  }) {
     final important = tier == NotificationTier.important;
     return AndroidNotificationDetails(
       important ? importantChannelId : silentChannelId,
@@ -96,6 +102,10 @@ class LocalNotificationGateway implements NotificationGateway {
       // Must be a flat vector: Android masks the icon to alpha.
       icon: 'ic_stat_reminder',
       color: AnchorTokens.colorBrandOrange,
+      styleInformation: bigText == null
+          ? null
+          : BigTextStyleInformation(bigText),
+      ongoing: important,
     );
   }
 
@@ -157,7 +167,11 @@ class LocalNotificationGateway implements NotificationGateway {
       body: notification.body,
       scheduledDate: at,
       notificationDetails: NotificationDetails(
-        android: detailsForTier(notification.tier, l10n),
+        android: detailsForTier(
+          notification.tier,
+          l10n,
+          bigText: notification.body,
+        ),
         iOS: DarwinNotificationDetails(),
       ),
       androidScheduleMode: mode,
