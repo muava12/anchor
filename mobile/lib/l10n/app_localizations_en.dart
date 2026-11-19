@@ -1116,6 +1116,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get monthNext => 'Next month';
 
   @override
+  String get pinnedChannelName => 'Pinned notes';
+
+  @override
+  String get pinnedChannelDescription => 'Quiet nudges about your pinned notes';
+
+  @override
   String get reminderChannelName => 'Reminders';
 
   @override

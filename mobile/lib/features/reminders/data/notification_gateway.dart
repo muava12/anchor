@@ -14,6 +14,15 @@ import '../presentation/notification_launch.dart';
 
 part 'notification_gateway.g.dart';
 
+/// How loud a scheduled notification may be on Android.
+enum NotificationTier {
+  /// Pings at `Importance.max` with `Priority.max`.
+  important,
+
+  /// Stays quiet at `Importance.min`, with no sound.
+  silent,
+}
+
 @Riverpod(keepAlive: true)
 NotificationGateway notificationGateway(Ref ref) =>
     LocalNotificationGateway(notificationsPlugin);
@@ -26,6 +35,7 @@ class ScheduledNotification {
     required this.at,
     required this.repeat,
     required this.payload,
+    this.tier = NotificationTier.important,
   });
 
   final int id;
@@ -36,6 +46,9 @@ class ScheduledNotification {
   final DateTime at;
   final DateTimeComponents? repeat;
   final String payload;
+
+  /// Which notification channel this notification uses.
+  final NotificationTier tier;
 }
 
 abstract class NotificationGateway {
@@ -59,7 +72,46 @@ class LocalNotificationGateway implements NotificationGateway {
   final FlutterLocalNotificationsPlugin _plugin;
   bool _initialized = false;
 
-  static const _channelId = 'anchor_reminders';
+  /// Channel for reminders that must get attention.
+  static const importantChannelId = 'reminders';
+
+  /// Channel for quiet notifications, e.g. pinned notes.
+  static const silentChannelId = 'pinned_notes';
+
+  /// The Android notification details for a [tier].
+  static AndroidNotificationDetails detailsForTier(
+    NotificationTier tier,
+    AppLocalizations l10n,
+  ) {
+    final important = tier == NotificationTier.important;
+    return AndroidNotificationDetails(
+      important ? importantChannelId : silentChannelId,
+      important ? l10n.reminderChannelName : l10n.pinnedChannelName,
+      channelDescription: important
+          ? l10n.reminderChannelDescription
+          : l10n.pinnedChannelDescription,
+      importance: important ? Importance.max : Importance.min,
+      priority: important ? Priority.max : Priority.min,
+      playSound: important,
+      // Must be a flat vector: Android masks the icon to alpha.
+      icon: 'ic_stat_reminder',
+      color: AnchorTokens.colorBrandOrange,
+    );
+  }
+
+  static AndroidNotificationChannel _channelFor(
+    NotificationTier tier,
+    AppLocalizations l10n,
+  ) {
+    final details = detailsForTier(tier, l10n);
+    return AndroidNotificationChannel(
+      details.channelId,
+      details.channelName,
+      description: details.channelDescription,
+      importance: details.importance,
+      playSound: tier == NotificationTier.important,
+    );
+  }
 
   AndroidFlutterLocalNotificationsPlugin? get _android => _plugin
       .resolvePlatformSpecificImplementation<
@@ -75,6 +127,13 @@ class LocalNotificationGateway implements NotificationGateway {
   Future<void> initialize() async {
     if (_initialized) return;
     await initializeTimeZonesOnce();
+    final android = _android;
+    if (android != null) {
+      final l10n = deviceL10n();
+      for (final tier in NotificationTier.values) {
+        await android.createNotificationChannel(_channelFor(tier, l10n));
+      }
+    }
     _initialized = true;
   }
 
@@ -98,16 +157,7 @@ class LocalNotificationGateway implements NotificationGateway {
       body: notification.body,
       scheduledDate: at,
       notificationDetails: NotificationDetails(
-        android: AndroidNotificationDetails(
-          _channelId,
-          l10n.reminderChannelName,
-          channelDescription: l10n.reminderChannelDescription,
-          importance: Importance.high,
-          priority: Priority.high,
-          // Must be a flat vector: Android masks the icon to alpha.
-          icon: 'ic_stat_reminder',
-          color: AnchorTokens.colorBrandOrange,
-        ),
+        android: detailsForTier(notification.tier, l10n),
         iOS: DarwinNotificationDetails(),
       ),
       androidScheduleMode: mode,

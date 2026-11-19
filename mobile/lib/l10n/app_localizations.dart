@@ -1966,6 +1966,18 @@ abstract class AppLocalizations {
   /// **'Next month'**
   String get monthNext;
 
+  /// Name of the app’s quiet notification category in Android’s settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned notes'**
+  String get pinnedChannelName;
+
+  /// Description of the app’s quiet notification category in Android’s settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiet nudges about your pinned notes'**
+  String get pinnedChannelDescription;
+
   /// Name of the app’s notification category in Android’s settings.
   ///
   /// In en, this message translates to:

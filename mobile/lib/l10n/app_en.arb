@@ -1528,6 +1528,14 @@
   "@monthNext": {
     "description": "Screen reader label of the arrow that shows the next month in a calendar."
   },
+  "pinnedChannelName": "Pinned notes",
+  "@pinnedChannelName": {
+    "description": "Name of the app’s quiet notification category in Android’s settings."
+  },
+  "pinnedChannelDescription": "Quiet nudges about your pinned notes",
+  "@pinnedChannelDescription": {
+    "description": "Description of the app’s quiet notification category in Android’s settings."
+  },
   "reminderChannelName": "Reminders",
   "@reminderChannelName": {
     "description": "Name of the app’s notification category in Android’s settings."
