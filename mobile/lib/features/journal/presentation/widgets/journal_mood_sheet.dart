@@ -102,8 +102,8 @@ class _JournalMoodSheetState extends State<_JournalMoodSheet> {
               physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: 4,
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              mainAxisSpacing: AnchorTokens.space10,
-              crossAxisSpacing: AnchorTokens.space10,
+              mainAxisSpacing: AnchorTokens.space12,
+              crossAxisSpacing: AnchorTokens.space12,
               childAspectRatio: 0.95,
               children: [
                 for (final mood in JournalMood.values)
@@ -176,8 +176,7 @@ class _MoodTile extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // off-scale: the mood picker's face is 36px in the design
-                    MoodFace(mood: mood, size: 36),
+                    MoodFace(mood: mood, size: 36), // off-scale: 36px face per the sheet design
                     const SizedBox(height: AnchorTokens.space4),
                     Text(
                       label,
@@ -193,8 +192,8 @@ class _MoodTile extends StatelessWidget {
               ),
               if (isSelected)
                 Positioned(
-                  top: -6,
-                  right: -6,
+                  top: -8,
+                  right: -8,
                   child: Container(
                     width: AnchorTokens.sizeIconMedium,
                     height: AnchorTokens.sizeIconMedium,
