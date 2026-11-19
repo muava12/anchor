@@ -150,6 +150,30 @@ class _SheetFrameState extends State<_SheetFrame> {
   double _overscroll = 0;
   bool _dragging = false;
 
+  /// Latches while a text field inside this sheet owns the keyboard. It
+  /// releases only when the keyboard is fully down, so a sheet that has no
+  /// input never chases the keyboard as it closes.
+  bool _tracksKeyboard = false;
+
+  /// The keyboard height the sheet lays out against. A sheet ignores the
+  /// keyboard until a field inside it owns the focus; once one does, the sheet
+  /// tracks the keyboard until it is fully closed.
+  double _effectiveKeyboard(BuildContext context) {
+    final raw = MediaQuery.viewInsetsOf(context).bottom;
+    final scope = FocusScope.of(context);
+    final primaryFocus = FocusManager.instance.primaryFocus;
+    // Focus on the route scope itself is not a field: the scope takes focus
+    // when the sheet opens, so hasFocus is true even for a non-input sheet.
+    // Track only when focus is on a descendant of this sheet's scope.
+    final focusInSheet = primaryFocus?.ancestors.contains(scope) ?? false;
+    if (raw == 0) {
+      _tracksKeyboard = false;
+    } else if (!_tracksKeyboard && focusInSheet) {
+      _tracksKeyboard = true;
+    }
+    return _tracksKeyboard ? raw : 0;
+  }
+
   AnimationController get _controller => widget.route.sheetController;
 
   double get _height {
@@ -227,7 +251,7 @@ class _SheetFrameState extends State<_SheetFrame> {
   @override
   Widget build(BuildContext context) {
     final colors = context.anchor;
-    final keyboard = MediaQuery.viewInsetsOf(context).bottom;
+    final keyboard = _effectiveKeyboard(context);
     final cupertino = context.isCupertino;
     final screen = MediaQuery.sizeOf(context).height;
     final max =
@@ -265,38 +289,49 @@ class _SheetFrameState extends State<_SheetFrame> {
         context: context,
         removeTop: true,
         removeBottom: isFloating || keyboard > 0,
-        child: SheetSurface(
-          child: _SheetScope(
-            grow: grow,
-            isFloating: isFloating,
-            // Text fields need a Material ancestor.
-            child: Material(
-              type: MaterialType.transparency,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _Handle(
-                    onStart: _dragStart,
-                    onUpdate: _dragUpdate,
-                    onEnd: _dragEnd,
-                  ),
-                  Flexible(
-                    fit: height == null ? FlexFit.loose : FlexFit.tight,
-                    child: NotificationListener<ScrollNotification>(
-                      onNotification: _onScroll,
-                      child: _BodyDrag(
-                        onStart: _dragStart,
-                        onUpdate: _dragUpdate,
-                        onEnd: _dragEnd,
-                        child: widget.route.builder(context),
-                      ),
+        child: Builder(
+          builder: (context) {
+            final mq = MediaQuery.of(context);
+            final scoped = mq.copyWith(
+              viewInsets: mq.viewInsets.copyWith(bottom: keyboard),
+            );
+            return MediaQuery(
+              data: scoped,
+              child: SheetSurface(
+                child: _SheetScope(
+                  grow: grow,
+                  isFloating: isFloating,
+                  // Text fields need a Material ancestor.
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _Handle(
+                          onStart: _dragStart,
+                          onUpdate: _dragUpdate,
+                          onEnd: _dragEnd,
+                        ),
+                        Flexible(
+                          fit: height == null ? FlexFit.loose : FlexFit.tight,
+                          child: NotificationListener<ScrollNotification>(
+                            onNotification: _onScroll,
+                            child: _BodyDrag(
+                              onStart: _dragStart,
+                              onUpdate: _dragUpdate,
+                              onEnd: _dragEnd,
+                              child: widget.route.builder(context),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );

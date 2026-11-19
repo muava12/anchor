@@ -286,4 +286,82 @@ void main() {
     expect([discard.width, again.width], [save.width, save.width]);
     expect(cutLabels(tester), isEmpty);
   });
+  testWidgets('a sheet without a field ignores the keyboard while it closes', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1080, 2376);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+
+    final screen =
+        tester.view.physicalSize.height / tester.view.devicePixelRatio;
+    final sheetKey = GlobalKey();
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300 * 3);
+    await tester.pumpWidget(
+      opener(
+        Builder(
+          builder: (sheetContext) => Container(
+            key: sheetKey,
+            height: 200,
+            alignment: Alignment.center,
+            child: const Text('Sheet body'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    // A sheet with no field never tracks the keyboard: it sits on the screen
+    // bottom and stays there while the keyboard closes behind it.
+    final resting = tester.getRect(find.byKey(sheetKey));
+    expect(resting.bottom, closeTo(screen, 0.5));
+    for (var step = 10; step >= 0; step--) {
+      tester.view.viewInsets = FakeViewPadding(bottom: 30.0 * 3 * step);
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(tester.getRect(find.byKey(sheetKey)), resting);
+    }
+  });
+
+  testWidgets('a sheet with a focused field follows the keyboard down', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1080, 2376);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+
+    final screen =
+        tester.view.physicalSize.height / tester.view.devicePixelRatio;
+    final sheetKey = GlobalKey();
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300 * 3);
+    await tester.pumpWidget(
+      opener(
+        Builder(
+          builder: (sheetContext) => Container(
+            key: sheetKey,
+            height: 200,
+            alignment: Alignment.center,
+            child: const TextField(autofocus: true),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    // A focused field owns the keyboard: the sheet is lifted one keyboard
+    // above the bottom, and follows the keyboard down as it closes.
+    final lifted = tester.getRect(find.byKey(sheetKey));
+    expect(lifted.bottom, closeTo(screen - 300, 0.5));
+    for (var step = 9; step >= 0; step--) {
+      tester.view.viewInsets = FakeViewPadding(bottom: 30.0 * 3 * step);
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(
+        tester.getRect(find.byKey(sheetKey)).bottom,
+        closeTo(screen - 30.0 * step, 0.5),
+      );
+    }
+  });
 }
