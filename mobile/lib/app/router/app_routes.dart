@@ -10,6 +10,7 @@ class AppRoutes {
   static const archive = '/archive';
   static const journal = '/journal';
   static const journalNew = '/journal/new';
+  static String journalEdit(String id) => '/journal/edit/$id';
 
   static const newNote = '/note/new';
   static String note(String id) => '/note/$id';
