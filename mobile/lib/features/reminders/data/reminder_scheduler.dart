@@ -8,12 +8,14 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/logging/log_tags.dart';
 import '../../../core/session/active_user_id_provider.dart';
+import '../../../core/storage/preferences_repository.dart';
 import '../../../l10n/l10n.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../notes/domain/note.dart';
 import '../../notes/domain/note_blocks.dart';
 import '../../notes/presentation/notes_controller.dart';
 import '../domain/reminder_schedule.dart';
+import '../domain/snoozed_occurrences.dart';
 import 'notification_gateway.dart';
 
 part 'reminder_scheduler.g.dart';
@@ -46,6 +48,7 @@ class ReminderScheduler extends _$ReminderScheduler {
   Timer? _retry;
   List<DesiredReminder>? _lastApplied;
   List<Note> _latest = const [];
+  SnoozedOccurrences _snoozed = const SnoozedOccurrences.empty();
   Future<void>? _cleared;
   AppLifecycleListener? _lifecycle;
 
@@ -55,6 +58,10 @@ class ReminderScheduler extends _$ReminderScheduler {
   bool _forced = false;
   int _failures = 0;
 
+  /// False until the notes stream has answered at least once. A pass before
+  /// that would see no notes and cancel every card the OS still holds.
+  bool _notesReady = false;
+
   @override
   void build() {
     // appDatabaseProvider throws while auth is still resolving the user.
@@ -62,20 +69,26 @@ class ReminderScheduler extends _$ReminderScheduler {
 
     final gateway = ref.watch(notificationGatewayProvider);
     final userId = ref.watch(activeUserIdProvider);
+    final preferences = ref.watch(preferencesRepositoryProvider);
 
     _lastApplied = null;
     _latest = const [];
+    _notesReady = false;
+    _snoozed = const SnoozedOccurrences.empty();
     if (userId == null) {
       _cleared = _cancelAll(gateway);
       return;
     }
 
+    // The app-start reconcile: the stream answers at once with what the
+    // database holds, so a launch rebuilds every card the OS lost (a reboot, a
+    // force stop) without waiting for a resume or a note edit.
     ref.listen(allActiveNotesProvider, (_, notes) {
       if (notes case AsyncData(:final value)) _onNotes(value);
     }, fireImmediately: true);
 
     _lifecycle = AppLifecycleListener(
-      onResume: () => unawaited(_onResume(gateway)),
+      onResume: () => unawaited(_onResume(gateway, preferences)),
     );
 
     ref.onDispose(() {
@@ -102,13 +115,25 @@ class ReminderScheduler extends _$ReminderScheduler {
     }
   }
 
-  Future<void> _onResume(NotificationGateway gateway) async {
+  /// Rebuilds every card from the notes now, cancelling the leftovers.
+  ///
+  /// An occurrence that just settled changes nothing in the notes (a repeating
+  /// reminder keeps its reminder), so only this puts the next period on the OS
+  /// without waiting for a note edit or a resume.
+  Future<void> resyncAll() => _reconcile(force: true);
+
+  Future<void> _onResume(
+    NotificationGateway gateway,
+    PreferencesRepository preferences,
+  ) async {
     await syncLocalTimeZone();
+    _snoozed = await preferences.getSnoozedOccurrences();
     await _reconcile(force: true);
   }
 
   void _onNotes(List<Note> notes) {
     _latest = notes;
+    _notesReady = true;
     _settle?.cancel();
     _settle = Timer(_settleWindow, () {
       _settle = null;
@@ -142,18 +167,43 @@ class ReminderScheduler extends _$ReminderScheduler {
   }
 
   Future<void> _runPass() async {
+    // No notes yet: cancelling now would drop every live card.
+    if (!_notesReady) return;
+
     final gateway = ref.read(notificationGatewayProvider);
+    final preferences = ref.read(preferencesRepositoryProvider);
     if (_forced) {
       _forced = false;
       _lastApplied = null;
     }
     try {
       await _cleared;
+      // Pull the latest snoozes; a stale pass would reset a snoozed card to
+      // its original period.
+      _snoozed = await preferences.getSnoozedOccurrences();
       await gateway.initialize();
+      final now = DateTime.now();
+
+      // A snooze whose time has passed hands the note back to its period.
+      final expired = <String>[];
+      for (final noteId in _snoozed.noteIds) {
+        final at = parseWallClock(_snoozed.atFor(noteId));
+        if (at == null || !at.isAfter(now)) expired.add(noteId);
+      }
+      if (expired.isNotEmpty) {
+        var pruned = _snoozed;
+        for (final noteId in expired) {
+          pruned = pruned.remove(noteId);
+        }
+        _snoozed = pruned;
+        await preferences.setSnoozedOccurrences(pruned);
+      }
+
       final desired = desiredReminders(
         _latest,
-        now: DateTime.now(),
+        now: now,
         l10n: deviceL10n(),
+        snoozed: _snoozed,
       );
 
       if (_sameAs(desired)) return;
@@ -171,6 +221,7 @@ class ReminderScheduler extends _$ReminderScheduler {
       _armRetry(report.failed > 0);
     } catch (error, stack) {
       _lastApplied = null;
+      _snoozed = const SnoozedOccurrences.empty();
       AppLogger.instance.error(
         LogTags.reminders,
         'Reconcile failed',
@@ -277,15 +328,13 @@ List<DesiredReminder> desiredReminders(
   List<Note> notes, {
   required DateTime now,
   required AppLocalizations l10n,
+  SnoozedOccurrences snoozed = const SnoozedOccurrences.empty(),
 }) {
   final desired = <DesiredReminder>[];
   for (final note in notes) {
     final reminder = note.reminder;
     // Trashed and archived notes keep their reminder but stop ringing.
     if (reminder == null || !note.isActive || note.isArchived) continue;
-
-    final at = nextOccurrence(reminder, from: now);
-    if (at == null) continue;
 
     final slot = note.reminderSlot;
     if (slot == null) {
@@ -306,6 +355,24 @@ List<DesiredReminder> desiredReminders(
           repeat: repeat,
           noteId: note.id,
         );
+
+    // A repeating reminder with a live snooze rings the snoozed time once, not
+    // its original period: the snooze has not yet passed, so hold the card at
+    // now + minutes and leave the period for the scheduler to reschedule after.
+    // A one-off moves its own `remindAt` when snoozed, so it ignores this map.
+    if (reminder.recurrence.repeats) {
+      final snoozeAt = snoozed.atFor(note.id);
+      if (snoozeAt != null) {
+        final snoozedAt = parseWallClock(snoozeAt);
+        if (snoozedAt != null && !snoozedAt.isBefore(now)) {
+          desired.add(ring(slot, snoozedAt, null));
+          continue;
+        }
+      }
+    }
+
+    final at = nextOccurrence(reminder, from: now);
+    if (at == null) continue;
 
     final repeat = matchComponentsFor(reminder.recurrence);
     if (repeat == null || canUseOsRepeat(reminder, now: now)) {

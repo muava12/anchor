@@ -1528,6 +1528,14 @@
   "@monthNext": {
     "description": "Screen reader label of the arrow that shows the next month in a calendar."
   },
+  "pinnedChannelName": "Pinned notes",
+  "@pinnedChannelName": {
+    "description": "Name of the app’s quiet notification category in Android’s settings."
+  },
+  "pinnedChannelDescription": "Quiet nudges about your pinned notes",
+  "@pinnedChannelDescription": {
+    "description": "Description of the app’s quiet notification category in Android’s settings."
+  },
   "reminderChannelName": "Reminders",
   "@reminderChannelName": {
     "description": "Name of the app’s notification category in Android’s settings."
@@ -1535,6 +1543,62 @@
   "reminderChannelDescription": "Reminders you set on your notes",
   "@reminderChannelDescription": {
     "description": "Description of the app’s notification category in Android’s settings."
+  },
+  "reminderActionDone": "Done",
+  "@reminderActionDone": {
+    "description": "Button on a reminder notification that settles that occurrence."
+  },
+  "reminderActionSnooze": "Snooze",
+  "@reminderActionSnooze": {
+    "description": "Button on a reminder notification that puts the occurrence off."
+  },
+  "reminderActionDismiss": "Dismiss",
+  "@reminderActionDismiss": {
+    "description": "Button on a reminder notification that quiets this occurrence only."
+  },
+  "snoozeSheetTitle": "Snooze",
+  "@snoozeSheetTitle": {
+    "description": "Title of the snooze sheet."
+  },
+  "snoozeSheetSubtitle": "Remind me again in…",
+  "@snoozeSheetSubtitle": {
+    "description": "Subtitle of the snooze sheet."
+  },
+  "snoozeMinutes": "{count} min",
+  "@snoozeMinutes": {
+    "description": "Snooze duration label for minutes.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  "snoozeHours": "{count, plural, =1{1 hour} other{{count} hours}}",
+  "@snoozeHours": {
+    "description": "Snooze duration label for hours.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "snoozeDay": "1 day",
+  "@snoozeDay": {
+    "description": "Snooze duration label for one day."
+  },
+  "snoozeSuggestionLaterToday": "Later today",
+  "@snoozeSuggestionLaterToday": {
+    "description": "Suggestion to snooze for a few hours, still on the same day."
+  },
+  "snoozeSuggestionTomorrow": "Tomorrow",
+  "@snoozeSuggestionTomorrow": {
+    "description": "Suggestion to snooze until tomorrow at nine."
+  },
+  "snoozeCustomDate": "Pick a date and time",
+  "@snoozeCustomDate": {
+    "description": "Suggestion to snooze at a custom date and time."
   },
   "notesCount": "{count, plural, =1{1 note} other{{count} notes}}",
   "@notesCount": {

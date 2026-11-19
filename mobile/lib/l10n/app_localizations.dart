@@ -1966,6 +1966,18 @@ abstract class AppLocalizations {
   /// **'Next month'**
   String get monthNext;
 
+  /// Name of the app’s quiet notification category in Android’s settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned notes'**
+  String get pinnedChannelName;
+
+  /// Description of the app’s quiet notification category in Android’s settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiet nudges about your pinned notes'**
+  String get pinnedChannelDescription;
+
   /// Name of the app’s notification category in Android’s settings.
   ///
   /// In en, this message translates to:
@@ -1977,6 +1989,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reminders you set on your notes'**
   String get reminderChannelDescription;
+
+  /// Button on a reminder notification that settles that occurrence.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get reminderActionDone;
+
+  /// Button on a reminder notification that puts the occurrence off.
+  ///
+  /// In en, this message translates to:
+  /// **'Snooze'**
+  String get reminderActionSnooze;
+
+  /// Button on a reminder notification that quiets this occurrence only.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get reminderActionDismiss;
+
+  /// Title of the snooze sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Snooze'**
+  String get snoozeSheetTitle;
+
+  /// Subtitle of the snooze sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me again in…'**
+  String get snoozeSheetSubtitle;
+
+  /// Snooze duration label for minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} min'**
+  String snoozeMinutes(int count);
+
+  /// Snooze duration label for hours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hour} other{{count} hours}}'**
+  String snoozeHours(int count);
+
+  /// Snooze duration label for one day.
+  ///
+  /// In en, this message translates to:
+  /// **'1 day'**
+  String get snoozeDay;
+
+  /// Suggestion to snooze for a few hours, still on the same day.
+  ///
+  /// In en, this message translates to:
+  /// **'Later today'**
+  String get snoozeSuggestionLaterToday;
+
+  /// Suggestion to snooze until tomorrow at nine.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get snoozeSuggestionTomorrow;
+
+  /// Suggestion to snooze at a custom date and time.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date and time'**
+  String get snoozeCustomDate;
 
   /// Number of notes, under the list title, in the tag sheet and the Empty trash menu.
   ///

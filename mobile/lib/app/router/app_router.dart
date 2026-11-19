@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -39,9 +40,16 @@ const _editProfilePath = 'edit-profile';
 const _logsPath = 'logs';
 const _widgetNotePath = '/widget/note/:id';
 
+/// The navigator key the router uses; lets background services (e.g. the
+/// reminder tap handler) show a sheet without a BuildContext.
+final routerNavigatorKeyProvider = Provider<GlobalKey<NavigatorState>>(
+  (ref) => GlobalKey<NavigatorState>(debugLabel: 'routerKey'),
+  name: 'routerNavigatorKeyProvider',
+);
+
 @Riverpod(keepAlive: true)
 GoRouter goRouter(Ref ref) {
-  final routerKey = GlobalKey<NavigatorState>(debugLabel: 'routerKey');
+  final routerKey = ref.watch(routerNavigatorKeyProvider);
 
   final authStateNotifier = ValueNotifier<AsyncValue<void>>(
     const AsyncLoading(),

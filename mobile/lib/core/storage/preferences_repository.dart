@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../features/reminders/domain/snoozed_occurrences.dart';
 import '../network/custom_headers.dart';
 import '../theme/note_typography.dart';
 import 'secure_storage_provider.dart';
@@ -80,6 +81,36 @@ class PreferencesRepository {
     await _storage.write(
       key: StorageKeys.exactAlarmsOffered,
       value: value.toString(),
+    );
+  }
+
+  /// The snooze length the person last picked, in minutes.
+  Future<int?> getLatestSnoozeMinutes() async => int.tryParse(
+    await _storage.read(key: StorageKeys.latestSnoozeMinutes) ?? '',
+  );
+
+  Future<void> setLatestSnoozeMinutes(int minutes) async {
+    await _storage.write(
+      key: StorageKeys.latestSnoozeMinutes,
+      value: '$minutes',
+    );
+  }
+
+  /// The occurrences a repeating reminder has snoozed, keyed by note id.
+  Future<SnoozedOccurrences> getSnoozedOccurrences() async {
+    final raw = await _storage.read(key: StorageKeys.snoozedOccurrences);
+    if (raw == null) return const SnoozedOccurrences.empty();
+    try {
+      return SnoozedOccurrences.fromJson(jsonDecode(raw));
+    } on FormatException {
+      return const SnoozedOccurrences.empty();
+    }
+  }
+
+  Future<void> setSnoozedOccurrences(SnoozedOccurrences value) async {
+    await _storage.write(
+      key: StorageKeys.snoozedOccurrences,
+      value: jsonEncode(value.toJson()),
     );
   }
 
