@@ -4136,6 +4136,12 @@ abstract class AppLocalizations {
   /// **'Oldest first'**
   String get viewOldestFirst;
 
+  /// Toggle in the notes view options that keeps journal entries out of the notes list.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide journal'**
+  String get hideJournal;
+
   /// Screen reader label of the mark on a note that has changes only on this phone.
   ///
   /// In en, this message translates to:

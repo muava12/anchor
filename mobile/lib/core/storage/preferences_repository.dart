@@ -174,6 +174,18 @@ class PreferencesRepository {
     );
   }
 
+  Future<bool> getNotesHideJournal() async {
+    final value = await _storage.read(key: StorageKeys.notesHideJournal);
+    return value == 'true';
+  }
+
+  Future<void> setNotesHideJournal(bool hideJournal) async {
+    await _storage.write(
+      key: StorageKeys.notesHideJournal,
+      value: hideJournal.toString(),
+    );
+  }
+
   Future<bool> getAppLockEnabled() async {
     final value = await _storage.read(key: StorageKeys.appLockEnabled);
     return value == 'true';
