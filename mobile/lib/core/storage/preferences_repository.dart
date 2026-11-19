@@ -83,6 +83,17 @@ class PreferencesRepository {
     );
   }
 
+  /// The snooze length the person last picked, in minutes.
+  Future<int?> getLatestSnoozeMinutes() async =>
+      int.tryParse(await _storage.read(key: StorageKeys.latestSnoozeMinutes) ?? '');
+
+  Future<void> setLatestSnoozeMinutes(int minutes) async {
+    await _storage.write(
+      key: StorageKeys.latestSnoozeMinutes,
+      value: '$minutes',
+    );
+  }
+
   Future<String?> getNoteFont() => _storage.read(key: StorageKeys.noteFont);
 
   Future<void> setNoteFont(String font) async {

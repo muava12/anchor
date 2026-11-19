@@ -1137,6 +1137,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderActionDismiss => 'Dismiss';
 
   @override
+  String get snoozeSheetTitle => 'Snooze';
+
+  @override
+  String get snoozeSheetSubtitle => 'Remind me again in…';
+
+  @override
+  String snoozeMinutes(int count) {
+    return '$count min';
+  }
+
+  @override
+  String snoozeHours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours',
+      one: '1 hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get snoozeDay => '1 day';
+
+  @override
+  String get snoozeSuggestionLaterToday => 'Later today';
+
+  @override
+  String get snoozeSuggestionTomorrow => 'Tomorrow';
+
+  @override
+  String get snoozeCustomDate => 'Pick a date and time';
+
+  @override
   String notesCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

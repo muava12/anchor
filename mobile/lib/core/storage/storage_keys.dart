@@ -15,6 +15,7 @@ class StorageKeys {
   static const noteTextSize = 'editor_note_text_size';
   static const notificationsAsked = 'reminders_notifications_asked';
   static const exactAlarmsOffered = 'reminders_exact_alarms_offered';
+  static const latestSnoozeMinutes = 'reminders_latest_snooze_minutes';
   static const notesViewType = 'notes_view_type';
   static const notesSortOption = 'notes_sort_option';
   static const notesSortAscending = 'notes_is_ascending';

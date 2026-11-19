@@ -2008,6 +2008,54 @@ abstract class AppLocalizations {
   /// **'Dismiss'**
   String get reminderActionDismiss;
 
+  /// Title of the snooze sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Snooze'**
+  String get snoozeSheetTitle;
+
+  /// Subtitle of the snooze sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me again in…'**
+  String get snoozeSheetSubtitle;
+
+  /// Snooze duration label for minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} min'**
+  String snoozeMinutes(int count);
+
+  /// Snooze duration label for hours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hour} other{{count} hours}}'**
+  String snoozeHours(int count);
+
+  /// Snooze duration label for one day.
+  ///
+  /// In en, this message translates to:
+  /// **'1 day'**
+  String get snoozeDay;
+
+  /// Suggestion to snooze for a few hours, still on the same day.
+  ///
+  /// In en, this message translates to:
+  /// **'Later today'**
+  String get snoozeSuggestionLaterToday;
+
+  /// Suggestion to snooze until tomorrow at nine.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get snoozeSuggestionTomorrow;
+
+  /// Suggestion to snooze at a custom date and time.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date and time'**
+  String get snoozeCustomDate;
+
   /// Number of notes, under the list title, in the tag sheet and the Empty trash menu.
   ///
   /// In en, this message translates to:
