@@ -16,22 +16,26 @@ class NotesViewOptions {
   final ViewType viewType;
   final SortOption sortOption;
   final bool isAscending;
+  final bool hideJournal;
 
   const NotesViewOptions({
     this.viewType = ViewType.masonry,
     this.sortOption = SortOption.dateModified,
     this.isAscending = false,
+    this.hideJournal = false,
   });
 
   NotesViewOptions copyWith({
     ViewType? viewType,
     SortOption? sortOption,
     bool? isAscending,
+    bool? hideJournal,
   }) {
     return NotesViewOptions(
       viewType: viewType ?? this.viewType,
       sortOption: sortOption ?? this.sortOption,
       isAscending: isAscending ?? this.isAscending,
+      hideJournal: hideJournal ?? this.hideJournal,
     );
   }
 }
@@ -71,6 +75,7 @@ class NotesViewOptionsNotifier extends AsyncNotifier<NotesViewOptions> {
       final viewTypeStr = await preferences.getNotesViewType();
       final sortOptionStr = await preferences.getNotesSortOption();
       final isAscending = await preferences.getNotesSortAscending();
+      final hideJournal = await preferences.getNotesHideJournal();
 
       final viewType = switch (viewTypeStr) {
         'list' => ViewType.list,
@@ -88,6 +93,7 @@ class NotesViewOptionsNotifier extends AsyncNotifier<NotesViewOptions> {
         viewType: viewType,
         sortOption: sortOption,
         isAscending: isAscending,
+        hideJournal: hideJournal,
       );
     } catch (error) {
       AppLogger.instance.warn(
@@ -113,6 +119,7 @@ class NotesViewOptionsNotifier extends AsyncNotifier<NotesViewOptions> {
         SortOption.title => 'title',
       });
       await preferences.setNotesSortAscending(options.isAscending);
+      await preferences.setNotesHideJournal(options.hideJournal);
     } catch (error) {
       AppLogger.instance.warn(
         LogTags.settings,
@@ -133,6 +140,9 @@ class NotesViewOptionsNotifier extends AsyncNotifier<NotesViewOptions> {
 
   Future<void> setSortDirection(bool isAscending) =>
       _update((options) => options.copyWith(isAscending: isAscending));
+
+  Future<void> setHideJournal(bool hideJournal) =>
+      _update((options) => options.copyWith(hideJournal: hideJournal));
 
   Future<void> _update(
     NotesViewOptions Function(NotesViewOptions options) change,

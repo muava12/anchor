@@ -2709,6 +2709,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get viewOldestFirst => 'Oldest first';
 
   @override
+  String get hideJournal => 'Hide journal';
+
+  @override
   String get noteUnsynced => 'Changes not synced yet';
 
   @override

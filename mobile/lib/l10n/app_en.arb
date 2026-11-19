@@ -3705,6 +3705,10 @@
   "@viewOldestFirst": {
     "description": "Sort direction for dates, earliest first. Short: one of two tabs in a row."
   },
+  "hideJournal": "Hide journal",
+  "@hideJournal": {
+    "description": "Toggle in the notes view options that keeps journal entries out of the notes list."
+  },
   "noteUnsynced": "Changes not synced yet",
   "@noteUnsynced": {
     "description": "Screen reader label of the mark on a note that has changes only on this phone."

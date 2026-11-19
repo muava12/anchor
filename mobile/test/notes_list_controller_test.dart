@@ -1,9 +1,11 @@
+import 'package:anchor/features/journal/presentation/journal_providers.dart';
 import 'package:anchor/features/notes/domain/note.dart';
 import 'package:anchor/features/notes/presentation/note_folder.dart';
 import 'package:anchor/features/notes/presentation/notes_controller.dart';
 import 'package:anchor/features/notes/presentation/notes_list_controller.dart';
 import 'package:anchor/features/notes/presentation/notes_view_options.dart';
 import 'package:anchor/features/reminders/data/notification_gateway.dart';
+import 'package:anchor/features/tags/domain/tag.dart';
 import 'package:anchor/features/tags/presentation/tags_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,6 +15,16 @@ import 'reminder_permissions_test.dart' show FakeGateway;
 class _DefaultOptions extends NotesViewOptionsNotifier {
   @override
   Future<NotesViewOptions> build() async => const NotesViewOptions();
+}
+
+class _HideJournalOptions extends NotesViewOptionsNotifier {
+  _HideJournalOptions(this.hide);
+
+  final bool hide;
+
+  @override
+  Future<NotesViewOptions> build() async =>
+      NotesViewOptions(hideJournal: hide);
 }
 
 class _Tag extends SelectedTagFilter {
@@ -271,6 +283,58 @@ void main() {
       searchText.of(note.copyWith(content: delta('Bread'))),
       contains('bread'),
     );
+  });
+
+  group('hiding the journal', () {
+    final journalNote = Note(
+      id: 'j1',
+      title: 'Day one',
+      content: delta('mood: happy\n---\na day'),
+      tagIds: const ['journal'],
+      updatedAt: DateTime.utc(2026, 8, 5),
+    );
+
+    Future<VisibleNotes> visibleHideJournal({required bool hide}) async {
+      final container = ProviderContainer(
+        overrides: [
+          selectedTagFilterProvider.overrideWith(() => _Tag(null)),
+          openArchivedTagsProvider.overrideWith(() => _OpenTags({})),
+          notesProvider.overrideWith(
+            (ref) => Stream.value([notes.first, journalNote]),
+          ),
+          allActiveNotesProvider.overrideWith(
+            (ref) => Stream.value([notes.first, journalNote]),
+          ),
+          archivedNotesProvider.overrideWith((ref) => Stream.value(const [])),
+          trashedNotesProvider.overrideWith((ref) => Stream.value(const [])),
+          journalTagProvider.overrideWithValue(
+            const Tag(id: 'journal', name: 'journal'),
+          ),
+          notesViewOptionsProvider.overrideWith(
+            () => _HideJournalOptions(hide),
+          ),
+          notificationGatewayProvider.overrideWithValue(
+            FakeGateway(notifications: true, exact: true),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final listener = container.listen(visibleNotesProvider, (_, _) {});
+      addTearDown(listener.close);
+      for (var turn = 0; turn < 20; turn++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      return container.read(visibleNotesProvider);
+    }
+
+    test('turning it on keeps journal notes out of the notes list', () async {
+      final hidden = await visibleHideJournal(hide: true);
+      expect(hidden.notes.map((n) => n.id), ['n1']);
+
+      final shown = await visibleHideJournal(hide: false);
+      expect(shown.notes.map((n) => n.id), contains('j1'));
+      expect(shown.notes.map((n) => n.id), contains('n1'));
+    });
   });
 
   group('asking for reminder permissions', () {

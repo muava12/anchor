@@ -91,9 +91,16 @@ VisibleNotes visibleNotes(Ref ref) {
       note.title.toLowerCase().contains(words) ||
       searchText.of(note).contains(words);
   final comparator = noteComparator(options);
+  // In the notes folder the journal entries can be hidden from the list.
+  final journalTagId =
+      folder == NoteFolder.notes && options.hideJournal
+          ? ref.watch(journalTagProvider)?.id
+          : null;
+  bool journalHidden(Note note) =>
+      journalTagId != null && note.tagIds.contains(journalTagId);
   final visible = [
     for (final note in notes)
-      if (matches(note)) note,
+      if (matches(note) && !journalHidden(note)) note,
   ]..sort(comparator);
   final groups = folder == NoteFolder.notes && query.isEmpty
       ? _pinnedFirst(visible)
@@ -114,7 +121,9 @@ VisibleNotes visibleNotes(Ref ref) {
   final archivedSource = ref.watch(archivedNotesProvider);
   final archived = [
     for (final note in archivedSource.value ?? const <Note>[])
-      if ((tagId == null || note.tagIds.contains(tagId)) && matches(note)) note,
+      if ((tagId == null || note.tagIds.contains(tagId)) && matches(note) &&
+          !journalHidden(note))
+        note,
   ]..sort(comparator);
   final isOpen =
       isSearching || ref.watch(openArchivedTagsProvider).contains(tagId);
