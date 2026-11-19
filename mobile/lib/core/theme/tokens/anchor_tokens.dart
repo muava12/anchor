@@ -283,6 +283,8 @@ abstract final class AnchorTokens {
   static const TextStyle typeCardBody = TextStyle(fontSize: 13.5, height: 1.5, fontWeight: FontWeight.w400, letterSpacing: 0.0);
   /// Uppercase group labels
   static const TextStyle typeLabel = TextStyle(fontSize: 12.0, height: 1.3, fontWeight: FontWeight.w600, letterSpacing: 0.72);
+  /// Journal day group header (TODAY, 12 AUG 2025)
+  static const TextStyle typeDayHeader = TextStyle(fontSize: 18.0, height: 1.25, fontWeight: FontWeight.w700, letterSpacing: 0.4);
   /// Keyboard keys, day letters, the smallest labels
   static const TextStyle typeCaption = TextStyle(fontSize: 11.5, height: 1.3, fontWeight: FontWeight.w500, letterSpacing: 0.0);
   /// Card footers, hints at the foot of a panel, and the small buttons on code blocks and attachments

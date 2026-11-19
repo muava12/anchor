@@ -54,6 +54,9 @@ abstract final class AppTypography {
   static final TextStyle cardTitle = _sans(AnchorTokens.typeCardTitle);
   static final TextStyle cardBody = _sans(AnchorTokens.typeCardBody);
 
+  /// Uppercase day-group header; set in capitals by the caller.
+  static final TextStyle dayHeader = _sans(AnchorTokens.typeDayHeader);
+
   static final TextStyle noteTitle = _sans(AnchorTokens.typeNoteTitlePhone);
 
   /// Editor styles never inherit from the TextTheme.

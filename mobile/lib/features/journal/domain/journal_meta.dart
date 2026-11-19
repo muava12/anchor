@@ -35,17 +35,27 @@ JournalMood? journalMoodFromName(String? name) {
 /// The mood and the entry day/time, plus any key the app does not know.
 @immutable
 class JournalMeta {
-  const JournalMeta({this.mood, this.entryAt, this.extras = const {}});
+  const JournalMeta({
+    this.mood,
+    this.entryAt,
+    this.extras = const {},
+    this.tzOffset,
+  });
 
   final JournalMood? mood;
 
   /// Local wall clock, from the `date` and `time` lines.
   final DateTime? entryAt;
 
+  /// The UTC offset (minutes) of the timezone the entry was made in, from
+  /// the `tz` line. Absent for entries saved before this field existed.
+  final int? tzOffset;
+
   /// Unknown header keys, kept so a rewrite does not drop them.
   final Map<String, String> extras;
 
-  bool get isEmpty => mood == null && entryAt == null && extras.isEmpty;
+  bool get isEmpty =>
+      mood == null && entryAt == null && tzOffset == null && extras.isEmpty;
 
   /// A copy with the given values, keeping the ones left out.
   ///
@@ -55,25 +65,34 @@ class JournalMeta {
     JournalMood? mood,
     DateTime? entryAt,
     Map<String, String>? extras,
+    int? tzOffset,
   }) =>
       JournalMeta(
         mood: mood ?? this.mood,
         entryAt: entryAt ?? this.entryAt,
         extras: extras ?? this.extras,
+        tzOffset: tzOffset ?? this.tzOffset,
       );
 
   /// A copy without a mood.
-  JournalMeta clearMood() => JournalMeta(entryAt: entryAt, extras: extras);
+  JournalMeta clearMood() =>
+      JournalMeta(entryAt: entryAt, extras: extras, tzOffset: tzOffset);
 
   @override
   bool operator ==(Object other) =>
       other is JournalMeta &&
       other.mood == mood &&
       other.entryAt == entryAt &&
+      other.tzOffset == tzOffset &&
       mapEquals(other.extras, extras);
 
   @override
-  int get hashCode => Object.hash(mood, entryAt, Object.hashAll(extras.entries));
+  int get hashCode => Object.hash(
+    mood,
+    entryAt,
+    tzOffset,
+    Object.hashAll(extras.entries),
+  );
 }
 
 /// A stored note split into its metadata header and its body.
@@ -87,7 +106,7 @@ class JournalEntry {
   final String? body;
 }
 
-const _knownKeys = {'mood', 'date', 'time'};
+const _knownKeys = {'mood', 'date', 'time', 'tz'};
 
 /// Reads a leading `key: value` block ended by a `---` line.
 ///
@@ -128,6 +147,7 @@ JournalEntry parseJournalContent(String? content) {
   final entryAt = date != null && time != null
       ? DateTime(date.year, date.month, date.day, time.$1, time.$2)
       : null;
+  final tzOffset = _parseTz(header['tz']);
   final extras = {
     for (final entry in header.entries)
       if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
@@ -143,7 +163,12 @@ JournalEntry parseJournalContent(String? content) {
   final body = bodyOps.isEmpty ? null : jsonEncode({'ops': bodyOps});
 
   return JournalEntry(
-    meta: JournalMeta(mood: journalMoodFromName(header['mood']), entryAt: entryAt, extras: extras),
+    meta: JournalMeta(
+      mood: journalMoodFromName(header['mood']),
+      entryAt: entryAt,
+      extras: extras,
+      tzOffset: tzOffset,
+    ),
     body: body,
   );
 }
@@ -160,6 +185,8 @@ String? composeJournalContent(JournalMeta meta, String? body) {
     lines.add('date: ${_formatDate(entryAt)}');
     lines.add('time: ${_formatTime(entryAt)}');
   }
+  final tzOffset = meta.tzOffset;
+  if (tzOffset != null) lines.add('tz: ${_formatTz(tzOffset)}');
   for (final entry in meta.extras.entries) {
     lines.add('${entry.key}: ${entry.value}');
   }
@@ -205,4 +232,25 @@ DateTime? _parseDate(String? value) {
   if (hour == null || minute == null) return null;
   if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
   return (hour, minute);
+}
+
+/// Parses an ISO offset like `+07:00` or `-05:30` into UTC minutes.
+int? _parseTz(String? value) {
+  if (value == null) return null;
+  final match = RegExp(r'^([+-])(\d{2}):?(\d{2})$').firstMatch(value.trim());
+  if (match == null) return null;
+  final sign = match[1] == '-' ? -1 : 1;
+  final hours = int.parse(match[2]!);
+  final minutes = int.parse(match[3]!);
+  if (hours > 14 || minutes > 59) return null;
+  return sign * (hours * 60 + minutes);
+}
+
+/// Formats UTC minutes as an ISO offset like `+07:00`.
+String _formatTz(int minutes) {
+  final sign = minutes < 0 ? '-' : '+';
+  final abs = minutes.abs();
+  final hours = (abs ~/ 60).toString().padLeft(2, '0');
+  final mins = (abs % 60).toString().padLeft(2, '0');
+  return '$sign$hours:$mins';
 }

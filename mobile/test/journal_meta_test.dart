@@ -104,6 +104,26 @@ void main() {
       expect(composed, contains('weather: sunny'));
     });
 
+    test('reads and writes the tz offset', () {
+      const content =
+          '{"ops":[{"insert":"date: 2026-11-17\\ntime: 09:41\\ntz: +07:00\\n---\\nx\\n"}]}';
+      final entry = parseJournalContent(content);
+      expect(entry.meta.tzOffset, 420);
+      expect(composeJournalContent(entry.meta, entry.body), contains('tz: +07:00'));
+    });
+
+    test('a tz without date/time and negative offsets round-trip', () {
+      final meta = JournalMeta(tzOffset: -495);
+      final entry = parseJournalContent(composeJournalContent(meta, null));
+      expect(entry.meta.tzOffset, -495);
+    });
+
+    test('an absent tz leaves tzOffset null (backwards compatible)', () {
+      const content =
+          '{"ops":[{"insert":"date: 2026-11-17\\ntime: 09:41\\n---\\nx\\n"}]}';
+      expect(parseJournalContent(content).meta.tzOffset, isNull);
+    });
+
     test('an empty body composes to one header op only', () {
       final meta = JournalMeta(
         mood: JournalMood.happy,

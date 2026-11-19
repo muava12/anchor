@@ -1732,6 +1732,22 @@
       },
       "$description": "Uppercase group labels"
     },
+    "dayHeader": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 18,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.bold}",
+        "letterSpacing": {
+          "value": 0.4,
+          "unit": "px"
+        },
+        "lineHeight": 1.25
+      },
+      "$description": "Journal day group header (TODAY, 12 AUG 2025)"
+    },
     "caption": {
       "$value": {
         "fontFamily": "{font.family.sans}",

@@ -17,7 +17,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 void main() {
@@ -58,7 +57,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('TODAY'), findsOneWidget);
+    expect(find.textContaining('TODAY,'), findsOneWidget);
     expect(find.text(clockLabel(entryTime)), findsOneWidget);
     expect(find.text('Morning pages'), findsOneWidget);
 
@@ -413,18 +412,13 @@ void main() {
     );
     await tester.pump();
 
-    // The day label: 12 / w700 / appText, with a pin for today.
-    final label = tester.widget<Text>(find.text('TODAY'));
-    expect(label.style?.fontSize, 12);
-    expect(label.style?.fontWeight, FontWeight.w700);
-    expect(label.style?.color, colors.appText);
-    expect(find.byIcon(LucideIcons.pin), findsOneWidget);
-
-    // The date range beside it: caption 11.5 / 500 / tabular.
-    final date = tester.widget<Text>(
-      find.text(DateFormat('EEE, d MMM', dateLocale).format(day)),
-    );
-    expect(date.style, AppTypography.caption.tabular.copyWith(color: colors.appMuted));
+    // The day header: one line "TODAY, 17 NOV 2026", dayHeader 18 / w700 /
+    // appText. No pin, no separate date range.
+    final header = tester.widget<Text>(find.textContaining('TODAY,'));
+    expect(header.style?.fontSize, AppTypography.dayHeader.fontSize);
+    expect(header.style?.fontWeight, FontWeight.w700);
+    expect(header.style?.color, colors.appText);
+    expect(find.byIcon(LucideIcons.pin), findsNothing);
 
     // The entry title: cardTitle, bold.
     final title = tester.widget<Text>(find.text('Morning pages'));
