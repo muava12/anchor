@@ -36,6 +36,15 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      # The in-app version (Settings -> About) comes from pubspec, which the
+      # release tag does not bump. Set it from the tag so the built APK shows
+      # the released version instead of a stale pubspec value.
+      - name: Set the app version from the tag
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          sed -i "s/^version:.*/version: ${VERSION}/" pubspec.yaml
+          grep '^version:' pubspec.yaml
+
       # A fork without the release keystore still needs an installable APK, so
       # this makes a throwaway key for that build. Google Play installs from a
       # real release need the repository's own secrets.
