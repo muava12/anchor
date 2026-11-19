@@ -1,4 +1,5 @@
 import 'package:anchor/features/reminders/data/notification_gateway.dart';
+import 'package:anchor/features/reminders/data/reminder_actions.dart';
 import 'package:anchor/l10n/l10n.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -104,6 +105,47 @@ void main() {
 
       expect(important.ongoing, isTrue);
       expect(silent.ongoing, isFalse);
+    });
+
+    test('a quiet notification carries no buttons', () {
+      final details = LocalNotificationGateway.detailsForTier(
+        NotificationTier.silent,
+        english,
+        bigText: 'body',
+      );
+
+      expect(details.actions, isNull);
+    });
+
+    test('a reminder carries done, snooze and dismiss', () {
+      final details = LocalNotificationGateway.detailsForTier(
+        NotificationTier.important,
+        english,
+        bigText: 'body',
+        actions: reminderActions(english),
+      );
+
+      expect(details.actions?.map((action) => action.id).toList(), [
+        'reminder_done',
+        'reminder_snooze',
+        'reminder_dismiss',
+      ]);
+    });
+
+    test('swiping a reminder away is reported as dismiss', () {
+      final important = LocalNotificationGateway.detailsForTier(
+        NotificationTier.important,
+        english,
+        bigText: 'body',
+      );
+      final silent = LocalNotificationGateway.detailsForTier(
+        NotificationTier.silent,
+        english,
+        bigText: 'body',
+      );
+
+      expect(important.dismissIsolate, NotificationDismissedIsolate.main);
+      expect(silent.dismissIsolate, isNull);
     });
   });
 }

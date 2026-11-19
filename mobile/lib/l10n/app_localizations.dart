@@ -1990,6 +1990,24 @@ abstract class AppLocalizations {
   /// **'Reminders you set on your notes'**
   String get reminderChannelDescription;
 
+  /// Button on a reminder notification that settles that occurrence.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get reminderActionDone;
+
+  /// Button on a reminder notification that puts the occurrence off.
+  ///
+  /// In en, this message translates to:
+  /// **'Snooze'**
+  String get reminderActionSnooze;
+
+  /// Button on a reminder notification that quiets this occurrence only.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get reminderActionDismiss;
+
   /// Number of notes, under the list title, in the tag sheet and the Empty trash menu.
   ///
   /// In en, this message translates to:

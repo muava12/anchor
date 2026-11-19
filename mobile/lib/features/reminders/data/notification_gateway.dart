@@ -11,6 +11,7 @@ import '../../../core/logging/log_tags.dart';
 import '../../../core/theme/tokens/anchor_tokens.dart';
 import '../../../l10n/l10n.dart';
 import '../presentation/notification_launch.dart';
+import 'reminder_actions.dart';
 
 part 'notification_gateway.g.dart';
 
@@ -84,10 +85,12 @@ class LocalNotificationGateway implements NotificationGateway {
   /// shows the full body; a reminder is the note's whole content, one card
   /// per reminder, never grouped. [ongoing] keeps a reminder in the shade
   /// until it is handled; quiet notifications (silent tier) stay dismissible.
+  /// [actions] are the buttons under the card, reminders only.
   static AndroidNotificationDetails detailsForTier(
     NotificationTier tier,
     AppLocalizations l10n, {
     String? bigText,
+    List<AndroidNotificationAction>? actions,
   }) {
     final important = tier == NotificationTier.important;
     return AndroidNotificationDetails(
@@ -106,6 +109,9 @@ class LocalNotificationGateway implements NotificationGateway {
           ? null
           : BigTextStyleInformation(bigText),
       ongoing: important,
+      actions: actions,
+      // Swiping a reminder away quiets that occurrence only.
+      dismissIsolate: important ? NotificationDismissedIsolate.main : null,
     );
   }
 
@@ -171,6 +177,9 @@ class LocalNotificationGateway implements NotificationGateway {
           notification.tier,
           l10n,
           bigText: notification.body,
+          actions: notification.tier == NotificationTier.important
+              ? reminderActions(l10n)
+              : null,
         ),
         iOS: DarwinNotificationDetails(),
       ),

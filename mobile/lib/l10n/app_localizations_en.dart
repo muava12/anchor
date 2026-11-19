@@ -1128,6 +1128,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderChannelDescription => 'Reminders you set on your notes';
 
   @override
+  String get reminderActionDone => 'Done';
+
+  @override
+  String get reminderActionSnooze => 'Snooze';
+
+  @override
+  String get reminderActionDismiss => 'Dismiss';
+
+  @override
   String notesCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

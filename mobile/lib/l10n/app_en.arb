@@ -1544,6 +1544,18 @@
   "@reminderChannelDescription": {
     "description": "Description of the app’s notification category in Android’s settings."
   },
+  "reminderActionDone": "Done",
+  "@reminderActionDone": {
+    "description": "Button on a reminder notification that settles that occurrence."
+  },
+  "reminderActionSnooze": "Snooze",
+  "@reminderActionSnooze": {
+    "description": "Button on a reminder notification that puts the occurrence off."
+  },
+  "reminderActionDismiss": "Dismiss",
+  "@reminderActionDismiss": {
+    "description": "Button on a reminder notification that quiets this occurrence only."
+  },
   "notesCount": "{count, plural, =1{1 note} other{{count} notes}}",
   "@notesCount": {
     "description": "Number of notes, under the list title, in the tag sheet and the Empty trash menu.",
