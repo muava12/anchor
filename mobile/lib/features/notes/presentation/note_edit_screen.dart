@@ -133,6 +133,7 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
     final now = DateTime.now();
     return JournalMeta(
       entryAt: DateTime(now.year, now.month, now.day, now.hour, now.minute),
+      tzOffset: now.timeZoneOffset.inMinutes,
     );
   }
 
@@ -215,7 +216,12 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
       initial: _meta.entryAt ?? DateTime.now(),
     );
     if (picked == null || !mounted) return;
-    setState(() => _meta = _meta.copyWith(entryAt: picked));
+    setState(
+      () => _meta = _meta.copyWith(
+        entryAt: picked,
+        tzOffset: DateTime.now().timeZoneOffset.inMinutes,
+      ),
+    );
     _draft.contentChanged();
   }
 

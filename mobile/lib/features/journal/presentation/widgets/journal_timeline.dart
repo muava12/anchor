@@ -2,10 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import '../../../../core/text/date_formats.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/context_extensions.dart';
 import '../../../../core/theme/tokens/anchor_tokens.dart';
@@ -13,8 +11,6 @@ import '../../../../core/widgets/pressable.dart';
 import '../../../../l10n/l10n.dart';
 import '../../../notes/data/repository/attachment_file_provider.dart';
 import '../../../notes/domain/note.dart';
-import '../../../notes/domain/note_dates.dart';
-import '../../../notes/presentation/note_labels.dart';
 import '../../../notes/presentation/widgets/note_chips.dart';
 import '../../../notes/presentation/widgets/note_surface.dart';
 import '../../../tags/domain/tag.dart';
@@ -58,15 +54,7 @@ class _DayHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.anchor;
-    final l10n = context.l10n;
-    final rel = daysFromToday(day.day, DateTime.now());
-    final isRelative = rel == 0 || rel == -1;
-    final label = isRelative
-        ? shortDayLabel(day.day, l10n).toUpperCase()
-        : DateFormat('d MMM', dateLocale).format(day.day).toUpperCase();
-    final date = isRelative
-        ? DateFormat('EEE, d MMM', dateLocale).format(day.day)
-        : null;
+    final header = journalDayHeader(day, context.l10n);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -75,51 +63,11 @@ class _DayHeader extends StatelessWidget {
         16,
         context.density.space8,
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: colors.accentStrong, width: 1.5),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Row(
-              children: [
-                Flexible(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.label.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: colors.appText,
-                    ),
-                  ),
-                ),
-                // The design pins today's group label.
-                if (rel == 0) ...[
-                  const SizedBox(width: AnchorTokens.space4),
-                  Icon(
-                    LucideIcons.pin,
-                    size: AnchorTokens.sizeIconSmall,
-                    color: colors.appMuted,
-                  ),
-                ],
-              ],
-            ),
-          ),
-          if (date != null)
-            Text(
-              date,
-              style: AppTypography.caption.tabular.copyWith(
-                color: colors.appMuted,
-              ),
-            ),
-        ],
+      child: Text(
+        header,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: AppTypography.dayHeader.copyWith(color: colors.appText),
       ),
     );
   }

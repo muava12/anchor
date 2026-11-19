@@ -277,6 +277,8 @@ enum AnchorTokens {
     static let typeCardBody: AnchorTextStyle = AnchorTextStyle(size: 13.5, lineHeight: 1.5, weight: 400, tracking: 0)
     /// Uppercase group labels
     static let typeLabel: AnchorTextStyle = AnchorTextStyle(size: 12, lineHeight: 1.3, weight: 600, tracking: 0.72)
+    /// Journal day group header (TODAY, 12 AUG 2025)
+    static let typeDayHeader: AnchorTextStyle = AnchorTextStyle(size: 18, lineHeight: 1.25, weight: 700, tracking: 0.4)
     /// Keyboard keys, day letters, the smallest labels
     static let typeCaption: AnchorTextStyle = AnchorTextStyle(size: 11.5, lineHeight: 1.3, weight: 500, tracking: 0)
     /// Card footers, hints at the foot of a panel, and the small buttons on code blocks and attachments

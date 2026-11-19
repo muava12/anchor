@@ -371,6 +371,7 @@ export const TAILWIND_THEME = {
     "card-title",
     "card-body",
     "label",
+    "day-header",
     "caption",
     "footnote",
     "small",
