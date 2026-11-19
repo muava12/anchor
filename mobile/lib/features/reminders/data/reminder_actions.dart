@@ -3,6 +3,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../../../core/logging/app_logger.dart';
 import '../../../core/logging/log_tags.dart';
+import '../../../core/storage/preferences_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../notes/data/repository/notes_repository.dart';
 import 'notification_gateway.dart';
@@ -112,19 +113,24 @@ Future<void> handleReminderAction(
   ReminderAction action, {
   required NotificationGateway gateway,
   NotesRepository? repo,
+  PreferencesRepository? preferences,
   Future<void> Function(String noteId)? onDone,
   Future<void> Function(String noteId)? onSnooze,
 }) async {
   try {
     switch (action.type) {
       case ReminderActionType.dismiss:
-        await dismissOccurrence(action, gateway: gateway);
+        await dismissOccurrence(
+          action,
+          gateway: gateway,
+          preferences: preferences,
+        );
       case ReminderActionType.done:
         final settle = onDone;
         if (settle != null) {
           await settle(action.noteId);
         } else if (repo != null) {
-          await doneOccurrence(action.noteId, repo);
+          await doneOccurrence(action.noteId, repo, preferences: preferences);
         } else {
           AppLogger.instance.info(
             LogTags.reminders,
@@ -157,9 +163,15 @@ Future<void> handleReminderAction(
 ///
 /// A one-off reminder ends here: its reminder is unset, so the note no longer
 /// rings. A repeating reminder keeps its reminder; the next period is
-/// rescheduled by the scheduler (Task 6). A note with no reminder, or one that
-/// is gone, is left untouched.
-Future<void> doneOccurrence(String noteId, NotesRepository repo) async {
+/// rescheduled by the scheduler (Task 6). Any snooze on this note is cleared so
+/// a settled occurrence does not resurface. A note with no reminder, or one
+/// that is gone, is left untouched.
+Future<void> doneOccurrence(
+  String noteId,
+  NotesRepository repo, {
+  PreferencesRepository? preferences,
+}) async {
+  await _clearSnooze(noteId, preferences);
   final note = await repo.getNote(noteId);
   if (note == null) return;
   final reminder = note.reminder;
@@ -170,11 +182,14 @@ Future<void> doneOccurrence(String noteId, NotesRepository repo) async {
 
 /// Quietly clears the notification a dismiss press names.
 ///
-/// The note keeps its reminder; only this occurrence's card is cancelled.
+/// The note keeps its reminder; only this occurrence's card is cancelled, and
+/// any snooze on this note is cleared so the dismissed occurrence stays quiet.
 Future<void> dismissOccurrence(
   ReminderAction action, {
   required NotificationGateway gateway,
+  PreferencesRepository? preferences,
 }) async {
+  await _clearSnooze(action.noteId, preferences);
   final id = action.id;
   if (id == null) {
     AppLogger.instance.warn(
@@ -184,4 +199,16 @@ Future<void> dismissOccurrence(
     return;
   }
   await gateway.cancel(id);
+}
+
+/// Removes any snoozed occurrence for [noteId] so a reconcile or the scheduler
+/// stops holding the card at its snoozed time.
+Future<void> _clearSnooze(
+  String noteId,
+  PreferencesRepository? preferences,
+) async {
+  if (preferences == null) return;
+  final snoozed = await preferences.getSnoozedOccurrences();
+  if (!snoozed.contains(noteId)) return;
+  await preferences.setSnoozedOccurrences(snoozed.remove(noteId));
 }

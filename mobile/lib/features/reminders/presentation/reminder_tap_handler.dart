@@ -5,6 +5,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../app/router/app_router.dart';
 import '../../../app/router/pending_launch_route.dart';
+import '../../../core/logging/app_logger.dart';
+import '../../../core/logging/log_tags.dart';
 import '../../../core/storage/preferences_repository.dart';
 import '../../notes/data/repository/notes_repository.dart';
 import '../data/notification_gateway.dart';
@@ -19,20 +21,37 @@ part 'reminder_tap_handler.g.dart';
 ///
 /// Reads the note's recurrence and the last length, opens [showSnoozeSheet]
 /// on the router's navigator, and hands the chosen minutes to
-/// [snoozeOccurrence]. Safe to call with no navigator (nothing is shown).
+/// [snoozeOccurrence]. On a cold start the navigator may not be attached on the
+/// first frame; [maxFrames] post-frame retries wait for it, and a give-up is
+/// logged so a dropped press is never silent.
 Future<void> promptReminderSnooze(
   String noteId, {
   required NotificationGateway gateway,
   required NotesRepository repo,
   required PreferencesRepository preferences,
   GlobalKey<NavigatorState>? navigatorKey,
+  int maxFrames = 5,
 }) async {
-  final context = navigatorKey?.currentContext;
-  if (context == null || !context.mounted) return;
   final note = await repo.getNote(noteId);
   final recurring = note?.reminder?.recurrence.repeats ?? false;
   final latest = await preferences.getLatestSnoozeMinutes();
-  if (context.mounted) {
+
+  BuildContext? context;
+  for (var frame = 0; frame <= maxFrames; frame++) {
+    context = navigatorKey?.currentContext;
+    if (context != null && context.mounted) break;
+    if (frame == maxFrames) {
+      AppLogger.instance.warn(
+        LogTags.reminders,
+        'Snooze picker for note $noteId dropped: the navigator was not ready '
+        'after $maxFrames frames',
+      );
+      return;
+    }
+    await _nextFrame();
+  }
+
+  if (context != null && context.mounted) {
     await showSnoozeSheet(
       context,
       recurring: recurring,
@@ -46,6 +65,15 @@ Future<void> promptReminderSnooze(
       ),
     );
   }
+}
+
+/// Completes after the next frame is drawn.
+Future<void> _nextFrame() {
+  final completer = Completer<void>();
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!completer.isCompleted) completer.complete();
+  });
+  return completer.future;
 }
 
 /// Cold-start taps go through `initializeApp`.
@@ -62,6 +90,7 @@ class ReminderTapHandler extends _$ReminderTapHandler {
       action,
       gateway: gateway,
       repo: repo,
+      preferences: preferences,
       onSnooze: (noteId) => promptReminderSnooze(
         noteId,
         gateway: gateway,

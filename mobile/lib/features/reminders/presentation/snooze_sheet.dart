@@ -94,7 +94,13 @@ class _SnoozeSheetState extends State<_SnoozeSheet> {
     Haptics.selection();
     final base = _customAt ?? tomorrowAtNine(DateTime.now());
     setState(() {
-      _customAt = DateTime(day.year, day.month, day.day, base.hour, base.minute);
+      _customAt = DateTime(
+        day.year,
+        day.month,
+        day.day,
+        base.hour,
+        base.minute,
+      );
       _openPicker = _Picker.time;
     });
   }
@@ -156,7 +162,9 @@ class _SnoozeSheetState extends State<_SnoozeSheet> {
                 ),
 
                 // Suggested quick choices
-                if (hasLaterToday || showLatest || tomorrow.isBefore(now.add(const Duration(days: 1)))) ...[
+                if (hasLaterToday ||
+                    showLatest ||
+                    tomorrow.isBefore(now.add(const Duration(days: 1)))) ...[
                   Text(
                     l10n.commonToday,
                     style: AppTypography.secondary.copyWith(
@@ -171,7 +179,9 @@ class _SnoozeSheetState extends State<_SnoozeSheet> {
                           icon: LucideIcons.clock,
                           label: l10n.snoozeSuggestionLaterToday,
                           onTap: () {
-                            final minutes = laterToday.difference(now).inMinutes;
+                            final minutes = laterToday
+                                .difference(now)
+                                .inMinutes;
                             _chooseDuration(minutes);
                           },
                         ),
@@ -247,10 +257,7 @@ class _SnoozeSheetState extends State<_SnoozeSheet> {
               onPressed: () => Navigator.of(context).pop(),
             ),
             if (_openPicker != null)
-              AppButton(
-                label: l10n.commonSave,
-                onPressed: _chooseCustom,
-              ),
+              AppButton(label: l10n.commonSave, onPressed: _chooseCustom),
           ],
         ),
       ],
@@ -336,7 +343,11 @@ class _SuggestionTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon, size: AnchorTokens.sizeIconSmall, color: colors.appMuted),
+            Icon(
+              icon,
+              size: AnchorTokens.sizeIconSmall,
+              color: colors.appMuted,
+            ),
             SizedBox(width: context.density.space12),
             Expanded(
               child: Text(

@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:anchor/core/storage/preferences_repository.dart';
 import 'package:anchor/core/theme/app_theme.dart';
 import 'package:anchor/features/notes/data/repository/notes_repository.dart';
 import 'package:anchor/features/notes/domain/note.dart';
 import 'package:anchor/features/reminders/data/notification_gateway.dart';
 import 'package:anchor/features/reminders/data/reminder_snooze.dart';
+import 'package:anchor/features/reminders/domain/snoozed_occurrences.dart';
+import 'package:anchor/features/reminders/presentation/reminder_tap_handler.dart';
 import 'package:anchor/features/reminders/presentation/snooze_sheet.dart';
 import 'package:anchor/l10n/l10n.dart';
 import 'package:flutter/material.dart';
@@ -76,6 +80,7 @@ class FakePreferences extends PreferencesRepository {
 
   int? _latest;
   int? setCalls;
+  SnoozedOccurrences snoozed = const SnoozedOccurrences.empty();
 
   @override
   Future<int?> getLatestSnoozeMinutes() async => _latest;
@@ -84,6 +89,14 @@ class FakePreferences extends PreferencesRepository {
   Future<void> setLatestSnoozeMinutes(int minutes) async {
     _latest = minutes;
     setCalls = minutes;
+  }
+
+  @override
+  Future<SnoozedOccurrences> getSnoozedOccurrences() async => snoozed;
+
+  @override
+  Future<void> setSnoozedOccurrences(SnoozedOccurrences value) async {
+    snoozed = value;
   }
 }
 
@@ -144,17 +157,38 @@ void main() {
       final repo = FakeNotesRepository(
         _noteWithReminder(recurrence: ReminderRecurrence.daily),
       );
+      final preferences = FakePreferences();
 
       await snoozeOccurrence(
         'n1',
         60,
         gateway: gateway,
         repo: repo,
+        preferences: preferences,
         clock: () => DateTime(2026, 9, 4, 18, 0),
       );
 
       expect(repo.remindersSet, isEmpty);
       expect(gateway.scheduled.single.at, DateTime(2026, 9, 4, 19, 0));
+      // The snooze is recorded so a reconcile holds the card at now+minutes.
+      expect(preferences.snoozed.atFor('n1'), '2026-09-04T19:00');
+    });
+
+    test('a one-off snooze does not write the snooze store', () async {
+      final gateway = RecordingGateway();
+      final repo = FakeNotesRepository(_noteWithReminder());
+      final preferences = FakePreferences();
+
+      await snoozeOccurrence(
+        'n1',
+        30,
+        gateway: gateway,
+        repo: repo,
+        preferences: preferences,
+        clock: () => DateTime(2026, 9, 4, 18, 0),
+      );
+
+      expect(preferences.snoozed.contains('n1'), isFalse);
     });
 
     test('a one-off moves its reminder to the new time', () async {
@@ -347,6 +381,77 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(chosen, 30);
+    });
+  });
+
+  group('prompting a snooze on a cold start', () {
+    testWidgets('shows the picker once the navigator is ready', (tester) async {
+      tester.view.physicalSize = const Size(1080, 2340);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final gateway = RecordingGateway();
+      final repo = FakeNotesRepository(
+        _noteWithReminder(recurrence: ReminderRecurrence.daily),
+      );
+      final preferences = FakePreferences();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            navigatorKey: navigatorKey,
+            theme: AppTheme.light(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const Scaffold(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Do not await the prompt: it stays pending until the sheet is dismissed.
+      unawaited(
+        promptReminderSnooze(
+          'n1',
+          gateway: gateway,
+          repo: repo,
+          preferences: preferences,
+          navigatorKey: navigatorKey,
+        ),
+      );
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.text(english.snoozeSheetTitle), findsOneWidget);
+    });
+
+    testWidgets('gives up with no navigator instead of hanging', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1080, 2340);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+
+      final gateway = RecordingGateway();
+      final repo = FakeNotesRepository(_noteWithReminder());
+      final preferences = FakePreferences();
+
+      // A key that never attaches has no context; with no retries left the
+      // prompt must give up at once, not spin forever.
+      final orphanKey = GlobalKey<NavigatorState>();
+      await tester.pumpWidget(const SizedBox.shrink());
+
+      await promptReminderSnooze(
+        'n1',
+        gateway: gateway,
+        repo: repo,
+        preferences: preferences,
+        navigatorKey: orphanKey,
+        maxFrames: 0,
+      );
+
+      expect(gateway.scheduled, isEmpty);
     });
   });
 }

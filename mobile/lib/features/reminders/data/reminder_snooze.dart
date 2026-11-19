@@ -88,7 +88,8 @@ Future<void> snoozeOccurrence(
   );
 
   // A one-off moves its anchor so the reconcile after this keeps the new time;
-  // a repeating reminder keeps its period and Task 6 reschedules it.
+  // a repeating reminder keeps its period but records the snooze so reconcile
+  // holds the snoozed card instead of resetting it to the original period.
   if (!reminder.recurrence.repeats) {
     await repo.setReminder(
       noteId,
@@ -97,6 +98,11 @@ Future<void> snoozeOccurrence(
         recurrence: ReminderRecurrence.none,
         version: reminder.version,
       ),
+    );
+  } else if (preferences != null) {
+    final snoozed = await preferences.getSnoozedOccurrences();
+    await preferences.setSnoozedOccurrences(
+      snoozed.set(noteId, toWallClock(at)),
     );
   }
 

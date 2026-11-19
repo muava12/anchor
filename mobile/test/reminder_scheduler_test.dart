@@ -2,16 +2,19 @@ import 'dart:async';
 
 import 'package:anchor/app/app_bootstrap.dart';
 import 'package:anchor/core/session/active_user_id_provider.dart';
+import 'package:anchor/core/storage/preferences_repository.dart';
 import 'package:anchor/features/auth/domain/user.dart';
 import 'package:anchor/features/auth/presentation/auth_controller.dart';
 import 'package:anchor/features/notes/data/repository/notes_repository.dart';
 import 'package:anchor/features/notes/domain/note.dart';
 import 'package:anchor/features/reminders/data/notification_gateway.dart';
 import 'package:anchor/features/reminders/data/reminder_scheduler.dart';
+import 'package:anchor/features/reminders/domain/snoozed_occurrences.dart';
 import 'package:anchor/l10n/app_localizations.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class RecordingGateway implements NotificationGateway {
@@ -102,6 +105,20 @@ class StubNotesRepository implements NotesRepository {
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError(invocation.memberName.toString());
+}
+
+class StubPreferences extends PreferencesRepository {
+  StubPreferences() : super(const FlutterSecureStorage());
+
+  SnoozedOccurrences snoozed = const SnoozedOccurrences.empty();
+
+  @override
+  Future<SnoozedOccurrences> getSnoozedOccurrences() async => snoozed;
+
+  @override
+  Future<void> setSnoozedOccurrences(SnoozedOccurrences value) async {
+    snoozed = value;
+  }
 }
 
 final _english = lookupAppLocalizations(const Locale('en'));
@@ -248,6 +265,60 @@ void main() {
     );
     expect(desired.single.at, DateTime(2026, 9, 5, 9));
     expect(desired.single.repeat, DateTimeComponents.time);
+  });
+
+  group('a repeating reminder with a live snooze', () {
+    test('rings the snoozed time once, not its original period', () {
+      final desired = desiredReminders(
+        [
+          note(
+            id: 'n1',
+            slot: 7,
+            remindAt: '2026-09-04T18:00',
+            recurrence: ReminderRecurrence.daily,
+          ),
+        ],
+        now: now,
+        l10n: _english,
+        snoozed: const SnoozedOccurrences({'n1': '2026-09-04T18:30'}),
+      );
+
+      expect(desired, hasLength(1));
+      expect(desired.single.id, 7);
+      expect(desired.single.at, DateTime(2026, 9, 4, 18, 30));
+      expect(desired.single.repeat, isNull);
+    });
+
+    test('a snooze whose time has passed falls back to the period', () {
+      final desired = desiredReminders(
+        [
+          note(
+            id: 'n1',
+            slot: 7,
+            remindAt: '2026-09-04T18:00',
+            recurrence: ReminderRecurrence.daily,
+          ),
+        ],
+        now: now,
+        l10n: _english,
+        snoozed: const SnoozedOccurrences({'n1': '2026-09-04T09:00'}),
+      );
+
+      expect(desired.single.at, DateTime(2026, 9, 4, 18));
+      expect(desired.single.repeat, DateTimeComponents.time);
+    });
+
+    test('a one-off snooze is unaffected by the snooze map', () {
+      final desired = desiredReminders(
+        [note(id: 'n1', slot: 7, remindAt: '2026-09-04T18:00')],
+        now: now,
+        l10n: _english,
+        snoozed: const SnoozedOccurrences({'n1': '2026-09-04T18:30'}),
+      );
+
+      expect(desired.single.at, DateTime(2026, 9, 4, 18));
+      expect(desired.single.repeat, isNull);
+    });
   });
 
   test('drops trashed and archived notes', () {
@@ -534,6 +605,7 @@ void main() {
       RecordingGateway gateway,
       Stream<List<Note>> notes, {
       String? userId = 'user-1',
+      PreferencesRepository? preferences,
     }) async {
       final container = ProviderContainer(
         overrides: [
@@ -541,6 +613,9 @@ void main() {
           notificationGatewayProvider.overrideWithValue(gateway),
           notesRepositoryProvider.overrideWithValue(StubNotesRepository(notes)),
           authControllerProvider.overrideWith(StubAuthController.new),
+          preferencesRepositoryProvider.overrideWithValue(
+            preferences ?? StubPreferences(),
+          ),
         ],
       );
       addTearDown(container.dispose);
@@ -591,6 +666,54 @@ void main() {
 
       expect(gateway.cancelAllCalls, 1);
     });
+
+    test('a live snooze holds the card at its snoozed time', () async {
+      final gateway = RecordingGateway();
+      // Daily 18:00; now is 12:00, so the snooze at 18:30 is still ahead.
+      final snoozed = StubPreferences()
+        ..snoozed = const SnoozedOccurrences({'n1': '2026-09-04T18:30'});
+
+      await start(
+        gateway,
+        Stream.value([
+          note(
+            id: 'n1',
+            slot: 7,
+            remindAt: '2026-09-04T18:00',
+            recurrence: ReminderRecurrence.daily,
+          ),
+        ]),
+        preferences: snoozed,
+      );
+      await settle();
+
+      expect(gateway.scheduled, [7]);
+    });
+
+    test(
+      'a snooze whose time passed is pruned and the period takes over',
+      () async {
+        final gateway = RecordingGateway();
+        final snoozed = StubPreferences()
+          ..snoozed = const SnoozedOccurrences({'n1': '2026-09-04T09:00'});
+
+        await start(
+          gateway,
+          Stream.value([
+            note(
+              id: 'n1',
+              slot: 7,
+              remindAt: '2026-09-04T18:00',
+              recurrence: ReminderRecurrence.daily,
+            ),
+          ]),
+          preferences: snoozed,
+        );
+        await settle();
+
+        expect(snoozed.snoozed.contains('n1'), isFalse);
+      },
+    );
 
     test('a launch with no reminders still cancels the leftovers', () async {
       final gateway = RecordingGateway(pending: const [5]);
