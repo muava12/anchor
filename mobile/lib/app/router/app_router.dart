@@ -27,6 +27,7 @@ part 'app_router.g.dart';
 
 const _notePath = 'note/:id';
 const _newNotePath = 'note/new';
+const _journalEditPath = 'journal/edit/:id';
 const _historyPath = 'history';
 const _revisionPath = ':revisionId';
 const _trashPath = 'trash';
@@ -133,6 +134,19 @@ GoRouter goRouter(Ref ref) {
                 ],
               ),
             ],
+          ),
+          GoRoute(
+            path: _journalEditPath,
+            pageBuilder: (context, state) {
+              final id = state.pathParameters['id'];
+              final note = state.extra as Note?;
+              return NoteMorphPage(
+                key: ValueKey('journal/edit/$id'),
+                noteId: id,
+                backgroundId: note?.background,
+                child: NoteEditScreen(noteId: id, note: note, journal: true),
+              );
+            },
           ),
           GoRoute(
             path: _trashPath,

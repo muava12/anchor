@@ -7,6 +7,7 @@ import 'package:anchor/features/tags/domain/tag.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 void main() {
@@ -85,6 +86,51 @@ void main() {
   testWidgets('a missing tag shows the empty state', (tester) async {
     await pump(tester, const [], journalTag: null);
     expect(find.text('No entries yet'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('tapping an entry navigates to the journal edit route', (
+    tester,
+  ) async {
+    final note = entry('a', 'Morning pages', 'good');
+    final router = GoRouter(
+      initialLocation: '/journal',
+      routes: [
+        GoRoute(
+          path: '/journal',
+          builder: (_, _) => const JournalScreen(),
+        ),
+        GoRoute(
+          path: '/journal/edit/:id',
+          builder: (_, state) =>
+              Text('journal-edit-${state.pathParameters['id']}'),
+        ),
+        GoRoute(
+          path: '/note/:id',
+          builder: (_, state) =>
+              Text('note-${state.pathParameters['id']}'),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          journalTagProvider.overrideWithValue(tag),
+          journalNotesProvider.overrideWith((ref) => Stream.value([note])),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          theme: AppTheme.light(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Morning pages'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('journal-edit-a'), findsOneWidget);
+    expect(find.text('note-a'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }

@@ -50,7 +50,8 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
 
   void _openMenu() => _drawerKey.currentState?.open();
 
-  void _open(Note note) => context.go(AppRoutes.note(note.id), extra: note);
+  void _open(Note note) =>
+      context.go(AppRoutes.journalEdit(note.id), extra: note);
 
   Future<void> _newEntry() async {
     await ensureJournalTag(ref);
