@@ -866,7 +866,6 @@ void main() {
 
       final nextPeriod = anchor.add(const Duration(days: 2));
 
-
       test('puts the next period on the OS at once', () async {
         final gateway = RecordingGateway();
         final preferences = StubPreferences()
