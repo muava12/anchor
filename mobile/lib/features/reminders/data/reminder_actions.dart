@@ -107,8 +107,10 @@ List<AndroidNotificationAction> reminderActions(AppLocalizations l10n) => [
 ///
 /// [onDone] settles the occurrence (Task 4) and [onSnooze] puts it off
 /// (Task 5). When [repo] is given and no [onDone] callback is, a done press
-/// settles the occurrence against the note itself. Until the callbacks or repo
-/// are wired, a press is logged and nothing else happens.
+/// settles the occurrence against the note itself. [onResync] runs when the
+/// press left a period to reschedule: a repeating reminder keeps its reminder
+/// when settled, so only a pass puts its next period back. Until the callbacks
+/// or repo are wired, a press is logged and nothing else happens.
 Future<void> handleReminderAction(
   ReminderAction action, {
   required NotificationGateway gateway,
@@ -116,11 +118,13 @@ Future<void> handleReminderAction(
   PreferencesRepository? preferences,
   Future<void> Function(String noteId)? onDone,
   Future<void> Function(String noteId)? onSnooze,
+  Future<void> Function()? onResync,
 }) async {
+  var resync = false;
   try {
     switch (action.type) {
       case ReminderActionType.dismiss:
-        await dismissOccurrence(
+        resync = await dismissOccurrence(
           action,
           gateway: gateway,
           preferences: preferences,
@@ -129,8 +133,13 @@ Future<void> handleReminderAction(
         final settle = onDone;
         if (settle != null) {
           await settle(action.noteId);
+          resync = true;
         } else if (repo != null) {
-          await doneOccurrence(action.noteId, repo, preferences: preferences);
+          resync = await doneOccurrence(
+            action.noteId,
+            repo,
+            preferences: preferences,
+          );
         } else {
           AppLogger.instance.info(
             LogTags.reminders,
@@ -149,6 +158,10 @@ Future<void> handleReminderAction(
         }
         await putOff(action.noteId);
     }
+
+    // Put the cards back on the OS now, without waiting for a resume or a note
+    // edit: nothing else asks for a pass when the press changed no note.
+    if (resync) await onResync?.call();
   } catch (error, stack) {
     AppLogger.instance.error(
       LogTags.reminders,
@@ -166,49 +179,58 @@ Future<void> handleReminderAction(
 /// rescheduled by the scheduler (Task 6). Any snooze on this note is cleared so
 /// a settled occurrence does not resurface. A note with no reminder, or one
 /// that is gone, is left untouched.
-Future<void> doneOccurrence(
+///
+/// Returns whether a period is left to put back on the OS.
+Future<bool> doneOccurrence(
   String noteId,
   NotesRepository repo, {
   PreferencesRepository? preferences,
 }) async {
   await _clearSnooze(noteId, preferences);
   final note = await repo.getNote(noteId);
-  if (note == null) return;
+  if (note == null) return false;
   final reminder = note.reminder;
-  if (reminder == null) return;
-  if (reminder.recurrence.repeats) return;
+  if (reminder == null) return false;
+  // A repeating reminder has a next period; a one-off ends here.
+  if (reminder.recurrence.repeats) return true;
   await repo.setReminder(noteId, null);
+  return false;
 }
 
 /// Quietly clears the notification a dismiss press names.
 ///
 /// The note keeps its reminder; only this occurrence's card is cancelled, and
 /// any snooze on this note is cleared so the dismissed occurrence stays quiet.
-Future<void> dismissOccurrence(
+///
+/// Returns whether a held snooze was released, i.e. whether the note's own
+/// period has to go back on the OS. A plain dismiss leaves the card quiet.
+Future<bool> dismissOccurrence(
   ReminderAction action, {
   required NotificationGateway gateway,
   PreferencesRepository? preferences,
 }) async {
-  await _clearSnooze(action.noteId, preferences);
+  final released = await _clearSnooze(action.noteId, preferences);
   final id = action.id;
   if (id == null) {
     AppLogger.instance.warn(
       LogTags.reminders,
       'Dismissed the reminder on note ${action.noteId} with no id to cancel',
     );
-    return;
+    return released;
   }
   await gateway.cancel(id);
+  return released;
 }
 
 /// Removes any snoozed occurrence for [noteId] so a reconcile or the scheduler
-/// stops holding the card at its snoozed time.
-Future<void> _clearSnooze(
+/// stops holding the card at its snoozed time. Returns whether one was there.
+Future<bool> _clearSnooze(
   String noteId,
   PreferencesRepository? preferences,
 ) async {
-  if (preferences == null) return;
+  if (preferences == null) return false;
   final snoozed = await preferences.getSnoozedOccurrences();
-  if (!snoozed.contains(noteId)) return;
+  if (!snoozed.contains(noteId)) return false;
   await preferences.setSnoozedOccurrences(snoozed.remove(noteId));
+  return true;
 }

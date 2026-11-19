@@ -1,11 +1,14 @@
+import 'package:anchor/core/storage/preferences_repository.dart';
 import 'package:anchor/features/notes/data/repository/notes_repository.dart';
 import 'package:anchor/features/notes/domain/note.dart';
 import 'package:anchor/features/reminders/data/notification_gateway.dart';
 import 'package:anchor/features/reminders/data/reminder_actions.dart';
+import 'package:anchor/features/reminders/domain/snoozed_occurrences.dart';
 import 'package:anchor/features/reminders/presentation/notification_launch.dart';
 import 'package:anchor/l10n/l10n.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class RecordingGateway implements NotificationGateway {
@@ -45,6 +48,21 @@ class RecordingGateway implements NotificationGateway {
 class RefusingGateway extends RecordingGateway {
   @override
   Future<void> cancel(int id) async => throw Exception('the OS refused');
+}
+
+/// Holds the snoozed occurrences so a press can release one.
+class _StubPreferences extends PreferencesRepository {
+  _StubPreferences() : super(const FlutterSecureStorage());
+
+  SnoozedOccurrences snoozed = const SnoozedOccurrences.empty();
+
+  @override
+  Future<SnoozedOccurrences> getSnoozedOccurrences() async => snoozed;
+
+  @override
+  Future<void> setSnoozedOccurrences(SnoozedOccurrences value) async {
+    snoozed = value;
+  }
 }
 
 /// A repository that holds one note and records reminder writes.
@@ -403,6 +421,100 @@ void main() {
         ),
         completes,
       );
+    });
+
+    test('asks for a resync after a repeating occurrence is settled', () async {
+      final gateway = RecordingGateway();
+      var resyncs = 0;
+
+      await handleReminderAction(
+        const ReminderAction(
+          id: 5,
+          type: ReminderActionType.done,
+          noteId: 'n1',
+        ),
+        gateway: gateway,
+        repo: FakeNotesRepository(
+          _noteWithReminder(recurrence: ReminderRecurrence.daily),
+        ),
+        onResync: () async => resyncs++,
+      );
+
+      expect(resyncs, 1);
+    });
+
+    test('asks for a resync after a dismiss that released a snooze', () async {
+      final gateway = RecordingGateway();
+      final preferences = _StubPreferences()
+        ..snoozed = const SnoozedOccurrences({'n1': '2026-09-04T18:30'});
+      var resyncs = 0;
+
+      await handleReminderAction(
+        const ReminderAction(
+          id: 5,
+          type: ReminderActionType.dismiss,
+          noteId: 'n1',
+        ),
+        gateway: gateway,
+        preferences: preferences,
+        onResync: () async => resyncs++,
+      );
+
+      expect(resyncs, 1);
+    });
+
+    test('works with no resync step wired', () async {
+      final gateway = RecordingGateway();
+
+      await expectLater(
+        handleReminderAction(
+          const ReminderAction(
+            id: 5,
+            type: ReminderActionType.done,
+            noteId: 'n1',
+          ),
+          gateway: gateway,
+          repo: FakeNotesRepository(_noteWithReminder()),
+        ),
+        completes,
+      );
+    });
+
+    test('a settled one-off asks for no resync', () async {
+      final gateway = RecordingGateway();
+      var resyncs = 0;
+
+      await handleReminderAction(
+        const ReminderAction(
+          id: 5,
+          type: ReminderActionType.done,
+          noteId: 'n1',
+        ),
+        gateway: gateway,
+        repo: FakeNotesRepository(_noteWithReminder()),
+        onResync: () async => resyncs++,
+      );
+
+      // Its reminder is unset, so nothing is left to put back on the OS.
+      expect(resyncs, 0);
+    });
+
+    test('a plain dismiss asks for no resync', () async {
+      final gateway = RecordingGateway();
+      var resyncs = 0;
+
+      await handleReminderAction(
+        const ReminderAction(
+          id: 5,
+          type: ReminderActionType.dismiss,
+          noteId: 'n1',
+        ),
+        gateway: gateway,
+        onResync: () async => resyncs++,
+      );
+
+      // The card stays quiet; the note's own period is not rebuilt.
+      expect(resyncs, 0);
     });
   });
 

@@ -58,6 +58,10 @@ class ReminderScheduler extends _$ReminderScheduler {
   bool _forced = false;
   int _failures = 0;
 
+  /// False until the notes stream has answered at least once. A pass before
+  /// that would see no notes and cancel every card the OS still holds.
+  bool _notesReady = false;
+
   @override
   void build() {
     // appDatabaseProvider throws while auth is still resolving the user.
@@ -69,12 +73,16 @@ class ReminderScheduler extends _$ReminderScheduler {
 
     _lastApplied = null;
     _latest = const [];
+    _notesReady = false;
     _snoozed = const SnoozedOccurrences.empty();
     if (userId == null) {
       _cleared = _cancelAll(gateway);
       return;
     }
 
+    // The app-start reconcile: the stream answers at once with what the
+    // database holds, so a launch rebuilds every card the OS lost (a reboot, a
+    // force stop) without waiting for a resume or a note edit.
     ref.listen(allActiveNotesProvider, (_, notes) {
       if (notes case AsyncData(:final value)) _onNotes(value);
     }, fireImmediately: true);
@@ -107,6 +115,13 @@ class ReminderScheduler extends _$ReminderScheduler {
     }
   }
 
+  /// Rebuilds every card from the notes now, cancelling the leftovers.
+  ///
+  /// An occurrence that just settled changes nothing in the notes (a repeating
+  /// reminder keeps its reminder), so only this puts the next period on the OS
+  /// without waiting for a note edit or a resume.
+  Future<void> resyncAll() => _reconcile(force: true);
+
   Future<void> _onResume(
     NotificationGateway gateway,
     PreferencesRepository preferences,
@@ -118,6 +133,7 @@ class ReminderScheduler extends _$ReminderScheduler {
 
   void _onNotes(List<Note> notes) {
     _latest = notes;
+    _notesReady = true;
     _settle?.cancel();
     _settle = Timer(_settleWindow, () {
       _settle = null;
@@ -151,6 +167,9 @@ class ReminderScheduler extends _$ReminderScheduler {
   }
 
   Future<void> _runPass() async {
+    // No notes yet: cancelling now would drop every live card.
+    if (!_notesReady) return;
+
     final gateway = ref.read(notificationGatewayProvider);
     final preferences = ref.read(preferencesRepositoryProvider);
     if (_forced) {

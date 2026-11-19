@@ -11,6 +11,7 @@ import '../../../core/storage/preferences_repository.dart';
 import '../../notes/data/repository/notes_repository.dart';
 import '../data/notification_gateway.dart';
 import '../data/reminder_actions.dart';
+import '../data/reminder_scheduler.dart';
 import '../data/reminder_snooze.dart';
 import 'notification_launch.dart';
 import 'snooze_sheet.dart';
@@ -98,6 +99,10 @@ class ReminderTapHandler extends _$ReminderTapHandler {
         preferences: preferences,
         navigatorKey: navigatorKey,
       ),
+      // Settling an occurrence changes no note, so ask for the cards to be
+      // rebuilt: the repeating reminder's next period goes back on the OS now
+      // instead of at the next resume.
+      onResync: () => ref.read(reminderSchedulerProvider.notifier).resyncAll(),
     );
     final taps = notificationTaps.stream.listen((noteId) {
       final route = notificationRouteForPayload(noteId);

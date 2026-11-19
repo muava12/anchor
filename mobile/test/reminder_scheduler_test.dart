@@ -8,7 +8,9 @@ import 'package:anchor/features/auth/presentation/auth_controller.dart';
 import 'package:anchor/features/notes/data/repository/notes_repository.dart';
 import 'package:anchor/features/notes/domain/note.dart';
 import 'package:anchor/features/reminders/data/notification_gateway.dart';
+import 'package:anchor/features/reminders/data/reminder_actions.dart';
 import 'package:anchor/features/reminders/data/reminder_scheduler.dart';
+import 'package:anchor/features/reminders/domain/reminder_schedule.dart';
 import 'package:anchor/features/reminders/domain/snoozed_occurrences.dart';
 import 'package:anchor/l10n/app_localizations.dart';
 import 'package:flutter/widgets.dart';
@@ -36,6 +38,8 @@ class RecordingGateway implements NotificationGateway {
 
   final bool throwsOnCancelAll;
 
+  /// Holds every card the gateway was asked to show, in order.
+  final rings = <ScheduledNotification>[];
   final scheduled = <int>[];
   final cancelled = <int>[];
   int cancelAllCalls = 0;
@@ -49,6 +53,7 @@ class RecordingGateway implements NotificationGateway {
       _refusals++;
       throw Exception('the OS refused notification ${notification.id}');
     }
+    rings.add(notification);
     scheduled.add(notification.id);
   }
 
@@ -95,12 +100,24 @@ class StubAuthController extends AuthController {
 }
 
 class StubNotesRepository implements NotesRepository {
-  StubNotesRepository(this._notes);
+  StubNotesRepository(this._notes, {Note? note}) : _note = note;
 
   final Stream<List<Note>> _notes;
+  final Note? _note;
+
+  /// Every reminder the repository was asked to write, in order.
+  final remindersSet = <NoteReminder?>[];
 
   @override
   Stream<List<Note>> watchNotes({String? tagId}) => _notes;
+
+  @override
+  Future<Note?> getNote(String id) async => _note?.id == id ? _note : null;
+
+  @override
+  Future<void> setReminder(String noteId, NoteReminder? reminder) async {
+    remindersSet.add(reminder);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>
@@ -606,12 +623,15 @@ void main() {
       Stream<List<Note>> notes, {
       String? userId = 'user-1',
       PreferencesRepository? preferences,
+      Note? note,
     }) async {
       final container = ProviderContainer(
         overrides: [
           appBootstrapProvider.overrideWithValue(AppBootstrap(userId: userId)),
           notificationGatewayProvider.overrideWithValue(gateway),
-          notesRepositoryProvider.overrideWithValue(StubNotesRepository(notes)),
+          notesRepositoryProvider.overrideWithValue(
+            StubNotesRepository(notes, note: note),
+          ),
           authControllerProvider.overrideWith(StubAuthController.new),
           preferencesRepositoryProvider.overrideWithValue(
             preferences ?? StubPreferences(),
@@ -780,6 +800,145 @@ void main() {
       expect(reminderRetryDelay(1), const Duration(seconds: 2));
       expect(reminderRetryDelay(2) > reminderRetryDelay(1), isTrue);
       expect(reminderRetryDelay(20), reminderRetryDelay(_retryDelayCount));
+    });
+
+    test('a launch puts every card back with no resume and no edit', () async {
+      final gateway = RecordingGateway();
+      final notes = StreamController<List<Note>>();
+      addTearDown(notes.close);
+
+      // Nobody resumes the app and no note is edited after the launch.
+      await start(gateway, notes.stream);
+      notes.add([pending('n1', 1), pending('n2', 2)]);
+      await settle();
+
+      expect(gateway.scheduled, [1, 2]);
+    });
+
+    test('a pass before the notes answer cancels nothing', () async {
+      final gateway = RecordingGateway(pending: const [5]);
+
+      final container = await start(gateway, const Stream.empty());
+      await container.read(reminderSchedulerProvider.notifier).resyncAll();
+      await settle();
+
+      expect(gateway.cancelled, isEmpty);
+      expect(gateway.scheduled, isEmpty);
+    });
+
+    test('resyncAll reschedules every card and cancels the leftovers', () async {
+      final gateway = RecordingGateway(pending: [9]);
+
+      final container = await start(gateway, Stream.value([pending('n1', 1)]));
+      await settle();
+      expect(gateway.cancelled, [9]);
+      expect(gateway.scheduled, [1]);
+
+      // The OS still holds an id no note asks for.
+      gateway.pending.clear();
+      gateway.pending.add(9);
+      await container.read(reminderSchedulerProvider.notifier).resyncAll();
+
+      expect(gateway.cancelled, [9, 9]);
+      expect(gateway.scheduled, [1, 1]);
+    });
+
+    group('settling a repeating occurrence', () {
+      // Daily, anchored yesterday so its next period is tomorrow and the OS
+      // repeat is right (one card, not dated rings).
+      // The wall clock has minute precision, so build one from its parts.
+      final stamp = DateTime.now();
+      final nowMinute = DateTime(
+        stamp.year,
+        stamp.month,
+        stamp.day,
+        stamp.hour,
+        stamp.minute,
+      );
+      final anchor = nowMinute.subtract(const Duration(days: 1));
+
+      Note daily() => note(
+        id: 'n1',
+        slot: 7,
+        remindAt: toWallClock(anchor),
+        recurrence: ReminderRecurrence.daily,
+      );
+
+      final nextPeriod = anchor.add(const Duration(days: 2));
+
+
+      test('puts the next period on the OS at once', () async {
+        final gateway = RecordingGateway();
+        final preferences = StubPreferences()
+          ..snoozed = SnoozedOccurrences({
+            'n1': toWallClock(nowMinute.add(const Duration(minutes: 30))),
+          });
+
+        final container = await start(
+          gateway,
+          Stream.value([daily()]),
+          preferences: preferences,
+          note: daily(),
+        );
+        await settle();
+        // The snooze holds the card at the snoozed time, once.
+        expect(gateway.rings.single.repeat, isNull);
+        expect(gateway.rings.single.id, 7);
+
+        final repo = container.read(notesRepositoryProvider);
+        await handleReminderAction(
+          const ReminderAction(
+            id: 7,
+            type: ReminderActionType.done,
+            noteId: 'n1',
+          ),
+          gateway: gateway,
+          repo: repo,
+          preferences: preferences,
+          onResync: () =>
+              container.read(reminderSchedulerProvider.notifier).resyncAll(),
+        );
+
+        expect(preferences.snoozed.contains('n1'), isFalse);
+        // The next period, with no resume and no note edit.
+        final last = gateway.rings.last;
+        expect(last.id, 7);
+        expect(last.repeat, DateTimeComponents.time);
+        expect(last.at, nextPeriod);
+      });
+
+      test('dismiss brings the period back after a snoozed occurrence', () async {
+        final gateway = RecordingGateway();
+        final preferences = StubPreferences()
+          ..snoozed = SnoozedOccurrences({
+            'n1': toWallClock(nowMinute.add(const Duration(minutes: 30))),
+          });
+
+        final container = await start(
+          gateway,
+          Stream.value([daily()]),
+          preferences: preferences,
+          note: daily(),
+        );
+        await settle();
+
+        await handleReminderAction(
+          const ReminderAction(
+            id: 7,
+            type: ReminderActionType.dismiss,
+            noteId: 'n1',
+          ),
+          gateway: gateway,
+          repo: container.read(notesRepositoryProvider),
+          preferences: preferences,
+          onResync: () =>
+              container.read(reminderSchedulerProvider.notifier).resyncAll(),
+        );
+
+        expect(preferences.snoozed.contains('n1'), isFalse);
+        expect(gateway.rings.last.repeat, DateTimeComponents.time);
+        expect(gateway.rings.last.at, nextPeriod);
+      });
     });
   });
 }
