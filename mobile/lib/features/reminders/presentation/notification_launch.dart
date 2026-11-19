@@ -75,8 +75,39 @@ Future<String?> initializeNotifications() async {
 
   final launch = await notificationsPlugin.getNotificationAppLaunchDetails();
   final response = launch?.notificationResponse;
-  // An action that started the app is handled, not routed to the note.
-  if (response != null && reminderActionFrom(response) != null) return null;
-  if (!(launch?.didNotificationLaunchApp ?? false)) return null;
-  return notificationRouteForPayload(response?.payload);
+  return handleLaunchNotification(
+    didNotificationLaunchApp: launch?.didNotificationLaunchApp ?? false,
+    actionId: response?.actionId,
+    payload: response?.payload,
+    notificationId: response?.id,
+    dismissed:
+        response?.notificationResponseType ==
+        NotificationResponseType.notificationDismissed,
+  );
+}
+
+/// Handles a launch a notification caused.
+///
+/// A reminder action (Done / Snooze / Dismiss, including a cold start) is
+/// delivered to the engine instead of routed to the note. A body tap returns
+/// the note's route. Takes the response's raw fields so a unit test does not
+/// need the plugin's types.
+String? handleLaunchNotification({
+  required bool didNotificationLaunchApp,
+  String? actionId,
+  String? payload,
+  int? notificationId,
+  bool dismissed = false,
+}) {
+  if (!didNotificationLaunchApp) return null;
+  final type = dismissed
+      ? ReminderActionType.dismiss
+      : reminderActionTypeForWireId(actionId);
+  if (type != null && payload != null && payload.isNotEmpty) {
+    _deliverAction(
+      ReminderAction(id: notificationId, type: type, noteId: payload),
+    );
+    return null;
+  }
+  return notificationRouteForPayload(payload);
 }
