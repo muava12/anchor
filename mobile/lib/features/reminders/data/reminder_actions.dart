@@ -4,6 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/logging/log_tags.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../notes/data/repository/notes_repository.dart';
 import 'notification_gateway.dart';
 
 /// What an action button on a reminder notification asked for.
@@ -104,28 +105,33 @@ List<AndroidNotificationAction> reminderActions(AppLocalizations l10n) => [
 /// Carries out what a reminder's action button asked for.
 ///
 /// [onDone] settles the occurrence (Task 4) and [onSnooze] puts it off
-/// (Task 5). Until they are wired, a press is logged and nothing else happens.
+/// (Task 5). When [repo] is given and no [onDone] callback is, a done press
+/// settles the occurrence against the note itself. Until the callbacks or repo
+/// are wired, a press is logged and nothing else happens.
 Future<void> handleReminderAction(
   ReminderAction action, {
   required NotificationGateway gateway,
+  NotesRepository? repo,
   Future<void> Function(String noteId)? onDone,
   Future<void> Function(String noteId)? onSnooze,
 }) async {
   try {
     switch (action.type) {
       case ReminderActionType.dismiss:
-        await _dismiss(action, gateway);
+        await dismissOccurrence(action, gateway: gateway);
       case ReminderActionType.done:
         final settle = onDone;
-        if (settle == null) {
+        if (settle != null) {
+          await settle(action.noteId);
+        } else if (repo != null) {
+          await doneOccurrence(action.noteId, repo);
+        } else {
           AppLogger.instance.info(
             LogTags.reminders,
             'Done on note ${action.noteId}: settling the occurrence lands in '
             'Task 4',
           );
-          return;
         }
-        await settle(action.noteId);
       case ReminderActionType.snooze:
         final putOff = onSnooze;
         if (putOff == null) {
@@ -147,7 +153,28 @@ Future<void> handleReminderAction(
   }
 }
 
-Future<void> _dismiss(ReminderAction action, NotificationGateway gateway) async {
+/// Settles the occurrence a done press names.
+///
+/// A one-off reminder ends here: its reminder is unset, so the note no longer
+/// rings. A repeating reminder keeps its reminder; the next period is
+/// rescheduled by the scheduler (Task 6). A note with no reminder, or one that
+/// is gone, is left untouched.
+Future<void> doneOccurrence(String noteId, NotesRepository repo) async {
+  final note = await repo.getNote(noteId);
+  if (note == null) return;
+  final reminder = note.reminder;
+  if (reminder == null) return;
+  if (reminder.recurrence.repeats) return;
+  await repo.setReminder(noteId, null);
+}
+
+/// Quietly clears the notification a dismiss press names.
+///
+/// The note keeps its reminder; only this occurrence's card is cancelled.
+Future<void> dismissOccurrence(
+  ReminderAction action, {
+  required NotificationGateway gateway,
+}) async {
   final id = action.id;
   if (id == null) {
     AppLogger.instance.warn(

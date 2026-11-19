@@ -1,3 +1,5 @@
+import 'package:anchor/features/notes/data/repository/notes_repository.dart';
+import 'package:anchor/features/notes/domain/note.dart';
 import 'package:anchor/features/reminders/data/notification_gateway.dart';
 import 'package:anchor/features/reminders/data/reminder_actions.dart';
 import 'package:anchor/features/reminders/presentation/notification_launch.dart';
@@ -40,15 +42,49 @@ class RecordingGateway implements NotificationGateway {
   Future<void> requestExactPermission() async {}
 }
 
+class RefusingGateway extends RecordingGateway {
+  @override
+  Future<void> cancel(int id) async => throw Exception('the OS refused');
+}
+
+/// A repository that holds one note and records reminder writes.
+class FakeNotesRepository implements NotesRepository {
+  FakeNotesRepository(this._note);
+
+  Note? _note;
+  final remindersSet = <NoteReminder?>[];
+
+  @override
+  Future<Note?> getNote(String id) async => _note?.id == id ? _note : null;
+
+  @override
+  Future<void> setReminder(String noteId, NoteReminder? reminder) async {
+    remindersSet.add(reminder);
+    final current = _note;
+    if (current == null || current.id != noteId) return;
+    _note = current.copyWith(reminder: reminder);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError(invocation.memberName.toString());
+}
+
+Note _noteWithReminder({
+  ReminderRecurrence recurrence = ReminderRecurrence.none,
+}) => Note(
+  id: 'n1',
+  title: 'Groceries',
+  reminderSlot: 7,
+  reminder: NoteReminder(remindAt: '2026-09-04T18:00', recurrence: recurrence),
+);
+
 void main() {
   final english = lookupAppLocalizations(const Locale('en'));
 
   group('the action wire id', () {
     test('names the type the Android action id carries', () {
-      expect(
-        reminderActionWireId(ReminderActionType.done),
-        'reminder_done',
-      );
+      expect(reminderActionWireId(ReminderActionType.done), 'reminder_done');
       expect(
         reminderActionWireId(ReminderActionType.snooze),
         'reminder_snooze',
@@ -87,7 +123,14 @@ void main() {
         ),
       );
 
-      expect(action, const ReminderAction(id: 7, type: ReminderActionType.snooze, noteId: 'note-1'));
+      expect(
+        action,
+        const ReminderAction(
+          id: 7,
+          type: ReminderActionType.snooze,
+          noteId: 'note-1',
+        ),
+      );
     });
 
     test('counts a swipe away as dismiss', () {
@@ -100,7 +143,14 @@ void main() {
         ),
       );
 
-      expect(action, const ReminderAction(id: 9, type: ReminderActionType.dismiss, noteId: 'note-2'));
+      expect(
+        action,
+        const ReminderAction(
+          id: 9,
+          type: ReminderActionType.dismiss,
+          noteId: 'note-2',
+        ),
+      );
     });
 
     test('leaves an ordinary tap alone', () {
@@ -187,7 +237,14 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       await subscription.cancel();
 
-      expect(routed, const ReminderAction(id: 4, type: ReminderActionType.dismiss, noteId: 'note-4'));
+      expect(
+        routed,
+        const ReminderAction(
+          id: 4,
+          type: ReminderActionType.dismiss,
+          noteId: 'note-4',
+        ),
+      );
       expect(seen, [routed]);
     });
 
@@ -195,7 +252,9 @@ void main() {
       final taps = <String>[];
       final actions = <ReminderAction>[];
       final tapSubscription = notificationTaps.stream.listen(taps.add);
-      final actionSubscription = reminderActionPresses.stream.listen(actions.add);
+      final actionSubscription = reminderActionPresses.stream.listen(
+        actions.add,
+      );
 
       final routed = routeNotificationResponse(
         const NotificationResponse(
@@ -229,7 +288,11 @@ void main() {
       final pending = takePendingReminderActions();
 
       expect(pending, [
-        const ReminderAction(id: 6, type: ReminderActionType.done, noteId: 'note-6'),
+        const ReminderAction(
+          id: 6,
+          type: ReminderActionType.done,
+          noteId: 'note-6',
+        ),
       ]);
       expect(takePendingReminderActions(), isEmpty);
     });
@@ -240,7 +303,11 @@ void main() {
       final gateway = RecordingGateway();
 
       await handleReminderAction(
-        const ReminderAction(id: 5, type: ReminderActionType.dismiss, noteId: 'n1'),
+        const ReminderAction(
+          id: 5,
+          type: ReminderActionType.dismiss,
+          noteId: 'n1',
+        ),
         gateway: gateway,
       );
 
@@ -263,7 +330,11 @@ void main() {
       final settled = <String>[];
 
       await handleReminderAction(
-        const ReminderAction(id: 5, type: ReminderActionType.done, noteId: 'n1'),
+        const ReminderAction(
+          id: 5,
+          type: ReminderActionType.done,
+          noteId: 'n1',
+        ),
         gateway: gateway,
         onDone: (noteId) async => settled.add(noteId),
       );
@@ -276,7 +347,11 @@ void main() {
       final gateway = RecordingGateway();
 
       await handleReminderAction(
-        const ReminderAction(id: 5, type: ReminderActionType.done, noteId: 'n1'),
+        const ReminderAction(
+          id: 5,
+          type: ReminderActionType.done,
+          noteId: 'n1',
+        ),
         gateway: gateway,
       );
 
@@ -288,7 +363,11 @@ void main() {
       final snoozed = <String>[];
 
       await handleReminderAction(
-        const ReminderAction(id: 5, type: ReminderActionType.snooze, noteId: 'n1'),
+        const ReminderAction(
+          id: 5,
+          type: ReminderActionType.snooze,
+          noteId: 'n1',
+        ),
         gateway: gateway,
         onSnooze: (noteId) async => snoozed.add(noteId),
       );
@@ -301,7 +380,11 @@ void main() {
       final gateway = RecordingGateway();
 
       await handleReminderAction(
-        const ReminderAction(id: 5, type: ReminderActionType.snooze, noteId: 'n1'),
+        const ReminderAction(
+          id: 5,
+          type: ReminderActionType.snooze,
+          noteId: 'n1',
+        ),
         gateway: gateway,
       );
 
@@ -311,16 +394,106 @@ void main() {
     test('a refused cancel does not throw', () async {
       await expectLater(
         handleReminderAction(
-          const ReminderAction(id: 5, type: ReminderActionType.dismiss, noteId: 'n1'),
+          const ReminderAction(
+            id: 5,
+            type: ReminderActionType.dismiss,
+            noteId: 'n1',
+          ),
           gateway: RefusingGateway(),
         ),
         completes,
       );
     });
   });
-}
 
-class RefusingGateway extends RecordingGateway {
-  @override
-  Future<void> cancel(int id) async => throw Exception('the OS refused');
+  group('settling the occurrence', () {
+    test('done on a one-off unsets the reminder', () async {
+      final repo = FakeNotesRepository(_noteWithReminder());
+
+      await doneOccurrence('n1', repo);
+
+      expect(repo.remindersSet, [null]);
+    });
+
+    test('done on a repeating note keeps the reminder', () async {
+      final repo = FakeNotesRepository(
+        _noteWithReminder(recurrence: ReminderRecurrence.daily),
+      );
+
+      await doneOccurrence('n1', repo);
+
+      expect(repo.remindersSet, isEmpty);
+    });
+
+    test('done on a note with no reminder changes nothing', () async {
+      final repo = FakeNotesRepository(Note(id: 'n1', title: 'Groceries'));
+
+      await doneOccurrence('n1', repo);
+
+      expect(repo.remindersSet, isEmpty);
+    });
+
+    test('done on a note that is gone does not throw', () async {
+      final repo = FakeNotesRepository(null);
+
+      await expectLater(doneOccurrence('n1', repo), completes);
+      expect(repo.remindersSet, isEmpty);
+    });
+
+    test(
+      'dismiss cancels the notification and leaves the note alone',
+      () async {
+        final gateway = RecordingGateway();
+        final repo = FakeNotesRepository(_noteWithReminder());
+
+        await dismissOccurrence(
+          const ReminderAction(
+            id: 9,
+            type: ReminderActionType.dismiss,
+            noteId: 'n1',
+          ),
+          gateway: gateway,
+        );
+
+        expect(gateway.cancelled, [9]);
+        expect(repo.remindersSet, isEmpty);
+      },
+    );
+
+    test('handleReminderAction settles a one-off through the repo', () async {
+      final gateway = RecordingGateway();
+      final repo = FakeNotesRepository(_noteWithReminder());
+
+      await handleReminderAction(
+        const ReminderAction(
+          id: 5,
+          type: ReminderActionType.done,
+          noteId: 'n1',
+        ),
+        gateway: gateway,
+        repo: repo,
+      );
+
+      expect(repo.remindersSet, [null]);
+    });
+
+    test('handleReminderAction leaves a repeating reminder in place', () async {
+      final gateway = RecordingGateway();
+      final repo = FakeNotesRepository(
+        _noteWithReminder(recurrence: ReminderRecurrence.weekly),
+      );
+
+      await handleReminderAction(
+        const ReminderAction(
+          id: 5,
+          type: ReminderActionType.done,
+          noteId: 'n1',
+        ),
+        gateway: gateway,
+        repo: repo,
+      );
+
+      expect(repo.remindersSet, isEmpty);
+    });
+  });
 }
