@@ -102,7 +102,7 @@ class _EntryRow extends ConsumerWidget {
       onTap: () => onOpen(note),
       semanticLabel: time.isEmpty ? title : '$title · $time',
       child: Padding(
-        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
         child: Stack(
           clipBehavior: Clip.none,
           children: [
@@ -110,7 +110,7 @@ class _EntryRow extends ConsumerWidget {
               Positioned(
                 left: 7, // off-scale: the 16px ring's centre
                 top: 0,
-                bottom: -8,
+                bottom: -16,
                 width: 2,
                 child: ColoredBox(color: colors.appBorder),
               ),
@@ -248,12 +248,16 @@ class _RailRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.anchor;
+    // A solid page-coloured fill hides the rail line that passes behind the
+    // ring's centre, so the line reads as cut at every marker.
     return Container(
       width: 16,
       height: 16,
       decoration: BoxDecoration(
+        color: colors.appPage,
         shape: BoxShape.circle,
-        border: Border.all(color: context.anchor.accentStrong, width: 2),
+        border: Border.all(color: colors.accentStrong, width: 2),
       ),
     );
   }

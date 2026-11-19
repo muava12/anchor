@@ -102,9 +102,9 @@ class _JournalMoodSheetState extends State<_JournalMoodSheet> {
               physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: 4,
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              mainAxisSpacing: AnchorTokens.space12,
-              crossAxisSpacing: AnchorTokens.space12,
-              childAspectRatio: 0.9,
+              mainAxisSpacing: AnchorTokens.space10,
+              crossAxisSpacing: AnchorTokens.space10,
+              childAspectRatio: 0.95,
               children: [
                 for (final mood in JournalMood.values)
                   _MoodTile(
@@ -169,45 +169,46 @@ class _MoodTile extends StatelessWidget {
             borderRadius: radius,
             border: Border.all(color: colors.appBorder),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Stack(
+            clipBehavior: Clip.none,
             children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  MoodFace(mood: mood, size: AnchorTokens.sizeIconMedium),
-                  if (isSelected)
-                    Positioned(
-                      top: 0,
-                      right: 0,
-                      child: Container(
-                        width: AnchorTokens.sizeIconSmall,
-                        height: AnchorTokens.sizeIconSmall,
-                        decoration: BoxDecoration(
-                          color: colors.accentStrong,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          LucideIcons.check,
-                          size: AnchorTokens.space12,
-                          color: Colors.white,
-                        ),
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // off-scale: the mood picker's face is 36px in the design
+                    MoodFace(mood: mood, size: 36),
+                    const SizedBox(height: AnchorTokens.space4),
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.caption.copyWith(
+                        color: isSelected ? colors.accentStrong : colors.appMuted,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                       ),
                     ),
-                ],
-              ),
-              const SizedBox(height: AnchorTokens.space4),
-              Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.footnote.copyWith(
-                    color: isSelected ? colors.accentStrong : colors.appMuted,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  ),
+                  ],
                 ),
               ),
+              if (isSelected)
+                Positioned(
+                  top: -6,
+                  right: -6,
+                  child: Container(
+                    width: AnchorTokens.sizeIconMedium,
+                    height: AnchorTokens.sizeIconMedium,
+                    decoration: BoxDecoration(
+                      color: colors.accentStrong,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      LucideIcons.check,
+                      size: AnchorTokens.space12,
+                      color: colors.checkMark,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
