@@ -8,6 +8,7 @@ import '../../../app/router/pending_launch_route.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/logging/log_tags.dart';
 import '../../../core/storage/preferences_repository.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../../notes/data/repository/notes_repository.dart';
 import '../data/notification_gateway.dart';
 import '../data/reminder_actions.dart';
@@ -82,6 +83,9 @@ Future<void> _nextFrame() {
 class ReminderTapHandler extends _$ReminderTapHandler {
   @override
   void build() {
+    // appDatabaseProvider throws while auth is still resolving the user.
+    if (ref.watch(authControllerProvider).isLoading) return;
+
     final pending = PendingLaunchRoute(ref);
     final gateway = ref.watch(notificationGatewayProvider);
     final repo = ref.watch(notesRepositoryProvider);
