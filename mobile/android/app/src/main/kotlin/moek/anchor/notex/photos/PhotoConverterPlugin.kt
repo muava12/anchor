@@ -1,4 +1,4 @@
-package com.zhfahim.anchor.photos
+package moek.anchor.notex.photos
 
 import android.os.Build
 import android.os.Handler
