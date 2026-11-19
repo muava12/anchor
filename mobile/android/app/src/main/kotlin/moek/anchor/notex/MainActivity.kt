@@ -1,13 +1,13 @@
-package com.zhfahim.anchor
+package moek.anchor.notex
 
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import com.zhfahim.anchor.backup.BackupFolderPlugin
-import com.zhfahim.anchor.photos.PhotoConverterPlugin
-import com.zhfahim.anchor.share.ShareFolderPlugin
-import com.zhfahim.anchor.widget.NotesWidgetProvider
+import moek.anchor.notex.backup.BackupFolderPlugin
+import moek.anchor.notex.photos.PhotoConverterPlugin
+import moek.anchor.notex.share.ShareFolderPlugin
+import moek.anchor.notex.widget.NotesWidgetProvider
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.plugin.common.MethodChannel
@@ -37,7 +37,7 @@ class MainActivity : FlutterFragmentActivity() {
         // arrow at the root of a folder asks for this instead of finishing.
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
-            "com.zhfahim.anchor/system",
+            "moek.anchor.notex/system",
         ).setMethodCallHandler { call, result ->
             when (call.method) {
                 "moveTaskToBack" -> result.success(moveTaskToBack(true))

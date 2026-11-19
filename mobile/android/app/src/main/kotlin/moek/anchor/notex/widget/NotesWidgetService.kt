@@ -1,4 +1,4 @@
-package com.zhfahim.anchor.widget
+package moek.anchor.notex.widget
 
 import android.content.Context
 import android.content.Intent
@@ -6,7 +6,7 @@ import android.content.res.Configuration
 import android.view.View
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
-import com.zhfahim.anchor.R
+import moek.anchor.notex.R
 import es.antonborri.home_widget.HomeWidgetPlugin
 import org.json.JSONObject
 

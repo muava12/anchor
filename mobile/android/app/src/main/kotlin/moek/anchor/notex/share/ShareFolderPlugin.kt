@@ -1,4 +1,4 @@
-package com.zhfahim.anchor.share
+package moek.anchor.notex.share
 
 import android.content.Context
 import io.flutter.embedding.engine.plugins.FlutterPlugin

@@ -1,4 +1,4 @@
-package com.zhfahim.anchor.share
+package moek.anchor.notex.share
 
 import android.app.Activity
 import android.content.Intent
