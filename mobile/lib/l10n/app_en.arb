@@ -1516,6 +1516,14 @@
   "@reminderExactMessage": {
     "description": "Message of the dialog that asks for Android’s Alarms & reminders permission."
   },
+  "reminderFullScreenTitle": "Keep reminders visible",
+  "@reminderFullScreenTitle": {
+    "description": "Title of the dialog that asks for the full-screen notification permission."
+  },
+  "reminderFullScreenMessage": "Without this, a reminder banner disappears after a few seconds. Turn on full-screen notifications so it stays until you act. Go to Settings → Special app access → Manage full screen intents → Notesx → ON.",
+  "@reminderFullScreenMessage": {
+    "description": "Message of the dialog that asks for the full-screen notification permission."
+  },
   "reminderNotificationsOff": "Notifications are off. Turn them on in your phone’s settings.",
   "@reminderNotificationsOff": {
     "description": "Toast when a reminder is set but notifications for the app are blocked."

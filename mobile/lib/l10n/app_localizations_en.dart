@@ -1106,6 +1106,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Android may delay reminders to save battery. Allow exact alarms so they ring on time.';
 
   @override
+  String get reminderFullScreenTitle =>
+      'Keep reminders visible';
+
+  @override
+  String get reminderFullScreenMessage =>
+      'Without this, a reminder banner disappears after a few seconds. Turn on full-screen notifications so it stays until you act. Go to Settings → Special app access → Manage full screen intents → Notesx → ON.';
+
+  @override
   String get reminderNotificationsOff =>
       'Notifications are off. Turn them on in your phone’s settings.';
 

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -60,6 +62,21 @@ Future<void> ensureReminderPermissions(
     confirmLabel: context.l10n.commonOpenSettings,
   );
   if (open) await controller.openExactSettings();
+
+  // Android 14+: keep the banner visible until the user acts.
+  if (Platform.isAndroid &&
+      (int.tryParse(Platform.operatingSystemVersion ?? '0') ?? 0) >= 14) {
+    final fsiOpen = await showAnchorDialog(
+      context,
+      icon: LucideIcons.bellRing,
+      title: context.l10n.reminderFullScreenTitle,
+      message: context.l10n.reminderFullScreenMessage,
+      cancelLabel: context.l10n.commonNotNow,
+      confirmLabel: context.l10n.commonOpenSettings,
+    );
+    // The user navigates to the system settings page manually;
+    // there is no in-app toggle for this special app access.
+  }
 }
 
 void _showTurnOnNotifications(BuildContext context) => AppSnackbar.show(

@@ -1948,6 +1948,18 @@ abstract class AppLocalizations {
   /// **'Android may delay reminders to save battery. Allow exact alarms so they ring on time.'**
   String get reminderExactMessage;
 
+  /// Title of the dialog that asks for the full-screen notification permission.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep reminders visible'**
+  String get reminderFullScreenTitle;
+
+  /// Message of the dialog that asks for the full-screen notification permission.
+  ///
+  /// In en, this message translates to:
+  /// **'Without this, a reminder banner disappears after a few seconds...'**
+  String get reminderFullScreenMessage;
+
   /// Toast when a reminder is set but notifications for the app are blocked.
   ///
   /// In en, this message translates to:
