@@ -7,6 +7,7 @@ import '../../../app/router/app_router.dart';
 import '../../../app/router/pending_launch_route.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/logging/log_tags.dart';
+import '../../../core/session/active_user_id_provider.dart';
 import '../../../core/storage/preferences_repository.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../notes/data/repository/notes_repository.dart';
