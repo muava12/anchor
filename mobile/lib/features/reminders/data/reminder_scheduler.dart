@@ -269,7 +269,7 @@ DateTime _nowLocal() => DateTime.now();
 /// A card the OS has not cleaned up after it fired: its scheduled time is
 /// still on the OS's pending list, but the heads-up is already showing.
 /// Cancelling it would drop the heads-up the user is reading.
-const _cancelGrace = Duration(minutes: 1);
+const _cancelGrace = Duration(minutes: 5);
 
 Future<ReminderSyncReport> applyReminders(
   NotificationGateway gateway,

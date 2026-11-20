@@ -85,11 +85,11 @@ class RecordingGateway implements NotificationGateway {
     passes++;
     final waiting = hold;
     if (waiting != null && !waiting.isCompleted) await waiting.future;
-    // Default: a stale time (2 min ago) so orphans are cancelled, matching
+    // Default: a stale time (10 min ago) so orphans are cancelled, matching
     // the pre-grace-period behaviour. Tests that exercise the grace period
     // override with a recent time via [pendingTimesOverride].
     final override = pendingTimesOverride;
-    final stale = DateTime.now().subtract(const Duration(minutes: 2));
+    final stale = DateTime.now().subtract(const Duration(minutes: 10));
     return {
       for (final id in pending) id: override?.call(id) ?? stale,
     };
@@ -505,7 +505,7 @@ void main() {
         repeating,
         pending: {
           for (final item in dated)
-            item.id: DateTime.now().subtract(const Duration(minutes: 2)),
+            item.id: DateTime.now().subtract(const Duration(minutes: 10)),
         },
       );
 
@@ -608,7 +608,7 @@ void main() {
     test('schedules every reminder and cancels the orphans', () async {
       final gateway = RecordingGateway();
 
-      final stale = DateTime.now().subtract(const Duration(minutes: 2));
+      final stale = DateTime.now().subtract(const Duration(minutes: 10));
       final report = await applyReminders(
         gateway,
         [desired(1), desired(2)],
@@ -625,7 +625,7 @@ void main() {
       final gateway = RecordingGateway();
 
       final fresh = DateTime.now().subtract(const Duration(seconds: 30));
-      final stale = DateTime.now().subtract(const Duration(minutes: 2));
+      final stale = DateTime.now().subtract(const Duration(minutes: 10));
       final report = await applyReminders(
         gateway,
         [desired(1), desired(2)],
