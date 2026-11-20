@@ -85,6 +85,8 @@ class ReminderTapHandler extends _$ReminderTapHandler {
   void build() {
     // appDatabaseProvider throws while auth is still resolving the user.
     if (ref.watch(authControllerProvider).isLoading) return;
+    // No user yet (fresh install, before login): the database is unavailable.
+    if (ref.watch(activeUserIdProvider) == null) return;
 
     final pending = PendingLaunchRoute(ref);
     final gateway = ref.watch(notificationGatewayProvider);
