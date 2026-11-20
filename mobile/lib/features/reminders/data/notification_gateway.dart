@@ -126,6 +126,9 @@ class LocalNotificationGateway implements NotificationGateway {
       actions: actions,
       // Swiping a reminder away quiets that occurrence only.
       dismissIsolate: important ? NotificationDismissedIsolate.main : null,
+      // Android 14+: without this, the HUN auto-dismisses after ~5s.
+      // With it: 60s (permission denied) or persistent (permission granted).
+      fullScreenIntent: important,
     );
   }
 

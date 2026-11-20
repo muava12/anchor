@@ -9,6 +9,10 @@
          first reminder. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <!-- Reminders: keep the heads-up visible on Android 14+.
+         Without this, the system auto-dismisses it after ~5 seconds.
+         With it, the HUN stays 60s (denied) or persists (granted). -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
     <!-- Saving a picture to the gallery on Android 10 and older. -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
