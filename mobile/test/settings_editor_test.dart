@@ -317,4 +317,33 @@ void main() {
     expect(find.text('Support Anchor', skipOffstage: false), findsNothing);
     debugDefaultTargetPlatformOverride = null;
   });
+
+  testWidgets('Account has Delete account, under Sign out', (tester) async {
+    await pumpSettings(tester);
+
+    final signOut = find.text('Sign out');
+    final delete = find.text('Delete account');
+    await tester.scrollUntilVisible(delete, 200);
+
+    expect(
+      tester.getTopLeft(signOut).dy,
+      lessThan(tester.getTopLeft(delete).dy),
+    );
+  });
+
+  testWidgets('the coffee link shows on Android', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    await pumpSettings(tester);
+
+    expect(find.text('Support Anchor', skipOffstage: false), findsOneWidget);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('the coffee link doesn’t show on iPhone', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    await pumpSettings(tester);
+
+    expect(find.text('Support Anchor', skipOffstage: false), findsNothing);
+    debugDefaultTargetPlatformOverride = null;
+  });
 }
