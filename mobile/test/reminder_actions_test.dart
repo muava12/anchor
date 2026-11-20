@@ -25,6 +25,7 @@ class RecordingGateway implements NotificationGateway {
 
   @override
   Future<List<int>> pendingIds() async => const [];
+  Future<Map<int, DateTime?>> pendingTimes() async => const {};
 
   @override
   Future<void> initialize() async {}

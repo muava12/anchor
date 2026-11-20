@@ -55,6 +55,15 @@ class ScheduledNotification {
 abstract class NotificationGateway {
   Future<void> initialize();
   Future<List<int>> pendingIds();
+
+  /// Pending notification ids with their scheduled times (wall-clock).
+  ///
+  /// An orphan scheduled within the last minute is a card the OS has not
+  /// cleaned up after it fired, not a leftover the reconcile should cancel.
+  /// Unknown times (null) are left alone: the OS holds them and a previous
+  /// app instance scheduled them.
+  Future<Map<int, DateTime?>> pendingTimes();
+
   Future<void> schedule(ScheduledNotification notification);
   Future<void> cancel(int id);
   Future<void> cancelAll();
@@ -72,6 +81,11 @@ class LocalNotificationGateway implements NotificationGateway {
 
   final FlutterLocalNotificationsPlugin _plugin;
   bool _initialized = false;
+
+  /// Wall-clock time each [id] was scheduled, for the grace-period check in
+  /// the reconcile. Lost on app restart: the OS still holds the card, and
+  /// `pendingTimes()` returns null for it, so the reconcile leaves it alone.
+  final Map<int, DateTime> _scheduledAt = {};
 
   /// Channel for reminders that must get attention.
   static const importantChannelId = 'reminders';
@@ -160,7 +174,17 @@ class LocalNotificationGateway implements NotificationGateway {
   }
 
   @override
+  Future<Map<int, DateTime?>> pendingTimes() async {
+    final pending = await _plugin.pendingNotificationRequests();
+    return {
+      for (final request in pending)
+        request.id: _scheduledAt[request.id],
+    };
+  }
+
+  @override
   Future<void> schedule(ScheduledNotification notification) async {
+    _scheduledAt[notification.id] = notification.at;
     final at = tz.TZDateTime.from(notification.at, tz.local);
     final l10n = deviceL10n();
     final mode = await canScheduleExact()

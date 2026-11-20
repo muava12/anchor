@@ -208,7 +208,7 @@ class ReminderScheduler extends _$ReminderScheduler {
 
       if (_sameAs(desired)) return;
 
-      final pending = (await gateway.pendingIds()).toSet();
+      final pending = await gateway.pendingTimes();
       final report = await applyReminders(gateway, desired, pending: pending);
 
       // Only a pass with no failures is remembered.
@@ -263,13 +263,35 @@ class ReminderScheduler extends _$ReminderScheduler {
   }
 }
 
+/// The device's local wall-clock time now, for the grace-period check.
+DateTime _nowLocal() => DateTime.now();
+
+/// A card the OS has not cleaned up after it fired: its scheduled time is
+/// still on the OS's pending list, but the heads-up is already showing.
+/// Cancelling it would drop the heads-up the user is reading.
+const _cancelGrace = Duration(minutes: 1);
+
 Future<ReminderSyncReport> applyReminders(
   NotificationGateway gateway,
   List<DesiredReminder> desired, {
-  required Set<int> pending,
+  required Map<int, DateTime?> pending,
 }) async {
   final wanted = {for (final item in desired) item.id};
-  final orphans = pending.difference(wanted);
+  var cancelled = 0;
+  final orphans = pending.keys.where(
+    (id) {
+      if (wanted.contains(id)) return false;
+      final at = pending[id];
+      // Unknown time (null): the OS holds it and a previous app instance
+      // scheduled it. Leave it alone.
+      if (at == null) return false;
+      // Inside the grace period: freshly fired, the heads-up is showing.
+      if (at.isAfter(_nowLocal().subtract(_cancelGrace))) return false;
+      // Older than the grace period: a leftover the reconcile should cancel.
+      cancelled++;
+      return true;
+    },
+  ).toList();
   var failed = 0;
 
   for (final id in orphans) {
@@ -300,7 +322,7 @@ Future<ReminderSyncReport> applyReminders(
     }
   }
 
-  return ReminderSyncReport(cancelled: orphans.length, failed: failed);
+  return ReminderSyncReport(cancelled: cancelled, failed: failed);
 }
 
 class ReminderSyncReport {

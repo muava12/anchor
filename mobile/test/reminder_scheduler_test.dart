@@ -38,6 +38,9 @@ class RecordingGateway implements NotificationGateway {
 
   final bool throwsOnCancelAll;
 
+  /// Per-id scheduled-time override for [pendingTimes]; null = unknown.
+  DateTime? Function(int id)? pendingTimesOverride;
+
   /// Holds every card the gateway was asked to show, in order.
   final rings = <ScheduledNotification>[];
   final scheduled = <int>[];
@@ -75,6 +78,21 @@ class RecordingGateway implements NotificationGateway {
     final waiting = hold;
     if (waiting != null && !waiting.isCompleted) await waiting.future;
     return pending;
+  }
+
+  @override
+  Future<Map<int, DateTime?>> pendingTimes() async {
+    passes++;
+    final waiting = hold;
+    if (waiting != null && !waiting.isCompleted) await waiting.future;
+    // Default: a stale time (2 min ago) so orphans are cancelled, matching
+    // the pre-grace-period behaviour. Tests that exercise the grace period
+    // override with a recent time via [pendingTimesOverride].
+    final override = pendingTimesOverride;
+    final stale = DateTime.now().subtract(const Duration(minutes: 2));
+    return {
+      for (final id in pending) id: override?.call(id) ?? stale,
+    };
   }
 
   @override
@@ -485,7 +503,10 @@ void main() {
       await applyReminders(
         gateway,
         repeating,
-        pending: {for (final item in dated) item.id},
+        pending: {
+          for (final item in dated)
+            item.id: DateTime.now().subtract(const Duration(minutes: 2)),
+        },
       );
 
       expect(gateway.scheduled, [7]);
@@ -587,16 +608,49 @@ void main() {
     test('schedules every reminder and cancels the orphans', () async {
       final gateway = RecordingGateway();
 
+      final stale = DateTime.now().subtract(const Duration(minutes: 2));
       final report = await applyReminders(
         gateway,
         [desired(1), desired(2)],
-        pending: {2, 9},
+        pending: {2: stale, 9: stale},
       );
 
       expect(gateway.scheduled, [1, 2]);
       expect(gateway.cancelled, [9]);
       expect(report.cancelled, 1);
       expect(report.failed, 0);
+    });
+
+    test('a freshly fired card is kept on the OS for the heads-up', () async {
+      final gateway = RecordingGateway();
+
+      final fresh = DateTime.now().subtract(const Duration(seconds: 30));
+      final stale = DateTime.now().subtract(const Duration(minutes: 2));
+      final report = await applyReminders(
+        gateway,
+        [desired(1), desired(2)],
+        // 2 is wanted (not an orphan); 9 is stale (cancel); 10 is fresh (keep).
+        pending: {2: stale, 9: stale, 10: fresh},
+      );
+
+      expect(gateway.scheduled, [1, 2]);
+      // 9 is a stale orphan: cancelled. 10 is a fresh orphan: kept.
+      expect(gateway.cancelled, [9]);
+      expect(report.cancelled, 1);
+    });
+
+    test('unknown scheduled time is kept (previous app instance)', () async {
+      final gateway = RecordingGateway();
+
+      final report = await applyReminders(
+        gateway,
+        [desired(1)],
+        pending: {1: null, 9: null},
+      );
+
+      // Both unknown: kept on the OS.
+      expect(gateway.cancelled, isEmpty);
+      expect(report.cancelled, 0);
     });
 
     test('one reminder the OS refuses does not stop the rest', () async {
