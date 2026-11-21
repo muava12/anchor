@@ -215,12 +215,12 @@ void main() {
       ]);
     });
 
-    test('every button brings the app to the front so the press is delivered', () {
+    test('only snooze brings the app to the front', () {
       final actions = reminderActions(english);
 
-      expect(actions.first.showsUserInterface, isTrue);
+      expect(actions.first.showsUserInterface, isFalse);
       expect(actions[1].showsUserInterface, isTrue);
-      expect(actions[2].showsUserInterface, isTrue);
+      expect(actions[2].showsUserInterface, isFalse);
     });
 
     test('done and dismiss clear the card, snooze keeps it', () {
