@@ -1564,6 +1564,18 @@
   "@reminderActionDismiss": {
     "description": "Button on a reminder notification that quiets this occurrence only."
   },
+  "reminderActionMarkDone": "Mark as done",
+  "@reminderActionMarkDone": {
+    "description": "Label of the mark-done button on the full-screen reminder sheet."
+  },
+  "reminderActionClose": "Close",
+  "@reminderActionClose": {
+    "description": "Label of the close button on the full-screen reminder sheet. Slides the sheet down; the banner stays."
+  },
+  "reminderDoneToast": "Selesai",
+  "@reminderDoneToast": {
+    "description": "Toast shown when a reminder is marked done from the background."
+  },
   "snoozeSheetTitle": "Snooze",
   "@snoozeSheetTitle": {
     "description": "Title of the snooze sheet."
