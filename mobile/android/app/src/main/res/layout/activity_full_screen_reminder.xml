@@ -69,26 +69,22 @@
             <Button
                 android:id="@+id/btn_mark_done"
                 style="@style/FsiActionButton"
-                android:drawableStart="@android:drawable/checkbox_on_background"
-                android:text="Mark as done" />
+                android:text="✓  Mark as done" />
 
             <Button
                 android:id="@+id/btn_dismiss"
                 style="@style/FsiActionButton"
-                android:drawableStart="@android:drawable/ic_lock_notification_lock"
-                android:text="Dismiss" />
+                android:text="×  Dismiss" />
 
             <Button
                 android:id="@+id/btn_snooze"
                 style="@style/FsiActionButton"
-                android:drawableStart="@android:drawable/ic_lock_alarm"
-                android:text="Snooze" />
+                android:text="⏰  Snooze" />
 
             <Button
                 android:id="@+id/btn_close"
                 style="@style/FsiActionButton"
-                android:drawableStart="@android:drawable/arrow_down_float"
-                android:text="Close" />
+                android:text="↓  Close" />
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>
