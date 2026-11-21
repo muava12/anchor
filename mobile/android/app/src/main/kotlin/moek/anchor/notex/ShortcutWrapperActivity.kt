@@ -5,17 +5,20 @@ import android.content.Intent
 import android.os.Bundle
 
 /**
- * Transparent trampoline that receives a launcher-shortcut intent
- * and forwards it to the Flutter engine as a deep-link extra.
- * Finishes immediately so the user lands on the Flutter screen.
+ * Transparent trampoline for a launcher shortcut. It stashes the shortcut type
+ * so the Flutter engine can drain it on resume, then brings MainActivity to the
+ * front and finishes. The value lives in SharedPreferences, so it survives a
+ * cold start (the trampoline runs before the Flutter engine is up).
  */
 class ShortcutWrapperActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val shortcutType = intent?.getStringExtra("shortcut_type") ?: ""
+        val shortcutType = intent?.getStringExtra("shortcut_type")
+        if (!shortcutType.isNullOrEmpty()) {
+            ShortcutLaunchChannel.stash(this, shortcutType)
+        }
         val appIntent = Intent(this, MainActivity::class.java).apply {
-            putExtra("flutter_shortcut", shortcutType)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         startActivity(appIntent)

@@ -38,6 +38,10 @@ class MainActivity : FlutterFragmentActivity() {
             this,
             MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "moek.anchor.notex/reminder_actions"),
         )
+        ShortcutLaunchChannel(
+            this,
+            MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "moek.anchor.notex/shortcuts"),
+        )
         // FlutterFragmentActivity has no popSystemNavigator hook, so the back
         // arrow at the root of a folder asks for this instead of finishing.
         MethodChannel(

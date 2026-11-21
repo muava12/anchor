@@ -51,6 +51,11 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Launcher shortcuts: long-press the app icon for quick actions.
+                 Without this, Android ignores res/xml/shortcuts.xml. -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts"/>
         </activity>
         <!-- Another app's share: a see-through screen that shows only the share sheet. -->
         <activity
