@@ -1145,6 +1145,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderActionDismiss => 'Dismiss';
 
   @override
+  String get reminderActionMarkDone => 'Mark as done';
+
+  @override
+  String get reminderActionClose => 'Close';
+
+  @override
+  String get reminderDoneToast => 'Selesai';
+
+  @override
   String get snoozeSheetTitle => 'Snooze';
 
   @override

@@ -98,6 +98,29 @@
                 <data android:mimeType="audio/webm"/>
             </intent-filter>
         </activity>
+        <receiver
+            android:exported="true"
+            android:name="moek.anchor.notex.reminders.ReminderActionReceiver">
+            <intent-filter>
+                <action android:name="moek.anchor.notex.REMINDER_DONE"/>
+                <action android:name="moek.anchor.notex.REMINDER_DISMISS"/>
+            </intent-filter>
+        </receiver>
+        <!-- Full-screen reminder sheet: translucent, shows on lockscreen. -->
+        <activity
+            android:name="moek.anchor.notex.reminders.FullScreenReminderActivity"
+            android:exported="false"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@style/Theme.FsiActivity"
+            android:launchMode="singleInstance" />
+
+        <!-- Launcher shortcut trampoline. -->
+        <activity
+            android:name="moek.anchor.notex.ShortcutWrapperActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.Translucent" />
+
         <!-- Re-arms pending alarms after a reboot or an app update. -->
         <receiver
             android:exported="false"

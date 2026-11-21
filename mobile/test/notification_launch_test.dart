@@ -85,4 +85,13 @@ void main() {
       expect(takePendingReminderActions(), isEmpty);
     });
   });
+
+  group('drainNativePendingAction', () {
+    testWidgets('returns null on non-Android platforms', (tester) async {
+      // Platform.isAndroid is false on the test host, so the function
+      // returns null without touching the channel.
+      final action = await drainNativePendingAction();
+      expect(action, isNull);
+    });
+  });
 }

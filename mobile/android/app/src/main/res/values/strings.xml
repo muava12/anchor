@@ -7,4 +7,8 @@
     <string name="widget_new_note">New note</string>
     <string name="widget_empty">No notes yet.\nTap + to write your first one.</string>
     <string name="widget_logged_out">Sign in to Anchor\nto see your notes here.</string>
+    <!-- Launcher shortcuts -->
+    <string name="shortcut_new_note">New note</string>
+    <string name="shortcut_new_journal">New journal</string>
+    <string name="shortcut_new_reminder">New reminder</string>
 </resources>

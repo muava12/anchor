@@ -2020,6 +2020,24 @@ abstract class AppLocalizations {
   /// **'Dismiss'**
   String get reminderActionDismiss;
 
+  /// Label of the mark-done button on the full-screen reminder sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as done'**
+  String get reminderActionMarkDone;
+
+  /// Label of the close button on the full-screen reminder sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get reminderActionClose;
+
+  /// Toast shown when a reminder is marked done from the background.
+  ///
+  /// In en, this message translates to:
+  /// **'Selesai'**
+  String get reminderDoneToast;
+
   /// Title of the snooze sheet.
   ///
   /// In en, this message translates to:
