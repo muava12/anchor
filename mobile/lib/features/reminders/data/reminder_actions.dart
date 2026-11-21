@@ -89,6 +89,7 @@ List<AndroidNotificationAction> reminderActions(AppLocalizations l10n) => [
     reminderActionWireId(ReminderActionType.done),
     l10n.reminderActionDone,
     cancelNotification: true,
+    showsUserInterface: true,
   ),
   AndroidNotificationAction(
     reminderActionWireId(ReminderActionType.snooze),
@@ -100,6 +101,7 @@ List<AndroidNotificationAction> reminderActions(AppLocalizations l10n) => [
     reminderActionWireId(ReminderActionType.dismiss),
     l10n.reminderActionDismiss,
     cancelNotification: true,
+    showsUserInterface: true,
   ),
 ];
 
