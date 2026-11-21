@@ -106,6 +106,14 @@
                 <action android:name="moek.anchor.notex.REMINDER_DISMISS"/>
             </intent-filter>
         </receiver>
+        <!-- Full-screen reminder sheet: translucent, shows on lockscreen. -->
+        <activity
+            android:name="moek.anchor.notex.reminders.FullScreenReminderActivity"
+            android:exported="false"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@style/Theme.FsiActivity"
+            android:launchMode="singleInstance" />
         <!-- Re-arms pending alarms after a reboot or an app update. -->
         <receiver
             android:exported="false"
