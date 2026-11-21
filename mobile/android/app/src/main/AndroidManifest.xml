@@ -119,7 +119,7 @@
         <activity
             android:name="moek.anchor.notex.ShortcutWrapperActivity"
             android:exported="true"
-            android:theme="@style/Theme.AppCompat.Translucent" />
+            android:theme="@android:style/Theme.NoDisplay" />
 
         <!-- Re-arms pending alarms after a reboot or an app update. -->
         <receiver

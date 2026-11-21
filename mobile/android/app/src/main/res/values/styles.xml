@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Share extension theme (pre-existing reference in manifest). -->
+    <style name="ShareTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/white</item>
+    </style>
+
     <!-- Full-screen reminder sheet: translucent, shows on lockscreen. -->
     <style name="Theme.FsiActivity" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@android:color/transparent</item>
