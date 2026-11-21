@@ -25,6 +25,7 @@ class RecordingGateway implements NotificationGateway {
 
   @override
   Future<List<int>> pendingIds() async => const [];
+  @override
   Future<Map<int, DateTime?>> pendingTimes() async => const {};
 
   @override
@@ -44,6 +45,9 @@ class RecordingGateway implements NotificationGateway {
 
   @override
   Future<void> requestExactPermission() async {}
+
+  @override
+  Future<bool> requestFullScreenIntentPermission() async => true;
 }
 
 class RefusingGateway extends RecordingGateway {
@@ -215,12 +219,12 @@ void main() {
       ]);
     });
 
-    test('only snooze brings the app to the front', () {
+    test('every button brings the app to the front so the press is delivered', () {
       final actions = reminderActions(english);
 
-      expect(actions.first.showsUserInterface, isFalse);
+      expect(actions.first.showsUserInterface, isTrue);
       expect(actions[1].showsUserInterface, isTrue);
-      expect(actions[2].showsUserInterface, isFalse);
+      expect(actions[2].showsUserInterface, isTrue);
     });
 
     test('done and dismiss clear the card, snooze keeps it', () {

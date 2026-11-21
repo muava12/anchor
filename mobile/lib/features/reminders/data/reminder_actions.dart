@@ -81,14 +81,15 @@ ReminderAction? reminderActionFrom(NotificationResponse response) {
 
 /// The three buttons on a reminder card, in the order Android shows them.
 ///
-/// Done and dismiss clear the card themselves, so the OS drops it even when
-/// the app cannot run. Snooze brings the app to the front: its picker (Task 5)
-/// is a sheet in the app.
+/// Every button brings the app to the front so the press is delivered and the
+/// occurrence settles in the foreground; Done and Dismiss also clear the card.
+/// Snooze's picker (Task 5) is a sheet in the app.
 List<AndroidNotificationAction> reminderActions(AppLocalizations l10n) => [
   AndroidNotificationAction(
     reminderActionWireId(ReminderActionType.done),
     l10n.reminderActionDone,
     cancelNotification: true,
+    showsUserInterface: true,
   ),
   AndroidNotificationAction(
     reminderActionWireId(ReminderActionType.snooze),
@@ -100,6 +101,7 @@ List<AndroidNotificationAction> reminderActions(AppLocalizations l10n) => [
     reminderActionWireId(ReminderActionType.dismiss),
     l10n.reminderActionDismiss,
     cancelNotification: true,
+    showsUserInterface: true,
   ),
 ];
 
