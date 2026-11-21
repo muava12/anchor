@@ -32,6 +32,7 @@ class RecordingGateway implements NotificationGateway {
 
   @override
   Future<List<int>> pendingIds() async => const [];
+  @override
   Future<Map<int, DateTime?>> pendingTimes() async => const {};
 
   @override
@@ -51,6 +52,9 @@ class RecordingGateway implements NotificationGateway {
 
   @override
   Future<void> requestExactPermission() async {}
+
+  @override
+  Future<bool> requestFullScreenIntentPermission() async => true;
 }
 
 /// Holds one note and records reminder writes.

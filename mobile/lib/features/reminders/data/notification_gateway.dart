@@ -74,6 +74,10 @@ abstract class NotificationGateway {
   /// Android 14+ keeps exact alarms behind a separate grant.
   Future<bool> canScheduleExact();
   Future<void> requestExactPermission();
+
+  /// Android 14+ keeps heads-up (full-screen) notifications behind a separate
+  /// grant; without it the heads-up auto-dismisses after ~5s.
+  Future<bool> requestFullScreenIntentPermission();
 }
 
 class LocalNotificationGateway implements NotificationGateway {
@@ -283,6 +287,21 @@ class LocalNotificationGateway implements NotificationGateway {
         error: error,
         stackTrace: stack,
       );
+    }
+  }
+
+  @override
+  Future<bool> requestFullScreenIntentPermission() async {
+    try {
+      return await _android?.requestFullScreenIntentPermission() ?? true;
+    } catch (error, stack) {
+      AppLogger.instance.error(
+        LogTags.notifications,
+        'Full-screen intent permission request failed',
+        error: error,
+        stackTrace: stack,
+      );
+      return false;
     }
   }
 }

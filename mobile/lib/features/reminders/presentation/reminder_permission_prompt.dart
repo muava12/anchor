@@ -7,6 +7,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/widgets/anchor_dialog.dart';
 import '../../../core/widgets/app_snackbar.dart';
 import '../../../l10n/l10n.dart';
+import '../data/notification_gateway.dart';
 import '../data/reminder_permissions.dart';
 
 enum ReminderPermissionTrigger { userSet, synced }
@@ -64,9 +65,10 @@ Future<void> ensureReminderPermissions(
   if (open) await controller.openExactSettings();
 
   // Android 14+: keep the banner visible until the user acts.
+  if (!context.mounted) return;
   if (Platform.isAndroid &&
-      (int.tryParse(Platform.operatingSystemVersion ?? '0') ?? 0) >= 14) {
-    await showAnchorDialog(
+      (int.tryParse(Platform.operatingSystemVersion) ?? 0) >= 14) {
+    final open = await showAnchorDialog(
       context,
       icon: LucideIcons.bellRing,
       title: context.l10n.reminderFullScreenTitle,
@@ -74,6 +76,11 @@ Future<void> ensureReminderPermissions(
       cancelLabel: context.l10n.commonNotNow,
       confirmLabel: context.l10n.commonOpenSettings,
     );
+    if (open) {
+      await ref
+          .read(notificationGatewayProvider)
+          .requestFullScreenIntentPermission();
+    }
   }
 }
 

@@ -38,10 +38,14 @@ class FakeGateway implements NotificationGateway {
   Future<void> requestExactPermission() async => exactScreensOpened++;
 
   @override
+  Future<bool> requestFullScreenIntentPermission() async => true;
+
+  @override
   Future<void> initialize() async {}
 
   @override
   Future<List<int>> pendingIds() async => const [];
+  @override
   Future<Map<int, DateTime?>> pendingTimes() async => const {};
 
   @override

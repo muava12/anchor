@@ -109,6 +109,9 @@ class RecordingGateway implements NotificationGateway {
 
   @override
   Future<void> requestExactPermission() async {}
+
+  @override
+  Future<bool> requestFullScreenIntentPermission() async => true;
 }
 
 class StubAuthController extends AuthController {
