@@ -135,6 +135,13 @@ class ReminderTapHandler extends _$ReminderTapHandler {
     for (final action in takePendingReminderActions()) {
       unawaited(carryOut(action));
     }
+    // Background presses (Done / Dismiss) landed in the native
+    // BroadcastReceiver while the app was closed; drain them now.
+    unawaited(
+      drainNativePendingAction().then((action) {
+        if (action != null) carryOut(action);
+      }),
+    );
     ref.onDispose(() {
       taps.cancel();
       actions.cancel();

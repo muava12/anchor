@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../../../app/router/app_routes.dart';
@@ -53,6 +56,30 @@ List<ReminderAction> takePendingReminderActions() {
   final pending = List<ReminderAction>.of(_pendingReminderActions);
   _pendingReminderActions.clear();
   return pending;
+}
+
+/// Drains the native BroadcastReceiver's pending action (SharedPreferences).
+///
+/// On Android the [ReminderActionReceiver] writes a Done or Dismiss press
+/// that landed while the app was in the background. This call retrieves
+/// and clears it, returning a [ReminderAction] or null when nothing is pending.
+Future<ReminderAction?> drainNativePendingAction() async {
+  if (!Platform.isAndroid) return null;
+  try {
+    const channel = MethodChannel('moek.anchor.notex/reminder_actions');
+    final result = await channel.invokeMethod<Map<Object?, Object?>>('drainPending');
+    if (result == null) return null;
+    final noteId = result['noteId'] as String? ?? '';
+    final type = result['type'] as String? ?? '';
+    if (noteId.isEmpty) return null;
+    final actionType = type == 'done'
+        ? ReminderActionType.done
+        : ReminderActionType.dismiss;
+    return ReminderAction(type: actionType, noteId: noteId);
+  } on PlatformException {
+    debugPrint('drainNativePendingAction: channel not ready');
+    return null;
+  }
 }
 
 /// Returns the route a cold-start tap asked for. Safe to call before the

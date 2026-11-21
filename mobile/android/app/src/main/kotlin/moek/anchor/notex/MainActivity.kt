@@ -7,6 +7,7 @@ import android.os.Bundle
 import moek.anchor.notex.backup.BackupFolderPlugin
 import moek.anchor.notex.photos.PhotoConverterPlugin
 import moek.anchor.notex.share.ShareFolderPlugin
+import moek.anchor.notex.reminders.ReminderActionChannel
 import moek.anchor.notex.widget.NotesWidgetProvider
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import io.flutter.embedding.android.FlutterFragmentActivity
@@ -33,6 +34,10 @@ class MainActivity : FlutterFragmentActivity() {
         flutterEngine.plugins.add(BackupFolderPlugin())
         flutterEngine.plugins.add(PhotoConverterPlugin())
         flutterEngine.plugins.add(ShareFolderPlugin(listens = true))
+        ReminderActionChannel(
+            this,
+            MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "moek.anchor.notex/reminder_actions"),
+        )
         // FlutterFragmentActivity has no popSystemNavigator hook, so the back
         // arrow at the root of a folder asks for this instead of finishing.
         MethodChannel(
