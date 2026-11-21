@@ -1,10 +1,6 @@
 package moek.anchor.notex.reminders
 
-import android.app.PendingIntent
-import android.app.notification.Action
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
