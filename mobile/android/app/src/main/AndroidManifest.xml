@@ -114,6 +114,13 @@
             android:turnScreenOn="true"
             android:theme="@style/Theme.FsiActivity"
             android:launchMode="singleInstance" />
+
+        <!-- Launcher shortcut trampoline. -->
+        <activity
+            android:name="moek.anchor.notex.ShortcutWrapperActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.Translucent" />
+
         <!-- Re-arms pending alarms after a reboot or an app update. -->
         <receiver
             android:exported="false"
