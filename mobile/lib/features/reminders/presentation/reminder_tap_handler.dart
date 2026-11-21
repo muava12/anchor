@@ -9,6 +9,7 @@ import '../../../core/logging/app_logger.dart';
 import '../../../core/logging/log_tags.dart';
 import '../../../core/session/active_user_id_provider.dart';
 import '../../../core/storage/preferences_repository.dart';
+import '../../../l10n/l10n.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../notes/data/repository/notes_repository.dart';
 import '../data/notification_gateway.dart';
@@ -16,6 +17,7 @@ import '../data/reminder_actions.dart';
 import '../data/reminder_scheduler.dart';
 import '../data/reminder_snooze.dart';
 import 'notification_launch.dart';
+import 'reminder_labels.dart';
 import 'snooze_sheet.dart';
 
 part 'reminder_tap_handler.g.dart';
@@ -55,10 +57,21 @@ Future<void> promptReminderSnooze(
   }
 
   if (context != null && context.mounted) {
+    final l10n = context.l10n;
+    final rawTitle = note?.title.trim() ?? '';
+    final title = rawTitle.isNotEmpty ? rawTitle : '';
+    final repeat = note?.reminder?.recurrence;
+    final repeatText = repeat != null && repeat.repeats
+        ? repeatLabel(repeat, l10n)
+        : null;
+    final label = [title, if (repeatText != null) repeatText]
+        .where((s) => s.isNotEmpty)
+        .join(' · ');
     await showSnoozeSheet(
       context,
       recurring: recurring,
       latestMinutes: latest,
+      reminderLabel: label.isEmpty ? null : label,
       onSnooze: (minutes) => snoozeOccurrence(
         noteId,
         minutes,

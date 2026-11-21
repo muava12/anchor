@@ -25,6 +25,7 @@ Future<int?> showSnoozeSheet(
   required bool recurring,
   required Future<void> Function(int minutes) onSnooze,
   int? latestMinutes,
+  String? reminderLabel,
 }) {
   return showAnchorSheet<int>(
     context,
@@ -33,6 +34,7 @@ Future<int?> showSnoozeSheet(
       recurring: recurring,
       onSnooze: onSnooze,
       latestMinutes: latestMinutes,
+      reminderLabel: reminderLabel,
     ),
   );
 }
@@ -44,11 +46,15 @@ class _SnoozeSheet extends StatefulWidget {
     required this.recurring,
     required this.onSnooze,
     this.latestMinutes,
+    this.reminderLabel,
   });
 
   final bool recurring;
   final Future<void> Function(int minutes) onSnooze;
   final int? latestMinutes;
+
+  /// The note's title + recurrence, shown under the sheet title.
+  final String? reminderLabel;
 
   @override
   State<_SnoozeSheet> createState() => _SnoozeSheetState();
@@ -137,7 +143,7 @@ class _SnoozeSheetState extends State<_SnoozeSheet> {
       children: [
         SheetHeader(
           title: l10n.snoozeSheetTitle,
-          subtitle: l10n.snoozeSheetSubtitle,
+          subtitle: widget.reminderLabel ?? l10n.snoozeSheetSubtitle,
         ),
         Flexible(
           child: SingleChildScrollView(

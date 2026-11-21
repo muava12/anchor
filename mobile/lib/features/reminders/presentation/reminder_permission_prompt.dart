@@ -66,7 +66,7 @@ Future<void> ensureReminderPermissions(
   // Android 14+: keep the banner visible until the user acts.
   if (Platform.isAndroid &&
       (int.tryParse(Platform.operatingSystemVersion ?? '0') ?? 0) >= 14) {
-    final fsiOpen = await showAnchorDialog(
+    await showAnchorDialog(
       context,
       icon: LucideIcons.bellRing,
       title: context.l10n.reminderFullScreenTitle,
@@ -74,8 +74,6 @@ Future<void> ensureReminderPermissions(
       cancelLabel: context.l10n.commonNotNow,
       confirmLabel: context.l10n.commonOpenSettings,
     );
-    // The user navigates to the system settings page manually;
-    // there is no in-app toggle for this special app access.
   }
 }
 
