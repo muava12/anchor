@@ -98,6 +98,14 @@
                 <data android:mimeType="audio/webm"/>
             </intent-filter>
         </activity>
+        <receiver
+            android:exported="true"
+            android:name="moek.anchor.notex.reminders.ReminderActionReceiver">
+            <intent-filter>
+                <action android:name="moek.anchor.notex.REMINDER_DONE"/>
+                <action android:name="moek.anchor.notex.REMINDER_DISMISS"/>
+            </intent-filter>
+        </receiver>
         <!-- Re-arms pending alarms after a reboot or an app update. -->
         <receiver
             android:exported="false"
