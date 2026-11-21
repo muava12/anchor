@@ -1,5 +1,7 @@
 package moek.anchor.notex.reminders
 
+import moek.anchor.notex.MainActivity
+import moek.anchor.notex.R
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle

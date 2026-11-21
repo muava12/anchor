@@ -1,5 +1,6 @@
 package moek.anchor.notex
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 
@@ -8,14 +9,16 @@ import android.os.Bundle
  * and forwards it to the Flutter engine as a deep-link extra.
  * Finishes immediately so the user lands on the Flutter screen.
  */
-class ShortcutWrapperActivity : MainActivity() {
+class ShortcutWrapperActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Forward the shortcut_type extra so the Flutter router
-        // can open the right create form.
-        val shortcutType = intent?.getStringExtra("shortcut_type") ?: ""
-        intent.putExtra("flutter_shortcut", shortcutType)
         super.onCreate(savedInstanceState)
+        val shortcutType = intent?.getStringExtra("shortcut_type") ?: ""
+        val appIntent = Intent(this, MainActivity::class.java).apply {
+            putExtra("flutter_shortcut", shortcutType)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        startActivity(appIntent)
         finish()
     }
 }
