@@ -6,7 +6,6 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 
@@ -61,18 +60,18 @@ class FullScreenReminderActivity : Activity() {
 
         sheetView = findViewById(R.id.fsi_sheet)
 
-        // Wire up the four action buttons.
-        findViewById<Button>(R.id.btn_mark_done).setOnClickListener {
+        // Wire up the four action rows (icon + label LinearLayouts).
+        findViewById<View>(R.id.btn_mark_done).setOnClickListener {
             // Done: settle + drop the card + finish. Toast shown by the receiver.
             sendActionBroadcast(noteId, notificationId, ReminderActionReceiver.ACTION_DONE)
             finish()
         }
-        findViewById<Button>(R.id.btn_dismiss).setOnClickListener {
+        findViewById<View>(R.id.btn_dismiss).setOnClickListener {
             // Dismiss: quiet this occurrence, drop the card, no toast.
             sendActionBroadcast(noteId, notificationId, ReminderActionReceiver.ACTION_DISMISS)
             finish()
         }
-        findViewById<Button>(R.id.btn_snooze).setOnClickListener {
+        findViewById<View>(R.id.btn_snooze).setOnClickListener {
             // Snooze: open the app (Flutter snooze picker).
             val appIntent = Intent(this, MainActivity::class.java).apply {
                 putExtra("snooze_note_id", noteId)
@@ -81,7 +80,7 @@ class FullScreenReminderActivity : Activity() {
             startActivity(appIntent)
             finish()
         }
-        findViewById<Button>(R.id.btn_close).setOnClickListener {
+        findViewById<View>(R.id.btn_close).setOnClickListener {
             // Close: slide the sheet down, banner stays.
             finish()
         }

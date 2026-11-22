@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FSI sheet background: solid surface + a 1px top hairline (the Doop design's
+     inset top highlight, ~7% white). The hairline reads on dark and is
+     invisible on the light surface. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/fsi_surface" />
+        </shape>
+    </item>
+    <item android:gravity="top">
+        <shape android:shape="rectangle">
+            <size android:height="1dp" />
+            <solid android:color="#12FFFFFF" />
+        </shape>
+    </item>
+</layer-list>

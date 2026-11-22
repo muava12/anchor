@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Full-screen reminder sheet (dark). Must match the app tokens from
+     design/tokens (dark). See the Doop "Reminder — Sheet flat" frame. -->
+<resources>
+    <color name="fsi_surface">#1C1D21</color>
+    <color name="fsi_text">#EAEAEA</color>
+    <color name="fsi_muted">#9CA8B8</color>
+    <color name="fsi_accent">#EF8354</color>
+</resources>
