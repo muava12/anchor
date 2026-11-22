@@ -85,6 +85,37 @@
             android:orientation="vertical">
 
             <LinearLayout
+                android:id="@+id/btn_open_note"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:minHeight="44dp"
+                android:orientation="horizontal"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_fsi_open_note" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:fontFamily="@font/dm_sans"
+                    android:fontVariationSettings="'wght' 500"
+                    android:text="@string/fsi_action_open_note"
+                    android:textColor="@color/fsi_text"
+                    android:textSize="13.5sp"
+                    tools:ignore="NewApi" />
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/btn_mark_done"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
