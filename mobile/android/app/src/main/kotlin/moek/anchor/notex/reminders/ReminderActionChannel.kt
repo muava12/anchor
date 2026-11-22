@@ -10,6 +10,8 @@ import io.flutter.plugin.common.MethodChannel
  *
  * - [drainPending] reads a Done/Dismiss press that reached
  *   [ReminderActionReceiver] while the app was closed.
+ * - [drainPendingSnoozes] empties the [PendingSnoozeStore] so the app can
+ *   apply the natively snoozed times to its database on the next start.
  * - [armReminder] / [cancelReminder] / [cancelAllReminders] drive the native
  *   exact-alarm scheduler so a reminder rings even with the app not running.
  * - [pendingReminders] reports the native pending set, so a reconcile can find
@@ -28,6 +30,17 @@ class ReminderActionChannel(
         when (call.method) {
             "drainPending" -> {
                 val pending = ReminderActionReceiver.drainPending(context)
+                result.success(pending)
+            }
+
+            "drainPendingSnoozes" -> {
+                val pending = PendingSnoozeStore.drain(context).map {
+                    mapOf(
+                        "noteId" to it.noteId,
+                        "newAtMillis" to it.newAtMillis,
+                        "recurrence" to it.recurrence,
+                    )
+                }
                 result.success(pending)
             }
 

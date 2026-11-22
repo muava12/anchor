@@ -38,6 +38,7 @@ class ScheduledNotification {
     required this.repeat,
     required this.payload,
     this.tier = NotificationTier.important,
+    this.recurrence = 'none',
   });
 
   final int id;
@@ -51,6 +52,11 @@ class ScheduledNotification {
 
   /// Which notification channel this notification uses.
   final NotificationTier tier;
+
+  /// The note's recurrence (its ReminderRecurrence name, "none" for a
+  /// one-off); the native stack keeps it so a snooze of the card can restash
+  /// the series correctly.
+  final String recurrence;
 }
 
 abstract class NotificationGateway {
@@ -243,17 +249,15 @@ class LocalNotificationGateway implements NotificationGateway {
   Future<bool> _armNativeReminder(ScheduledNotification notification) async {
     if (!Platform.isAndroid) return false;
     try {
-      await _reminderChannel.invokeMethod(
-        'armReminder',
-        <String, Object?>{
-          'id': notification.id,
-          'noteId': notification.payload,
-          'title': notification.title,
-          'body': notification.body,
-          'atMillis': notification.at.millisecondsSinceEpoch,
-          'snoozeNoteId': notification.payload,
-        },
-      );
+      await _reminderChannel.invokeMethod('armReminder', <String, Object?>{
+        'id': notification.id,
+        'noteId': notification.payload,
+        'title': notification.title,
+        'body': notification.body,
+        'atMillis': notification.at.millisecondsSinceEpoch,
+        'snoozeNoteId': notification.payload,
+        'recurrence': notification.recurrence,
+      });
       return true;
     } on PlatformException {
       return false;
