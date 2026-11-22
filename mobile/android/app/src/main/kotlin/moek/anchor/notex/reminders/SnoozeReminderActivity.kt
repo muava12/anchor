@@ -147,7 +147,7 @@ class SnoozeReminderActivity : Activity() {
 
         val now = Calendar.getInstance()
         val laterToday = Calendar.getInstance().apply {
-            time = now
+            time = now.time
             add(Calendar.HOUR_OF_DAY, 3)
             set(Calendar.MINUTE, (get(Calendar.MINUTE) + 4) / 5 * 5)
             set(Calendar.SECOND, 0)
@@ -164,7 +164,7 @@ class SnoozeReminderActivity : Activity() {
         }
 
         val tomorrow = Calendar.getInstance().apply {
-            time = now
+            time = now.time
             add(Calendar.DAY_OF_MONTH, 1)
             set(Calendar.HOUR_OF_DAY, 9)
             set(Calendar.MINUTE, 0)

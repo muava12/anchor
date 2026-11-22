@@ -73,9 +73,9 @@ object SnoozeScheduleHelper {
     /** Wall-clock "date time" of [atMillis] for the toast, e.g. "Jun 5, 2026 9:00 AM". */
     private fun wallClock(context: Context, atMillis: Long): String {
         val locale = context.resources.configuration.locale ?: Locale.getDefault()
-        val when = Date(atMillis)
-        return DateFormat.getDateInstance(java.text.DateFormat.MEDIUM, locale).format(when) +
+        val at = Date(atMillis)
+        return DateFormat.getDateInstance(java.text.DateFormat.MEDIUM, locale).format(at) +
             " " +
-            DateFormat.getTimeInstance(java.text.DateFormat.SHORT, locale).format(when)
+            DateFormat.getTimeInstance(java.text.DateFormat.SHORT, locale).format(at)
     }
 }
