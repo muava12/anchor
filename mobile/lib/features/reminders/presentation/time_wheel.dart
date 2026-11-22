@@ -12,12 +12,13 @@ class TimeWheel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.anchor;
+    // The wheel steps by one minute, so show the exact picked minute.
     final start = DateTime(
       at.year,
       at.month,
       at.day,
       at.hour,
-      at.minute - at.minute % 5,
+      at.minute,
     );
     return SizedBox(
       height: 180, // off-scale: five rows of the time wheel
@@ -33,7 +34,7 @@ class TimeWheel extends StatelessWidget {
         child: CupertinoDatePicker(
           mode: CupertinoDatePickerMode.time,
           initialDateTime: start,
-          minuteInterval: 5,
+          minuteInterval: 1,
           use24hFormat: MediaQuery.alwaysUse24HourFormatOf(context),
           onDateTimeChanged: onChanged,
         ),
