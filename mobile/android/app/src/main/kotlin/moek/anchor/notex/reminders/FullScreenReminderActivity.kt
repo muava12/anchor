@@ -45,8 +45,10 @@ class FullScreenReminderActivity : Activity() {
         val body = intent?.getStringExtra(EXTRA_BODY) ?: ""
         val tag = intent?.getStringExtra(EXTRA_TAG) ?: ""
         val time = intent?.getStringExtra(EXTRA_TIME) ?: ""
-        // Not yet plumbed through the fire path; blank means "none" to the
-        // snooze sheet, which hides the repeating-only chip and suffix.
+        // Recurrence comes through the fire path: the receiver reads it from
+        // the alarm extras and the builder puts it on the sheet intent. Blank
+        // means "none" to the snooze sheet, which hides the repeating-only
+        // chip and suffix.
         val recurrence = intent?.getStringExtra(SnoozeReminderActivity.EXTRA_RECURRANCE) ?: ""
 
         // Fill the header + body.
@@ -67,7 +69,10 @@ class FullScreenReminderActivity : Activity() {
             // Open note: bring the app to the front; Flutter opens the note.
             val appIntent = Intent(this, MainActivity::class.java).apply {
                 putExtra("open_note_id", noteId)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                // NEW_TASK | CLEAR_TOP matches the banner-tap intent: a
+                // background launch reuses the task instead of stacking a
+                // duplicate MainActivity; the extras reach onNewIntent.
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
             }
             startActivity(appIntent)
             finish()

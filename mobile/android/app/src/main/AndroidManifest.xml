@@ -140,7 +140,7 @@
             android:launchMode="singleInstance" />
 
         <!-- Standalone snooze sheet: re-schedules a fired reminder without
-             launching the app (placeholder UI until the re-schedule lands). -->
+             launching the app (re-arms natively, stashes for the app). -->
         <activity
             android:name="moek.anchor.notex.reminders.SnoozeReminderActivity"
             android:exported="false"

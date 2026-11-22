@@ -15,14 +15,12 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:background="@drawable/bg_fsi_sheet"
-        android:fontFamily="@font/dm_sans"
         android:orientation="vertical"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingTop="16dp"
         android:paddingBottom="24dp"
-        android:textColor="@color/fsi_text"
-        tools:ignore="UnusedAttribute">
+        android:textColor="@color/fsi_text">
 
         <!-- Header: accent bell + meta -->
         <LinearLayout

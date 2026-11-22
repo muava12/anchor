@@ -2,6 +2,7 @@ package moek.anchor.notex.reminders
 
 import android.content.Context
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 
 /** One natively re-armed snooze that still has to reach the app. */
@@ -42,16 +43,24 @@ object PendingSnoozeStore {
         val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getString(KEY, null) ?: return emptyList()
         val out = mutableListOf<PendingSnooze>()
-        val arr = JSONArray(raw)
-        for (i in 0 until arr.length()) {
-            val o = arr.getJSONObject(i)
-            out.add(
-                PendingSnooze(
-                    noteId = o.getString("noteId"),
-                    newAtMillis = o.getLong("newAtMillis"),
-                    recurrence = o.optString("recurrence", "none"),
+        try {
+            val arr = JSONArray(raw)
+            for (i in 0 until arr.length()) {
+                val o = arr.getJSONObject(i)
+                out.add(
+                    PendingSnooze(
+                        noteId = o.getString("noteId"),
+                        newAtMillis = o.getLong("newAtMillis"),
+                        recurrence = o.optString("recurrence", "none"),
+                    )
                 )
-            )
+            }
+        } catch (e: JSONException) {
+            // A corrupt value would otherwise make every drain throw before it
+            // clears the stash, losing the snooze. Drop it and start fresh.
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .edit().remove(KEY).apply()
+            return emptyList()
         }
         return out
     }
