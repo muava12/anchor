@@ -23,4 +23,17 @@
     <string name="fsi_action_dismiss">Dismiss</string>
     <string name="fsi_action_snooze">Snooze</string>
     <string name="fsi_action_close">Close</string>
+    <!-- Standalone snooze sheet (Doop "Reminder — Snooze picker (sheet flat)"). -->
+    <string name="snooze_sheet_title">Snooze</string>
+    <string name="snooze_label_snooze_for">Snooze for</string>
+    <string name="snooze_label_today">Today</string>
+    <string name="snooze_chip_10min">10 min</string>
+    <string name="snooze_chip_30min">30 min</string>
+    <string name="snooze_chip_1hour">1 hour</string>
+    <string name="snooze_chip_4hours">4 hours</string>
+    <string name="snooze_chip_1day">1 day</string>
+    <string name="snooze_preset_later_today">Later today</string>
+    <string name="snooze_preset_tomorrow">Tomorrow</string>
+    <string name="snooze_preset_pick">Pick a date and time</string>
+    <string name="snooze_toast_snoozed">Snoozed until %1$s</string>
 </resources>
