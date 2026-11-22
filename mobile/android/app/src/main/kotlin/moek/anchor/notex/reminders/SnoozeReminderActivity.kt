@@ -1,29 +1,29 @@
 package moek.anchor.notex.reminders
 
 import android.app.Activity
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.Bundle
+import android.text.format.DateFormat
 import android.view.View
 import android.widget.TextView
-import android.widget.Toast
-import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import moek.anchor.notex.R
+import java.util.Calendar
 
 /**
  * Standalone snooze sheet (Doop "Reminder — Snooze picker (sheet flat)",
  * frame Wn02ojCMhA).
  *
  * Translucent, show-when-locked sibling of [FullScreenReminderActivity]:
- * re-schedules a fired reminder WITHOUT launching the app. Launched with
- * the FSI/banner extras (see [EXTRA_NOTE_ID] and friends).
- *
- * In this revision every option is a placeholder (toast + finish); the
- * native re-schedule logic — chips → [SnoozeScheduleHelper], presets →
- * date/time picker — lands in the follow-up task.
+ * re-schedules a fired reminder WITHOUT launching the app, via
+ * [SnoozeScheduleHelper] (native re-arm + [PendingSnoozeStore] stash).
+ * Launched with the FSI/banner extras (see [EXTRA_NOTE_ID] and friends).
  */
 class SnoozeReminderActivity : Activity() {
 
@@ -45,13 +45,19 @@ class SnoozeReminderActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_snooze_reminder)
+        // The sheet can be opened from the lock screen (banner/FSI snooze
+        // action); keep it visible there too.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            setShowWhenLocked(true)
+            setTurnScreenOn(true)
+        }
 
+        val noteId = intent?.getStringExtra(EXTRA_NOTE_ID) ?: ""
         val title = intent?.getStringExtra(EXTRA_TITLE) ?: ""
+        val body = intent?.getStringExtra(EXTRA_BODY) ?: ""
         val recurrence = intent?.getStringExtra(EXTRA_RECURRANCE)
             ?.takeIf { it.isNotBlank() } ?: RECURRANCE_NONE
-        // EXTRA_NOTE_ID, EXTRA_BODY and EXTRA_NOTIFICATION_ID travel with
-        // the intent for the re-schedule logic; the placeholder handlers
-        // below only need title + recurrence.
+        val notificationId = intent?.getIntExtra(EXTRA_NOTIFICATION_ID, 0) ?: 0
 
         paintScrimAndOptionBackgrounds()
 
@@ -70,7 +76,7 @@ class SnoozeReminderActivity : Activity() {
         findViewById<View>(R.id.chip_1day).visibility =
             if (recurrence != RECURRANCE_NONE) View.VISIBLE else View.GONE
 
-        wireOptions()
+        wireOptions(noteId, title, body, recurrence, notificationId)
     }
 
     private fun paintScrimAndOptionBackgrounds() {
@@ -109,36 +115,109 @@ class SnoozeReminderActivity : Activity() {
         }
     }
 
-    private fun wireOptions() {
-        // Chips: skip the hidden "1 day" chip when the reminder is one-shot.
+    private fun wireOptions(
+        noteId: String,
+        title: String,
+        body: String,
+        recurrence: String,
+        notificationId: Int,
+    ) {
+        val context = this
+        val snooze: (Long) -> Unit = { targetMillis ->
+            SnoozeScheduleHelper.snooze(context, noteId, notificationId, title, body, recurrence, targetMillis)
+            finish()
+        }
+
+        // Chips: now + minutes; the hidden "1 day" chip never binds.
         val chips = listOf(
-            R.id.chip_10min to R.string.snooze_chip_10min,
-            R.id.chip_30min to R.string.snooze_chip_30min,
-            R.id.chip_1hour to R.string.snooze_chip_1hour,
-            R.id.chip_4hours to R.string.snooze_chip_4hours,
-            R.id.chip_1day to R.string.snooze_chip_1day,
+            R.id.chip_10min to 10,
+            R.id.chip_30min to 30,
+            R.id.chip_1hour to 60,
+            R.id.chip_4hours to 240,
+            R.id.chip_1day to 1440,
         )
-        chips.forEach { (viewId, labelRes) ->
+        chips.forEach { (viewId, minutes) ->
             val chip = findViewById<TextView>(viewId)
             if (chip.visibility == View.VISIBLE) {
-                chip.setOnClickListener { onSelect(labelRes) }
+                chip.setOnClickListener {
+                    snooze(System.currentTimeMillis() + minutes * 60_000L)
+                }
             }
         }
-        val presets = listOf(
-            R.id.preset_later_today to R.string.snooze_preset_later_today,
-            R.id.preset_tomorrow to R.string.snooze_preset_tomorrow,
-            R.id.preset_pick to R.string.snooze_preset_pick,
-        )
-        presets.forEach { (viewId, labelRes) ->
-            findViewById<View>(viewId).setOnClickListener { onSelect(labelRes) }
+
+        val now = Calendar.getInstance()
+        val laterToday = Calendar.getInstance().apply {
+            time = now
+            add(Calendar.HOUR_OF_DAY, 3)
+            set(Calendar.MINUTE, (get(Calendar.MINUTE) + 4) / 5 * 5)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        findViewById<View>(R.id.preset_later_today).apply {
+            // Hidden when the result lands on a different day.
+            val sameDay =
+                laterToday.get(Calendar.YEAR) == now.get(Calendar.YEAR) &&
+                    laterToday.get(Calendar.MONTH) == now.get(Calendar.MONTH) &&
+                    laterToday.get(Calendar.DAY_OF_MONTH) == now.get(Calendar.DAY_OF_MONTH)
+            visibility = if (sameDay) View.VISIBLE else View.GONE
+            setOnClickListener { snooze(laterToday.timeInMillis) }
+        }
+
+        val tomorrow = Calendar.getInstance().apply {
+            time = now
+            add(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 9)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        findViewById<View>(R.id.preset_tomorrow).setOnClickListener {
+            snooze(tomorrow.timeInMillis)
+        }
+
+        findViewById<View>(R.id.preset_pick).setOnClickListener {
+            pickDateTime(noteId, notificationId, title, body, recurrence)
         }
     }
 
-    /** Placeholder: the option's label toasts, then the sheet closes.
-     * The real re-schedule (toast + snooze) replaces this body. */
-    private fun onSelect(@StringRes labelRes: Int) {
-        Toast.makeText(this, getString(labelRes), Toast.LENGTH_SHORT).show()
-        finish()
+    /** Native date → time pickers, prefilled to now + 1h. */
+    private fun pickDateTime(
+        noteId: String,
+        notificationId: Int,
+        title: String,
+        body: String,
+        recurrence: String,
+    ) {
+        val prefill = Calendar.getInstance().apply { add(Calendar.HOUR_OF_DAY, 1) }
+        DatePickerDialog(
+            this,
+            {
+                _, year, month, day ->
+                TimePickerDialog(
+                    this,
+                    { _, hour, minute ->
+                        val target = Calendar.getInstance().apply {
+                            set(year, month, day)
+                            set(Calendar.HOUR_OF_DAY, hour)
+                            set(Calendar.MINUTE, minute)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }
+                        SnoozeScheduleHelper.snooze(
+                            this@SnoozeReminderActivity, noteId, notificationId, title, body, recurrence,
+                            target.timeInMillis
+                        )
+                        finish()
+                    },
+                    prefill.get(Calendar.HOUR_OF_DAY),
+                    prefill.get(Calendar.MINUTE),
+                    DateFormat.is24HourFormat(this)
+                ).show()
+            },
+            prefill.get(Calendar.YEAR),
+            prefill.get(Calendar.MONTH),
+            prefill.get(Calendar.DAY_OF_MONTH)
+        ).show()
     }
 
     /** Subtle fill: ~6% of fsi_text over the surface. */

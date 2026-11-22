@@ -38,6 +38,7 @@ class ReminderActionChannel(
                 val body = call.argument<String>("body") ?: ""
                 val atMillis = call.argument<Long>("atMillis") ?: 0L
                 val snoozeNoteId = call.argument<String>("snoozeNoteId") ?: ""
+                val recurrence = call.argument<String>("recurrence") ?: "none"
                 ReminderAlarmStore.upsert(
                     context,
                     mapOf(
@@ -47,9 +48,10 @@ class ReminderActionChannel(
                         "body" to body,
                         "atMillis" to atMillis,
                         "snoozeNoteId" to snoozeNoteId,
+                        "recurrence" to recurrence,
                     )
                 )
-                ReminderAlarmScheduler.arm(context, id, noteId, title, body, atMillis, snoozeNoteId)
+                ReminderAlarmScheduler.arm(context, id, noteId, title, body, atMillis, snoozeNoteId, recurrence)
                 result.success(true)
             }
 
