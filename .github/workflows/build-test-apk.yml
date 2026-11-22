@@ -1,0 +1,87 @@
+# Build a signed test APK on demand (no release created).
+#
+# Trigger manually (gh workflow run build-test-apk.yml) when you want an
+# installable arm64 test build of the current branch without tagging a
+# release. It reuses the release keystore secret, so the APK installs over the
+# existing app (no uninstall). The split-abi APKs are uploaded as an artifact.
+name: Build test APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch or tag to build"
+        required: false
+        default: "main"
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.inputs.ref || 'main' }}
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: 3.47.9
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Decode and save keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > android/app/upload-keystore.jks
+          else
+            keytool -genkeypair -v -keystore android/app/upload-keystore.jks \
+              -alias anchor -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass anchorfork -keypass anchorfork \
+              -dname "CN=Anchor test, OU=Build, O=Anchor, L=, S=, C=US"
+          fi
+
+      - name: Create key.properties
+        run: |
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            cat > android/key.properties << EOF
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          storeFile=./upload-keystore.jks
+          EOF
+          else
+            cat > android/key.properties << EOF
+          storePassword=anchorfork
+          keyPassword=anchorfork
+          keyAlias=anchor
+          storeFile=./upload-keystore.jks
+          EOF
+          fi
+
+      - name: Build split APKs
+        run: flutter build apk --release --split-per-abi
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-apk
+          path: mobile/build/app/outputs/flutter-apk/app-*-release.apk
