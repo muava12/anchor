@@ -45,6 +45,7 @@ object ReminderNotificationBuilder {
             putExtra(FullScreenReminderActivity.EXTRA_NOTE_ID, noteId)
             putExtra(FullScreenReminderActivity.EXTRA_TITLE, title)
             putExtra(FullScreenReminderActivity.EXTRA_BODY, body)
+            putExtra(ReminderActionReceiver.EXTRA_NOTIFICATION_ID, id)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         val fullScreen = PendingIntent.getActivity(context, id * 2 + 1, sheet, flags)
@@ -62,10 +63,10 @@ object ReminderNotificationBuilder {
             .setContentIntent(content)
             .setFullScreenIntent(fullScreen, true)
             .addAction(
-                doneAction(context, id * 3 + 1, noteId)
+                doneAction(context, id * 3 + 1, noteId, id)
             )
             .addAction(
-                dismissAction(context, id * 3 + 2, noteId)
+                dismissAction(context, id * 3 + 2, noteId, id)
             )
             .addAction(
                 snoozeAction(context, id * 3 + 3, snoozeNote)
@@ -75,19 +76,21 @@ object ReminderNotificationBuilder {
         nm.notify(id, notification)
     }
 
-    private fun doneAction(context: Context, code: Int, noteId: String): NotificationCompat.Action {
+    private fun doneAction(context: Context, code: Int, noteId: String, notificationId: Int): NotificationCompat.Action {
         val intent = Intent(context, ReminderActionReceiver::class.java).apply {
             action = ReminderActionReceiver.ACTION_DONE
             putExtra(ReminderActionReceiver.EXTRA_NOTE_ID, noteId)
+            putExtra(ReminderActionReceiver.EXTRA_NOTIFICATION_ID, notificationId)
         }
         val pi = PendingIntent.getBroadcast(context, code, intent, pendingFlags())
         return NotificationCompat.Action.Builder(0, context.getString(R.string.reminder_action_done), pi).build()
     }
 
-    private fun dismissAction(context: Context, code: Int, noteId: String): NotificationCompat.Action {
+    private fun dismissAction(context: Context, code: Int, noteId: String, notificationId: Int): NotificationCompat.Action {
         val intent = Intent(context, ReminderActionReceiver::class.java).apply {
             action = ReminderActionReceiver.ACTION_DISMISS
             putExtra(ReminderActionReceiver.EXTRA_NOTE_ID, noteId)
+            putExtra(ReminderActionReceiver.EXTRA_NOTIFICATION_ID, notificationId)
         }
         val pi = PendingIntent.getBroadcast(context, code, intent, pendingFlags())
         return NotificationCompat.Action.Builder(0, context.getString(R.string.reminder_action_dismiss), pi).build()

@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
+import androidx.core.app.NotificationManagerCompat
 
 /**
  * Receives reminder action intents (Done / Dismiss) fired from the
@@ -18,6 +19,7 @@ class ReminderActionReceiver : android.content.BroadcastReceiver() {
         const val ACTION_DONE = "moek.anchor.notex.REMINDER_DONE"
         const val ACTION_DISMISS = "moek.anchor.notex.REMINDER_DISMISS"
         const val EXTRA_NOTE_ID = "note_id"
+        const val EXTRA_NOTIFICATION_ID = "notification_id"
         const val PREFS_NAME = "reminder_actions"
         const val KEY_PENDING_NOTE_ID = "pending_note_id"
         const val KEY_PENDING_TYPE = "pending_type"
@@ -48,6 +50,13 @@ class ReminderActionReceiver : android.content.BroadcastReceiver() {
             .putString(KEY_PENDING_NOTE_ID, noteId)
             .putString(KEY_PENDING_TYPE, type)
             .apply()
+
+        // Done and Dismiss settle the occurrence; drop the card now so it does
+        // not linger, even with the app closed. Snooze keeps the card.
+        val notificationId = intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1)
+        if (notificationId >= 0) {
+            NotificationManagerCompat.from(context).cancel(notificationId)
+        }
 
         if (type == "done") {
             Handler(Looper.getMainLooper()).post {

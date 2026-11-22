@@ -29,6 +29,7 @@ class FullScreenReminderActivity : Activity() {
         const val EXTRA_BODY = "body"
         const val EXTRA_TAG = "tag"
         const val EXTRA_TIME = "time"
+        const val EXTRA_NOTIFICATION_ID = "notification_id"
     }
 
     private var sheetView: View? = null
@@ -41,6 +42,7 @@ class FullScreenReminderActivity : Activity() {
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
 
         val noteId = intent?.getStringExtra(EXTRA_NOTE_ID) ?: ""
+        val notificationId = intent?.getIntExtra(EXTRA_NOTIFICATION_ID, -1) ?: -1
         val title = intent?.getStringExtra(EXTRA_TITLE) ?: ""
         val body = intent?.getStringExtra(EXTRA_BODY) ?: ""
         val tag = intent?.getStringExtra(EXTRA_TAG) ?: ""
@@ -61,13 +63,13 @@ class FullScreenReminderActivity : Activity() {
 
         // Wire up the four action buttons.
         findViewById<Button>(R.id.btn_mark_done).setOnClickListener {
-            // Done: settle + finish. Toast shown by the BroadcastReceiver.
-            sendActionBroadcast(noteId, ReminderActionReceiver.ACTION_DONE)
+            // Done: settle + drop the card + finish. Toast shown by the receiver.
+            sendActionBroadcast(noteId, notificationId, ReminderActionReceiver.ACTION_DONE)
             finish()
         }
         findViewById<Button>(R.id.btn_dismiss).setOnClickListener {
-            // Dismiss: quiet this occurrence, no toast.
-            sendActionBroadcast(noteId, ReminderActionReceiver.ACTION_DISMISS)
+            // Dismiss: quiet this occurrence, drop the card, no toast.
+            sendActionBroadcast(noteId, notificationId, ReminderActionReceiver.ACTION_DISMISS)
             finish()
         }
         findViewById<Button>(R.id.btn_snooze).setOnClickListener {
@@ -85,10 +87,11 @@ class FullScreenReminderActivity : Activity() {
         }
     }
 
-    private fun sendActionBroadcast(noteId: String, action: String) {
+    private fun sendActionBroadcast(noteId: String, notificationId: Int, action: String) {
         val intent = Intent(this, ReminderActionReceiver::class.java).apply {
             this.action = action
             putExtra(ReminderActionReceiver.EXTRA_NOTE_ID, noteId)
+            putExtra(ReminderActionReceiver.EXTRA_NOTIFICATION_ID, notificationId)
         }
         sendBroadcast(intent)
     }
