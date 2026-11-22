@@ -11,4 +11,11 @@
     <string name="shortcut_new_note">New note</string>
     <string name="shortcut_new_journal">New journal</string>
     <string name="shortcut_new_reminder">New reminder</string>
+    <!-- Native reminder notification: channel + action labels (the app may be
+         closed when the reminder fires, so these live in res, not Dart). -->
+    <string name="reminder_channel_name">Reminders</string>
+    <string name="reminder_channel_description">Reminders you set on your notes</string>
+    <string name="reminder_action_done">Done</string>
+    <string name="reminder_action_snooze">Snooze</string>
+    <string name="reminder_action_dismiss">Dismiss</string>
 </resources>

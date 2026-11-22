@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -84,6 +85,12 @@ class LocalNotificationGateway implements NotificationGateway {
   LocalNotificationGateway(this._plugin);
 
   final FlutterLocalNotificationsPlugin _plugin;
+
+  /// Drives the native exact-alarm reminder stack (Android). The silent tier
+  /// and any non-Android platform stay on the plugin.
+  final MethodChannel _reminderChannel =
+      const MethodChannel('moek.anchor.notex/reminder_actions');
+
   bool _initialized = false;
 
   /// Wall-clock time each [id] was scheduled, for the grace-period check in
@@ -176,22 +183,34 @@ class LocalNotificationGateway implements NotificationGateway {
 
   @override
   Future<List<int>> pendingIds() async {
-    final pending = await _plugin.pendingNotificationRequests();
-    return pending.map((request) => request.id).toList();
+    final pluginIds =
+        (await _plugin.pendingNotificationRequests()).map((request) => request.id);
+    final native = (await _nativePendingTimes()).keys;
+    return [...pluginIds, ...native].toSet().toList();
   }
 
   @override
   Future<Map<int, DateTime?>> pendingTimes() async {
-    final pending = await _plugin.pendingNotificationRequests();
-    return {
-      for (final request in pending)
-        request.id: _scheduledAt[request.id],
+    final pluginPending = await _plugin.pendingNotificationRequests();
+    final pluginTimes = <int, DateTime?>{
+      for (final request in pluginPending) request.id: _scheduledAt[request.id],
     };
+    // Native reminders persist their fire time on disk; the plugin does not.
+    return {...pluginTimes, ...await _nativePendingTimes()};
   }
 
   @override
   Future<void> schedule(ScheduledNotification notification) async {
     _scheduledAt[notification.id] = notification.at;
+    // Reminders ring natively so the sheet and buttons work with the app
+    // closed. Pinned notes (the silent tier) keep the plugin.
+    if (notification.tier == NotificationTier.important &&
+        await _armNativeReminder(notification)) {
+      // A previous build may have scheduled this reminder on the plugin; retire
+      // that copy so the native and plugin alarms do not both fire.
+      await _plugin.cancel(id: notification.id);
+      return;
+    }
     final at = tz.TZDateTime.from(notification.at, tz.local);
     final l10n = deviceL10n();
     final mode = await canScheduleExact()
@@ -220,11 +239,80 @@ class LocalNotificationGateway implements NotificationGateway {
     );
   }
 
-  @override
-  Future<void> cancel(int id) => _plugin.cancel(id: id);
+  /// Arms the native exact alarm; false when unavailable (iOS, no channel).
+  Future<bool> _armNativeReminder(ScheduledNotification notification) async {
+    if (!Platform.isAndroid) return false;
+    try {
+      await _reminderChannel.invokeMethod(
+        'armReminder',
+        <String, Object?>{
+          'id': notification.id,
+          'noteId': notification.payload,
+          'title': notification.title,
+          'body': notification.body,
+          'atMillis': notification.at.millisecondsSinceEpoch,
+          'snoozeNoteId': notification.payload,
+        },
+      );
+      return true;
+    } on PlatformException {
+      return false;
+    } on MissingPluginException {
+      return false;
+    }
+  }
+
+  /// Native pending reminders as id to wall-clock time (null-able).
+  Future<Map<int, DateTime?>> _nativePendingTimes() async {
+    if (!Platform.isAndroid) return {};
+    try {
+      final result =
+          await _reminderChannel.invokeMethod<Map<Object?, Object?>>('pendingReminders');
+      if (result == null || result.isEmpty) return {};
+      return <int, DateTime?>{
+        for (final entry in result.entries)
+          entry.key as int: DateTime.fromMillisecondsSinceEpoch(entry.value as int),
+      };
+    } on PlatformException {
+      return {};
+    } on MissingPluginException {
+      return {};
+    }
+  }
 
   @override
-  Future<void> cancelAll() => _plugin.cancelAll();
+  Future<void> cancel(int id) async {
+    await _cancelNativeReminder(id);
+    await _plugin.cancel(id: id);
+  }
+
+  @override
+  Future<void> cancelAll() async {
+    await _cancelAllNativeReminders();
+    await _plugin.cancelAll();
+  }
+
+  Future<void> _cancelNativeReminder(int id) async {
+    if (!Platform.isAndroid) return;
+    try {
+      await _reminderChannel.invokeMethod('cancelReminder', <String, Object?>{'id': id});
+    } on PlatformException {
+      // The native side is absent; the plugin cancel still stands.
+    } on MissingPluginException {
+      // Same.
+    }
+  }
+
+  Future<void> _cancelAllNativeReminders() async {
+    if (!Platform.isAndroid) return;
+    try {
+      await _reminderChannel.invokeMethod('cancelAllReminders');
+    } on PlatformException {
+      // No-op when the native side is absent.
+    } on MissingPluginException {
+      // Same.
+    }
+  }
 
   @override
   Future<bool> hasPermission() async {

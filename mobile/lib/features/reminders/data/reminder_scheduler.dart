@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/widgets.dart';
@@ -396,14 +397,19 @@ List<DesiredReminder> desiredReminders(
     final at = nextOccurrence(reminder, from: now);
     if (at == null) continue;
 
-    final repeat = matchComponentsFor(reminder.recurrence);
-    if (repeat == null || canUseOsRepeat(reminder, now: now)) {
-      desired.add(ring(slot, at, repeat));
-    } else {
-      final dates = nextOccurrences(reminder, from: now, count: _datedRings);
-      for (final (index, date) in dates.indexed) {
-        desired.add(ring(slot + index * _datedRingIdStep, date, null));
+    // On Android a reminder rings natively and an alarm has no OS-level
+    // repeat, so every ring is a dated one-shot. Elsewhere the plugin can use
+    // an OS repeat, so one card covers the whole period.
+    if (!Platform.isAndroid) {
+      final repeat = matchComponentsFor(reminder.recurrence);
+      if (repeat == null || canUseOsRepeat(reminder, now: now)) {
+        desired.add(ring(slot, at, repeat));
+        continue;
       }
+    }
+    final dates = nextOccurrences(reminder, from: now, count: _datedRings);
+    for (final (index, date) in dates.indexed) {
+      desired.add(ring(slot + index * _datedRingIdStep, date, null));
     }
   }
 

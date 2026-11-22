@@ -111,6 +111,25 @@
                 <action android:name="moek.anchor.notex.REMINDER_DISMISS"/>
             </intent-filter>
         </receiver>
+        <!-- Posts the reminder notification when its exact alarm fires, even
+             with the app closed; its buttons settle natively. -->
+        <receiver
+            android:exported="false"
+            android:name="moek.anchor.notex.reminders.ReminderFireReceiver">
+            <intent-filter>
+                <action android:name="moek.anchor.notex.REMINDER_FIRE"/>
+            </intent-filter>
+        </receiver>
+        <!-- Re-arms pending reminders after a reboot or an app update. -->
+        <receiver
+            android:exported="true"
+            android:name="moek.anchor.notex.reminders.ReminderBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
+        </receiver>
         <!-- Full-screen reminder sheet: translucent, shows on lockscreen. -->
         <activity
             android:name="moek.anchor.notex.reminders.FullScreenReminderActivity"
