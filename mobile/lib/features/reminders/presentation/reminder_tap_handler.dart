@@ -142,9 +142,68 @@ class ReminderTapHandler extends _$ReminderTapHandler {
         if (action != null) carryOut(action);
       }),
     );
+    // A native Snooze / content-intent tap stashed a note id before the engine
+    // was up; open the snooze picker or the note.
+    unawaited(
+      _drainNativeLaunchExtras(
+        pending: pending,
+        gateway: gateway,
+        repo: repo,
+        preferences: preferences,
+        navigatorKey: navigatorKey,
+      ),
+    );
+    final resumeObserver = _LaunchExtrasResumeObserver(
+      () => _drainNativeLaunchExtras(
+        pending: pending,
+        gateway: gateway,
+        repo: repo,
+        preferences: preferences,
+        navigatorKey: navigatorKey,
+      ),
+    );
+    WidgetsBinding.instance.addObserver(resumeObserver);
     ref.onDispose(() {
+      WidgetsBinding.instance.removeObserver(resumeObserver);
       taps.cancel();
       actions.cancel();
     });
+  }
+}
+
+/// Opens what a native Snooze / content intent asked for, if it stashed one.
+Future<void> _drainNativeLaunchExtras({
+  required PendingLaunchRoute pending,
+  required NotificationGateway gateway,
+  required NotesRepository repo,
+  required PreferencesRepository preferences,
+  required GlobalKey<NavigatorState> navigatorKey,
+}) async {
+  final extras = await drainNativeLaunchExtras();
+  if (extras == null) return;
+  if (extras.snoozeNoteId != null) {
+    await promptReminderSnooze(
+      extras.snoozeNoteId!,
+      gateway: gateway,
+      repo: repo,
+      preferences: preferences,
+      navigatorKey: navigatorKey,
+    );
+  }
+  if (extras.openNoteId != null) {
+    final route = notificationRouteForPayload(extras.openNoteId);
+    if (route != null) pending.open(route);
+  }
+}
+
+/// Re-drains the stashed launch extra on every resume (a warm Snooze tap).
+class _LaunchExtrasResumeObserver with WidgetsBindingObserver {
+  _LaunchExtrasResumeObserver(this._onResumed);
+
+  final Future<void> Function() _onResumed;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) unawaited(_onResumed());
   }
 }

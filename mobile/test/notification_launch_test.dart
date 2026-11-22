@@ -94,4 +94,12 @@ void main() {
       expect(action, isNull);
     });
   });
+
+  group('drainNativeLaunchExtras', () {
+    testWidgets('returns null on non-Android platforms', (tester) async {
+      // No stashed launch extra on the test host; the channel is not there.
+      final extras = await drainNativeLaunchExtras();
+      expect(extras, isNull);
+    });
+  });
 }

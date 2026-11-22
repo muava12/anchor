@@ -82,6 +82,37 @@ Future<ReminderAction?> drainNativePendingAction() async {
   }
 }
 
+/// A note id the native Snooze / content intent asked to open.
+class NativeLaunchExtras {
+  const NativeLaunchExtras({this.snoozeNoteId, this.openNoteId});
+
+  /// Open the snooze picker for this note.
+  final String? snoozeNoteId;
+
+  /// Open this note directly.
+  final String? openNoteId;
+}
+
+/// Drains the launch extra the native Snooze / content intent stashed.
+///
+/// [LaunchExtrasChannel] (via MainActivity) records it before the engine is up;
+/// this returns it once and clears it. Null on a plain launch or non-Android.
+Future<NativeLaunchExtras?> drainNativeLaunchExtras() async {
+  if (!Platform.isAndroid) return null;
+  try {
+    const channel = MethodChannel('moek.anchor.notex/launch_extras');
+    final result =
+        await channel.invokeMethod<Map<Object?, Object?>>('drainLaunchExtras');
+    if (result == null) return null;
+    final snooze = result['snoozeNoteId'] as String?;
+    final open = result['openNoteId'] as String?;
+    if (snooze == null && open == null) return null;
+    return NativeLaunchExtras(snoozeNoteId: snooze, openNoteId: open);
+  } on PlatformException {
+    return null;
+  }
+}
+
 /// Returns the route a cold-start tap asked for. Safe to call before the
 /// first frame; does not touch the timezone database.
 Future<String?> initializeNotifications() async {

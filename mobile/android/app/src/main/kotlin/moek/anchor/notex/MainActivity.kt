@@ -20,12 +20,14 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         attachWidgetNoteUri(intent)
+        stashLaunchExtras(intent)
         super.onCreate(savedInstanceState)
         preferFastestRefreshRate()
     }
 
     override fun onNewIntent(intent: Intent) {
         attachWidgetNoteUri(intent)
+        stashLaunchExtras(intent)
         super.onNewIntent(intent)
     }
 
@@ -41,6 +43,10 @@ class MainActivity : FlutterFragmentActivity() {
         ShortcutLaunchChannel(
             this,
             MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "moek.anchor.notex/shortcuts"),
+        )
+        LaunchExtrasChannel(
+            this,
+            MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "moek.anchor.notex/launch_extras"),
         )
         // FlutterFragmentActivity has no popSystemNavigator hook, so the back
         // arrow at the root of a folder asks for this instead of finishing.
@@ -73,5 +79,15 @@ class MainActivity : FlutterFragmentActivity() {
         if (intent.data != null) return
         val noteId = intent.getStringExtra(NotesWidgetProvider.EXTRA_NOTE_ID) ?: return
         intent.data = Uri.parse("${NotesWidgetProvider.URI_SCHEME}://note/$noteId")
+    }
+
+    // A native reminder's Snooze / content intent opens MainActivity with a note
+    // id; stash it so the Flutter engine can open the snooze picker or the note.
+    private fun stashLaunchExtras(intent: Intent?) {
+        val snooze = intent?.getStringExtra("snooze_note_id")
+        val open = intent?.getStringExtra("open_note_id")
+        if (!snooze.isNullOrEmpty() || !open.isNullOrEmpty()) {
+            LaunchExtrasChannel.stash(this, snooze, open)
+        }
     }
 }
