@@ -13,9 +13,11 @@ import moek.anchor.notex.R
 /**
  * Builds and posts the reminder notification natively: ongoing, big text, and
  * native action buttons that reach [ReminderActionReceiver] even when the app
- * is closed (Done / Dismiss), with Snooze bringing the app to the front. The
- * full-screen and content intents point at [FullScreenReminderActivity] so
- * the reminder sheet shows on the lock screen and home screen.
+ * is closed (Done / Dismiss), with Snooze opening the standalone snooze
+ * sheet ([SnoozeReminderActivity]) that re-arms the reminder without the
+ * app. The full-screen and content intents point at
+ * [FullScreenReminderActivity] so the reminder sheet shows on the lock
+ * screen and home screen.
  */
 object ReminderNotificationBuilder {
     private const val CHANNEL_ID = "reminders"
@@ -27,6 +29,7 @@ object ReminderNotificationBuilder {
         title: String,
         body: String,
         snoozeNoteId: String,
+        recurrence: String,
     ) {
         ensureChannel(context)
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -46,11 +49,11 @@ object ReminderNotificationBuilder {
             putExtra(FullScreenReminderActivity.EXTRA_TITLE, title)
             putExtra(FullScreenReminderActivity.EXTRA_BODY, body)
             putExtra(ReminderActionReceiver.EXTRA_NOTIFICATION_ID, id)
+            putExtra(SnoozeReminderActivity.EXTRA_RECURRANCE, recurrence)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         val fullScreen = PendingIntent.getActivity(context, id * 2 + 1, sheet, flags)
 
-        val snoozeNote = snoozeNoteId.ifEmpty { noteId }
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_reminder)
             .setContentTitle(title)
@@ -69,7 +72,7 @@ object ReminderNotificationBuilder {
                 dismissAction(context, id * 3 + 2, noteId, id)
             )
             .addAction(
-                snoozeAction(context, id * 3 + 3, snoozeNote)
+                snoozeAction(context, id * 3 + 3, noteId, title, body, recurrence, id)
             )
             .build()
 
@@ -96,10 +99,24 @@ object ReminderNotificationBuilder {
         return NotificationCompat.Action.Builder(0, context.getString(R.string.reminder_action_dismiss), pi).build()
     }
 
-    private fun snoozeAction(context: Context, code: Int, snoozeNoteId: String): NotificationCompat.Action {
-        val intent = Intent(context, MainActivity::class.java).apply {
-            putExtra("snooze_note_id", snoozeNoteId)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+    private fun snoozeAction(
+        context: Context,
+        code: Int,
+        noteId: String,
+        title: String,
+        body: String,
+        recurrence: String,
+        notificationId: Int,
+    ): NotificationCompat.Action {
+        // The standalone sheet re-arms the reminder natively; the extras it
+        // needs (incl. notification_id) come straight off this occurrence.
+        val intent = Intent(context, SnoozeReminderActivity::class.java).apply {
+            putExtra(SnoozeReminderActivity.EXTRA_NOTE_ID, noteId)
+            putExtra(SnoozeReminderActivity.EXTRA_TITLE, title)
+            putExtra(SnoozeReminderActivity.EXTRA_BODY, body)
+            putExtra(SnoozeReminderActivity.EXTRA_RECURRANCE, recurrence)
+            putExtra(SnoozeReminderActivity.EXTRA_NOTIFICATION_ID, notificationId)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         val pi = PendingIntent.getActivity(context, code, intent, pendingFlags())
         return NotificationCompat.Action.Builder(0, context.getString(R.string.reminder_action_snooze), pi).build()

@@ -20,6 +20,7 @@ object ReminderAlarmScheduler {
         title: String,
         body: String,
         snoozeNoteId: String,
+        recurrence: String,
     ): PendingIntent {
         val intent = Intent(context, ReminderFireReceiver::class.java).apply {
             action = ACTION_FIRE
@@ -28,6 +29,7 @@ object ReminderAlarmScheduler {
             putExtra("title", title)
             putExtra("body", body)
             putExtra("snooze_note_id", snoozeNoteId)
+            putExtra("recurrence", recurrence)
         }
         return PendingIntent.getBroadcast(context, id, intent, pendingFlags())
     }
@@ -48,9 +50,10 @@ object ReminderAlarmScheduler {
         body: String,
         atMillis: Long,
         snoozeNoteId: String,
+        recurrence: String,
     ) {
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val pi = fireIntent(context, id, noteId, title, body, snoozeNoteId)
+        val pi = fireIntent(context, id, noteId, title, body, snoozeNoteId, recurrence)
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, atMillis, pi)
@@ -64,13 +67,13 @@ object ReminderAlarmScheduler {
 
     fun cancel(context: Context, id: Int) {
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        am.cancel(fireIntent(context, id, "", "", "", ""))
+        am.cancel(fireIntent(context, id, "", "", "", "", "none"))
     }
 
     fun cancelAll(context: Context) {
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         for (r in ReminderAlarmStore.load(context)) {
-            am.cancel(fireIntent(context, r["id"] as Int, "", "", "", ""))
+            am.cancel(fireIntent(context, r["id"] as Int, "", "", "", "", "none"))
         }
         ReminderAlarmStore.clear(context)
     }
@@ -86,6 +89,7 @@ object ReminderAlarmScheduler {
                 r["body"] as String,
                 r["atMillis"] as Long,
                 r["snoozeNoteId"] as String,
+                r["recurrence"] as String,
             )
         }
     }

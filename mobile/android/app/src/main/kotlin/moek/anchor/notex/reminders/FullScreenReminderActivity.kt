@@ -6,9 +6,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 
 /**
  * Full-screen intent activity for reminder notifications.
@@ -16,7 +14,7 @@ import androidx.core.content.ContextCompat
  * Launched by the system when a reminder's full-screen intent fires
  * (locked screen, screen off, or after the heads-up auto-hides).
  * The activity is translucent so the home screen shows through;
- * it displays a bottom sheet with four flat action buttons.
+ * it displays a bottom sheet with five flat action buttons.
  *
  * Close slides the sheet away and finishes the activity; the
  * sticky notification remains in the shade.
@@ -47,6 +45,11 @@ class FullScreenReminderActivity : Activity() {
         val body = intent?.getStringExtra(EXTRA_BODY) ?: ""
         val tag = intent?.getStringExtra(EXTRA_TAG) ?: ""
         val time = intent?.getStringExtra(EXTRA_TIME) ?: ""
+        // Recurrence comes through the fire path: the receiver reads it from
+        // the alarm extras and the builder puts it on the sheet intent. Blank
+        // means "none" to the snooze sheet, which hides the repeating-only
+        // chip and suffix.
+        val recurrence = intent?.getStringExtra(SnoozeReminderActivity.EXTRA_RECURRANCE) ?: ""
 
         // Fill the header + body.
         val headerMeta = findViewById<TextView>(R.id.fsi_header_meta)
@@ -61,27 +64,43 @@ class FullScreenReminderActivity : Activity() {
 
         sheetView = findViewById(R.id.fsi_sheet)
 
-        // Wire up the four action buttons.
-        findViewById<Button>(R.id.btn_mark_done).setOnClickListener {
-            // Done: settle + drop the card + finish. Toast shown by the receiver.
-            sendActionBroadcast(noteId, notificationId, ReminderActionReceiver.ACTION_DONE)
-            finish()
-        }
-        findViewById<Button>(R.id.btn_dismiss).setOnClickListener {
-            // Dismiss: quiet this occurrence, drop the card, no toast.
-            sendActionBroadcast(noteId, notificationId, ReminderActionReceiver.ACTION_DISMISS)
-            finish()
-        }
-        findViewById<Button>(R.id.btn_snooze).setOnClickListener {
-            // Snooze: open the app (Flutter snooze picker).
+        // Wire up the five action rows (icon + label LinearLayouts).
+        findViewById<View>(R.id.btn_open_note).setOnClickListener {
+            // Open note: bring the app to the front; Flutter opens the note.
             val appIntent = Intent(this, MainActivity::class.java).apply {
-                putExtra("snooze_note_id", noteId)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                putExtra("open_note_id", noteId)
+                // NEW_TASK | CLEAR_TOP matches the banner-tap intent: a
+                // background launch reuses the task instead of stacking a
+                // duplicate MainActivity; the extras reach onNewIntent.
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
             }
             startActivity(appIntent)
             finish()
         }
-        findViewById<Button>(R.id.btn_close).setOnClickListener {
+        findViewById<View>(R.id.btn_mark_done).setOnClickListener {
+            // Done: settle + drop the card + finish. Toast shown by the receiver.
+            sendActionBroadcast(noteId, notificationId, ReminderActionReceiver.ACTION_DONE)
+            finish()
+        }
+        findViewById<View>(R.id.btn_dismiss).setOnClickListener {
+            // Dismiss: quiet this occurrence, drop the card, no toast.
+            sendActionBroadcast(noteId, notificationId, ReminderActionReceiver.ACTION_DISMISS)
+            finish()
+        }
+        findViewById<View>(R.id.btn_snooze).setOnClickListener {
+            // Snooze: the standalone snooze sheet — no app launch.
+            val snoozeIntent = Intent(this, SnoozeReminderActivity::class.java).apply {
+                putExtra(SnoozeReminderActivity.EXTRA_NOTE_ID, noteId)
+                putExtra(SnoozeReminderActivity.EXTRA_TITLE, title)
+                putExtra(SnoozeReminderActivity.EXTRA_BODY, body)
+                putExtra(SnoozeReminderActivity.EXTRA_RECURRANCE, recurrence)
+                putExtra(SnoozeReminderActivity.EXTRA_NOTIFICATION_ID, notificationId)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(snoozeIntent)
+            finish()
+        }
+        findViewById<View>(R.id.btn_close).setOnClickListener {
             // Close: slide the sheet down, banner stays.
             finish()
         }

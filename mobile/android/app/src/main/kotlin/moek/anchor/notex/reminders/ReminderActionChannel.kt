@@ -10,6 +10,8 @@ import io.flutter.plugin.common.MethodChannel
  *
  * - [drainPending] reads a Done/Dismiss press that reached
  *   [ReminderActionReceiver] while the app was closed.
+ * - [drainPendingSnoozes] empties the [PendingSnoozeStore] so the app can
+ *   apply the natively snoozed times to its database on the next start.
  * - [armReminder] / [cancelReminder] / [cancelAllReminders] drive the native
  *   exact-alarm scheduler so a reminder rings even with the app not running.
  * - [pendingReminders] reports the native pending set, so a reconcile can find
@@ -31,6 +33,17 @@ class ReminderActionChannel(
                 result.success(pending)
             }
 
+            "drainPendingSnoozes" -> {
+                val pending = PendingSnoozeStore.drain(context).map {
+                    mapOf(
+                        "noteId" to it.noteId,
+                        "newAtMillis" to it.newAtMillis,
+                        "recurrence" to it.recurrence,
+                    )
+                }
+                result.success(pending)
+            }
+
             "armReminder" -> {
                 val id = call.argument<Int>("id") ?: 0
                 val noteId = call.argument<String>("noteId") ?: ""
@@ -38,6 +51,7 @@ class ReminderActionChannel(
                 val body = call.argument<String>("body") ?: ""
                 val atMillis = call.argument<Long>("atMillis") ?: 0L
                 val snoozeNoteId = call.argument<String>("snoozeNoteId") ?: ""
+                val recurrence = call.argument<String>("recurrence") ?: "none"
                 ReminderAlarmStore.upsert(
                     context,
                     mapOf(
@@ -47,9 +61,10 @@ class ReminderActionChannel(
                         "body" to body,
                         "atMillis" to atMillis,
                         "snoozeNoteId" to snoozeNoteId,
+                        "recurrence" to recurrence,
                     )
                 )
-                ReminderAlarmScheduler.arm(context, id, noteId, title, body, atMillis, snoozeNoteId)
+                ReminderAlarmScheduler.arm(context, id, noteId, title, body, atMillis, snoozeNoteId, recurrence)
                 result.success(true)
             }
 

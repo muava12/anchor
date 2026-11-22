@@ -139,6 +139,15 @@
             android:theme="@style/Theme.FsiActivity"
             android:launchMode="singleInstance" />
 
+        <!-- Standalone snooze sheet: re-schedules a fired reminder without
+             launching the app (re-arms natively, stashes for the app). -->
+        <activity
+            android:name="moek.anchor.notex.reminders.SnoozeReminderActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.FsiActivity" />
+
         <!-- Launcher shortcut trampoline. -->
         <activity
             android:name="moek.anchor.notex.ShortcutWrapperActivity"

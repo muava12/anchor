@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Snooze sheet background: solid surface with 28dp rounded top corners +
+     a 1px top hairline (the Doop design's inset top highlight, ~7% white),
+     like bg_fsi_sheet. The hairline reads on dark and is invisible on the
+     light surface. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/fsi_surface" />
+            <corners
+                android:topLeftRadius="28dp"
+                android:topRightRadius="28dp" />
+        </shape>
+    </item>
+    <item android:gravity="top">
+        <shape android:shape="rectangle">
+            <size android:height="1dp" />
+            <solid android:color="#12FFFFFF" />
+            <corners
+                android:topLeftRadius="28dp"
+                android:topRightRadius="28dp" />
+        </shape>
+    </item>
+</layer-list>

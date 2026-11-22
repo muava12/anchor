@@ -12,12 +12,14 @@ import '../../../core/session/active_user_id_provider.dart';
 import '../../../core/storage/preferences_repository.dart';
 import '../../../l10n/l10n.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../notes/data/repository/notes_repository.dart';
 import '../../notes/domain/note.dart';
 import '../../notes/domain/note_blocks.dart';
 import '../../notes/presentation/notes_controller.dart';
 import '../domain/reminder_schedule.dart';
 import '../domain/snoozed_occurrences.dart';
 import 'notification_gateway.dart';
+import 'pending_snooze_channel.dart';
 
 part 'reminder_scheduler.g.dart';
 
@@ -51,6 +53,7 @@ class ReminderScheduler extends _$ReminderScheduler {
   List<Note> _latest = const [];
   SnoozedOccurrences _snoozed = const SnoozedOccurrences.empty();
   Future<void>? _cleared;
+  Future<void>? _drained;
   AppLifecycleListener? _lifecycle;
 
   /// Passes never overlap.
@@ -80,6 +83,11 @@ class ReminderScheduler extends _$ReminderScheduler {
       _cleared = _cancelAll(gateway);
       return;
     }
+
+    // Settle the snoozes the native stack stashed while the app was closed
+    // before any pass runs: their alarms are already armed, so an early pass
+    // would cancel them as orphans and re-arm the stale database time.
+    _drained = _drainNativeSnoozes();
 
     // The app-start reconcile: the stream answers at once with what the
     // database holds, so a launch rebuilds every card the OS lost (a reboot, a
@@ -116,6 +124,29 @@ class ReminderScheduler extends _$ReminderScheduler {
     }
   }
 
+  /// Applies the native snooze stash to the database. Never throws: every
+  /// later pass awaits it.
+  Future<void> _drainNativeSnoozes() async {
+    try {
+      final applied = await drainPendingSnoozes(
+        repo: ref.read(notesRepositoryProvider),
+      );
+      if (applied > 0) {
+        AppLogger.instance.info(
+          LogTags.reminders,
+          'applied $applied native snooze(s) to the database',
+        );
+      }
+    } catch (error, stack) {
+      AppLogger.instance.error(
+        LogTags.reminders,
+        'Draining the native snoozes failed',
+        error: error,
+        stackTrace: stack,
+      );
+    }
+  }
+
   /// Rebuilds every card from the notes now, cancelling the leftovers.
   ///
   /// An occurrence that just settled changes nothing in the notes (a repeating
@@ -129,6 +160,8 @@ class ReminderScheduler extends _$ReminderScheduler {
   ) async {
     await syncLocalTimeZone();
     _snoozed = await preferences.getSnoozedOccurrences();
+    // A snooze pressed natively while the app was closed lands here.
+    await _drainNativeSnoozes();
     await _reconcile(force: true);
   }
 
@@ -168,6 +201,9 @@ class ReminderScheduler extends _$ReminderScheduler {
   }
 
   Future<void> _runPass() async {
+    // The app-start drain must finish first: a pass that saw the stash
+    // unapplied would cancel the snoozed alarms as orphans.
+    await _drained;
     // No notes yet: cancelling now would drop every live card.
     if (!_notesReady) return;
 
@@ -377,6 +413,7 @@ List<DesiredReminder> desiredReminders(
           body: heading == null ? '' : reminderBody(note),
           repeat: repeat,
           noteId: note.id,
+          recurrence: reminder.recurrence.name,
         );
 
     // A repeating reminder with a live snooze rings the snoozed time once, not
@@ -435,6 +472,7 @@ class DesiredReminder {
     this.body = '',
     required this.repeat,
     required this.noteId,
+    this.recurrence = 'none',
   });
 
   final int id;
@@ -444,6 +482,10 @@ class DesiredReminder {
   final DateTimeComponents? repeat;
   final String noteId;
 
+  /// The note's recurrence (its ReminderRecurrence name, "none" when it
+  /// does not repeat), carried to the native stack for the snooze chain.
+  final String recurrence;
+
   ScheduledNotification toNotification() => ScheduledNotification(
     id: id,
     title: title,
@@ -451,6 +493,7 @@ class DesiredReminder {
     at: at,
     repeat: repeat,
     payload: noteId,
+    recurrence: recurrence,
   );
 
   @override
@@ -461,8 +504,10 @@ class DesiredReminder {
       other.title == title &&
       other.body == body &&
       other.repeat == repeat &&
-      other.noteId == noteId;
+      other.noteId == noteId &&
+      other.recurrence == recurrence;
 
   @override
-  int get hashCode => Object.hash(id, at, title, body, repeat, noteId);
+  int get hashCode =>
+      Object.hash(id, at, title, body, repeat, noteId, recurrence);
 }

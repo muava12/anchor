@@ -17,7 +17,8 @@ class ReminderFireReceiver : BroadcastReceiver() {
         val title = intent.getStringExtra("title") ?: ""
         val body = intent.getStringExtra("body") ?: ""
         val snoozeNoteId = intent.getStringExtra("snooze_note_id") ?: ""
+        val recurrence = intent.getStringExtra("recurrence") ?: "none"
         ReminderAlarmStore.remove(context, id)
-        ReminderNotificationBuilder.show(context, id, noteId, title, body, snoozeNoteId)
+        ReminderNotificationBuilder.show(context, id, noteId, title, body, snoozeNoteId, recurrence)
     }
 }

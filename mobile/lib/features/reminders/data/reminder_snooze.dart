@@ -84,6 +84,7 @@ Future<void> snoozeOccurrence(
       at: at,
       repeat: null,
       payload: noteId,
+      recurrence: reminder.recurrence.name,
     ),
   );
 
