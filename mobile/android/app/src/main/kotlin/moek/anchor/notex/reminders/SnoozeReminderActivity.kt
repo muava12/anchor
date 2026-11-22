@@ -46,8 +46,9 @@ class SnoozeReminderActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_snooze_reminder)
         // The sheet can be opened from the lock screen (banner/FSI snooze
-        // action); keep it visible there too.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        // action); keep it visible there too. setShowWhenLocked/setTurnScreenOn
+        // are API 27; below that the Theme.FsiActivity window attributes cover it.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
         }

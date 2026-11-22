@@ -3,7 +3,6 @@ package moek.anchor.notex.reminders
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import android.text.format.DateFormat
 import android.widget.Toast
 import androidx.core.app.NotificationManagerCompat
 import moek.anchor.notex.R
@@ -74,8 +73,8 @@ object SnoozeScheduleHelper {
     private fun wallClock(context: Context, atMillis: Long): String {
         val locale = context.resources.configuration.locale ?: Locale.getDefault()
         val at = Date(atMillis)
-        return DateFormat.getDateInstance(java.text.DateFormat.MEDIUM, locale).format(at) +
+        return java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM, locale).format(at) +
             " " +
-            DateFormat.getTimeInstance(java.text.DateFormat.SHORT, locale).format(at)
+            java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT, locale).format(at)
     }
 }
