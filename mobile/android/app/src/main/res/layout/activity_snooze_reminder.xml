@@ -30,42 +30,54 @@
         android:paddingBottom="24dp"
         android:textColor="@color/fsi_text">
 
-        <!-- 32×4dp grab handle, rounded, fsi_muted @ ~38% (paint in code) -->
-        <View
-            android:id="@+id/snooze_handle"
-            android:layout_width="32dp"
-            android:layout_height="4dp"
-            android:layout_gravity="center_horizontal" />
-
-        <!-- Header: centered title + centered subtitle -->
-        <TextView
-            android:id="@+id/snooze_title"
+        <!-- Drag zone: handle + header. Draggable down to dismiss the
+             sheet; minHeight 48dp keeps the touch target at WCAG size. -->
+        <LinearLayout
+            android:id="@+id/snooze_drag_zone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:fontFamily="@font/dm_sans"
-            android:fontVariationSettings="'wght' 700"
-            android:gravity="center_horizontal"
-            android:letterSpacing="-0.015"
-            android:text="@string/snooze_sheet_title"
-            android:textColor="@color/fsi_text"
-            android:textSize="20sp"
-            tools:ignore="NewApi" />
+            android:contentDescription="@string/snooze_drag_hint"
+            android:minHeight="48dp"
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/snooze_subtitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:ellipsize="end"
-            android:fontFamily="@font/dm_sans"
-            android:fontVariationSettings="'wght' 400"
-            android:gravity="center_horizontal"
-            android:singleLine="true"
-            android:textColor="@color/fsi_muted"
-            android:textSize="14sp"
-            tools:ignore="NewApi"
-            tools:text="Stand up · repeats daily" />
+            <!-- 32×4dp grab handle, rounded, fsi_muted @ ~38% (paint in code) -->
+            <View
+                android:id="@+id/snooze_handle"
+                android:layout_width="32dp"
+                android:layout_height="4dp"
+                android:layout_gravity="center_horizontal" />
+
+            <!-- Header: centered title + centered subtitle -->
+            <TextView
+                android:id="@+id/snooze_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:fontFamily="@font/dm_sans"
+                android:fontVariationSettings="'wght' 700"
+                android:gravity="center_horizontal"
+                android:letterSpacing="-0.015"
+                android:text="@string/snooze_sheet_title"
+                android:textColor="@color/fsi_text"
+                android:textSize="20sp"
+                tools:ignore="NewApi" />
+
+            <TextView
+                android:id="@+id/snooze_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:ellipsize="end"
+                android:fontFamily="@font/dm_sans"
+                android:fontVariationSettings="'wght' 400"
+                android:gravity="center_horizontal"
+                android:singleLine="true"
+                android:textColor="@color/fsi_muted"
+                android:textSize="14sp"
+                tools:ignore="NewApi"
+                tools:text="Stand up · repeats daily" />
+
+        </LinearLayout>
 
         <!-- "Snooze for" section: label + wrapping chip row -->
         <TextView

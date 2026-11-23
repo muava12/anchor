@@ -62,6 +62,15 @@ class SnoozeReminderActivity : Activity() {
 
         paintScrimAndOptionBackgrounds()
 
+        // Drag the handle/header zone down to close the sheet (plain
+        // close, like Cancel: no re-scheduling).
+        SheetDragHelper(
+            sheet = findViewById(R.id.snooze_sheet),
+            scrim = findViewById(R.id.snooze_scrim),
+            dragZone = findViewById(R.id.snooze_drag_zone),
+            onDismissed = ::finish,
+        ).attach()
+
         // Subtitle: "<title>" + " · repeats <recurrence>" when it recurs.
         val subtitle = findViewById<TextView>(R.id.snooze_subtitle)
         subtitle.text = buildString {

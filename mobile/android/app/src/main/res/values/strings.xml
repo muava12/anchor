@@ -37,5 +37,6 @@
     <string name="snooze_preset_tomorrow">Tomorrow</string>
     <string name="snooze_preset_pick">Pick a date and time</string>
     <string name="snooze_cancel">Cancel</string>
+    <string name="snooze_drag_hint">Drag down to close</string>
     <string name="snooze_toast_snoozed">Snoozed until %1$s</string>
 </resources>
