@@ -48,3 +48,32 @@ Issues live as markdown files under `.scratch/<feature-slug>/`. See `docs/agents
 ### Domain docs
 
 Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+## Fork, build & release context (for new sessions)
+
+- **Remotes**: `origin` = `zhfahim/anchor` (upstream), `fork` = `muava12/anchor`
+  (our working fork). Branch from `fork/main`; open PRs with
+  `gh pr create --repo muava12/anchor ...` (gh defaults to `origin`).
+- **Flutter is remote**: never run `flutter` locally. Use `rflutter`
+  (instance `box05`, host box-05 over ssh): analyze, test, build. A new git
+  worktree means a new remote workspace; the first sync takes minutes.
+- **CI gates**: `mobile-android` compiles the Kotlin/Android code (no Android
+  SDK on box-05). `mobile-lint` runs analyze + tests, and carries two
+  pre-existing coffee-link failures (`debug_coffee_test.dart`,
+  `settings_editor_test.dart`) that are not a blocker.
+- **Native reminder system** (fork-only, `mobile/android/.../reminders/`):
+  `FullScreenReminderActivity` (FSI sheet), `SnoozeReminderActivity`
+  (standalone snooze sheet), `ReminderActionReceiver`, `SnoozeScheduleHelper`,
+  `PendingSnoozeStore`; both sheets share the translucent `Theme.FsiActivity`.
+  Design-first flow: edit the Doop frame first (canvas `-IAXF4NORn` via the
+  mcpproxy `doop:*` tools; frames `nx07-wSkMw` reminder, `Wn02ojCMhA` snooze,
+  `7zq4fCi8lr` thumbnail knob; style guide `anchor-shadow-motion`), then code
+  against it.
+- **Releases**: branch → PR → merge into `fork/main` → tag `vX.Y.Z` →
+  `release.yml` (signed via the `ANDROID_KEYSTORE_BASE64` keystore,
+  package `moek.anchor.notex`). On-demand test APKs: the `build-test-apk.yml`
+  workflow dispatch, hosted on box-05's instabox URL.
+- **Fix-round records** live in `.scratch/<slug>/` (`collect.md` = items +
+  root causes, `plan.md` = execution plan); round 01 is
+  `.scratch/fix-round-01/`.
+- Show GitHub/API timestamps to the owner in WITA (UTC+8), not UTC.
