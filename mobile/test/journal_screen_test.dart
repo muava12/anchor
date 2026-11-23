@@ -1,4 +1,5 @@
 import 'package:anchor/core/theme/app_theme.dart';
+import 'package:anchor/core/widgets/pressable.dart';
 import 'package:anchor/features/journal/presentation/journal_providers.dart';
 import 'package:anchor/features/journal/presentation/journal_screen.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_calendar.dart';
@@ -51,6 +52,31 @@ void main() {
     await pump(tester, [entry('a', 'Morning pages', 'good')]);
     expect(find.text('Journal'), findsWidgets);
     expect(find.byIcon(LucideIcons500.chevronDown), findsOneWidget);
+  });
+
+  testWidgets('the bottom bar goes compact when the timeline scrolls', (tester) async {
+    final many = List.generate(
+      24,
+      (i) => Note(
+        id: 'd$i',
+        title: 'Day $i',
+        tagIds: ['journal'],
+        content: '{"ops":[{"insert":"mood: good\\n---\\nDay $i\\n"}]}',
+        updatedAt: DateTime.utc(2026, 11, 17 - i),
+      ),
+    );
+    await pump(tester, many);
+    Finder pill() => find
+        .ancestor(
+          of: find.byIcon(LucideIcons.search),
+          matching: find.byType(Pressable),
+        )
+        .first;
+    final before = tester.getSize(pill()).width;
+    await tester.drag(find.text('Day 0'), const Offset(0, -800));
+    await tester.pumpAndSettle();
+    final after = tester.getSize(pill()).width;
+    expect(after, lessThan(before));
   });
 
   testWidgets('the calendar action shows the month grid', (tester) async {
