@@ -1749,6 +1749,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String journalLocationLabel(String place) {
+    return 'Location: $place';
+  }
+
+  @override
   String drawerAccount(String name) {
     return '$name, Settings';
   }

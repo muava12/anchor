@@ -2280,6 +2280,7 @@
   "journalThrowback": "Throwback",
   "journalStatDays": "{count, plural, =1{1 day} other{{count} days}}",
   "journalStatYearsAgo": "{count, plural, =1{1 year ago} other{{count} years ago}}",
+  "journalLocationLabel": "Location: {place}",
   "@navJournal": {
     "description": "Noun: the side menu item and list title for the journal."
   },
@@ -2428,6 +2429,14 @@
     "placeholders": {
       "count": {
         "type": "int"
+      }
+    }
+  },
+  "@journalLocationLabel": {
+    "description": "Screen reader label of the location chip on a journal entry card.",
+    "placeholders": {
+      "place": {
+        "type": "String"
       }
     }
   },

@@ -2756,6 +2756,12 @@ abstract class AppLocalizations {
   /// **'1 year ago' or '{count} years ago'**
   String journalStatYearsAgo(int count);
 
+  /// Screen reader label of the location chip on a journal entry card.
+  ///
+  /// In en, this message translates to:
+  /// **'Location: {place}'**
+  String journalLocationLabel(String place);
+
   /// Screen reader label of the account row at the bottom of the menu.
   ///
   /// In en, this message translates to:
