@@ -98,9 +98,13 @@ GoRouter goRouter(Ref ref) {
         routes: [
           GoRoute(
             path: _newNotePath,
-            pageBuilder: (context, state) => const NoteMorphPage(
-              key: ValueKey('note/new'),
-              child: NoteEditScreen(),
+            pageBuilder: (context, state) => NoteMorphPage(
+              key: const ValueKey('note/new'),
+              child: NoteEditScreen(
+                startAsChecklist:
+                    state.uri.queryParameters[AppRoutes.checklistParameter] ==
+                    '1',
+              ),
             ),
           ),
           GoRoute(
@@ -201,7 +205,11 @@ GoRouter goRouter(Ref ref) {
         pageBuilder: (context, state) {
           return MaterialPage(
             key: ValueKey('widget-note-new/${state.uri.query}'),
-            child: const NoteEditScreen(),
+            child: NoteEditScreen(
+              startAsChecklist:
+                  state.uri.queryParameters[AppRoutes.checklistParameter] ==
+                  '1',
+            ),
           );
         },
       ),

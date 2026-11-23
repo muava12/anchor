@@ -1,6 +1,9 @@
 package moek.anchor.notex
 
 import android.content.Intent
+import android.content.pm.ShortcutInfo
+import android.content.pm.ShortcutManager
+import android.graphics.drawable.Icon
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -23,6 +26,8 @@ class MainActivity : FlutterFragmentActivity() {
         stashLaunchExtras(intent)
         super.onCreate(savedInstanceState)
         preferFastestRefreshRate()
+        // Talks to the launcher, which takes a moment: not while starting up.
+        Thread(::publishShortcuts).start()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -39,10 +44,6 @@ class MainActivity : FlutterFragmentActivity() {
         ReminderActionChannel(
             this,
             MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "moek.anchor.notex/reminder_actions"),
-        )
-        ShortcutLaunchChannel(
-            this,
-            MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "moek.anchor.notex/shortcuts"),
         )
         LaunchExtrasChannel(
             this,
@@ -88,6 +89,38 @@ class MainActivity : FlutterFragmentActivity() {
         val open = intent?.getStringExtra("open_note_id")
         if (!snooze.isNullOrEmpty() || !open.isNullOrEmpty()) {
             LaunchExtrasChannel.stash(this, snooze, open)
+        }
+    }
+
+    /**
+     * The launcher's long-press menu: quick actions. They are dynamic so they
+     * target this app's package, and they launch like the widget's buttons,
+     * which home_widget hands to the Flutter side on cold and warm starts.
+     */
+    private fun publishShortcuts() {
+        if (Build.VERSION.SDK_INT < 25) return
+        try {
+            val manager = getSystemService(ShortcutManager::class.java) ?: return
+            fun shortcut(id: String, label: String, uri: String, icon: Int) =
+                ShortcutInfo.Builder(this, id)
+                    .setShortLabel(label)
+                    .setLongLabel(label)
+                    .setIcon(Icon.createWithResource(this, icon))
+                    .setIntent(
+                        Intent(this, MainActivity::class.java)
+                            .setAction(HomeWidgetLaunchIntent.HOME_WIDGET_LAUNCH_ACTION)
+                            .setData(Uri.parse(uri))
+                            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP),
+                    )
+                    .build()
+            val scheme = NotesWidgetProvider.URI_SCHEME
+            manager.setDynamicShortcuts(listOf(
+                shortcut("new_note", getString(R.string.shortcut_new_note), "$scheme://note/new", R.drawable.ic_shortcut_note),
+                shortcut("new_journal", getString(R.string.shortcut_new_journal), "$scheme://journal/new", R.drawable.ic_shortcut_journal),
+                shortcut("new_checklist", getString(R.string.shortcut_new_checklist), "$scheme://note/new?checklist=1", R.drawable.ic_shortcut_checklist),
+            ))
+        } catch (e: Exception) {
+            android.util.Log.w("AnchorShortcuts", "Couldn't publish app shortcuts", e)
         }
     }
 }

@@ -201,6 +201,20 @@ void main() {
       expect(homeWidgetRouteForUri(Uri.parse('anchorwidget://open')), '/');
     });
 
+    test('maps a checklist new-note URI', () {
+      expect(
+        homeWidgetRouteForUri(Uri.parse('anchorwidget://note/new?checklist=1')),
+        '/widget/note/new?checklist=1',
+      );
+    });
+
+    test('maps a new-journal URI', () {
+      expect(
+        homeWidgetRouteForUri(Uri.parse('anchorwidget://journal/new')),
+        '/journal/new',
+      );
+    });
+
     test('ignores null and foreign-scheme URIs', () {
       expect(homeWidgetRouteForUri(null), isNull);
       expect(homeWidgetRouteForUri(Uri.parse('anchor://callback')), isNull);

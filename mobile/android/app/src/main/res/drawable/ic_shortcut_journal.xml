@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Quick action: New journal. An open book. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFD5DBE4"
+        android:strokeColor="#FF2D3142"
+        android:strokeWidth="3.5"
+        android:strokeLineJoin="round"
+        android:pathData="M28 34h12a12 12 0 0 1 12 12v38a12 12 0 0 0-12-12H28z" />
+    <path
+        android:fillColor="#FFD5DBE4"
+        android:strokeColor="#FF2D3142"
+        android:strokeWidth="3.5"
+        android:strokeLineJoin="round"
+        android:pathData="M80 34H68a12 12 0 0 0-12 12v38a12 12 0 0 1 12-12h12z" />
+    <path
+        android:strokeColor="#FF2D3142"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M54 44v28" />
+</vector>

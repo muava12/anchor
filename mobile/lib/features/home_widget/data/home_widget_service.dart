@@ -92,11 +92,13 @@ class HomeWidgetLaunchHandler extends _$HomeWidgetLaunchHandler {
       final route = homeWidgetRouteForUri(uri);
       if (route == null) return;
       // Each new-note tap needs its own location to open a fresh draft.
-      pending.open(
-        route == AppRoutes.widgetNewNote
-            ? '$route?tap=${DateTime.now().microsecondsSinceEpoch}'
-            : route,
-      );
+      if (route == AppRoutes.widgetNewNote) {
+        pending.open('$route?tap=${DateTime.now().microsecondsSinceEpoch}');
+      } else if (route.startsWith(AppRoutes.widgetNewNote)) {
+        pending.open('$route&tap=${DateTime.now().microsecondsSinceEpoch}');
+      } else {
+        pending.open(route);
+      }
     });
     ref.onDispose(subscription.cancel);
   }

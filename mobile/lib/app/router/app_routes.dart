@@ -13,6 +13,9 @@ class AppRoutes {
   static String journalEdit(String id) => '/journal/edit/$id';
 
   static const newNote = '/note/new';
+
+  /// Query parameter: a new note opens with a checklist line.
+  static const checklistParameter = 'checklist';
   static String note(String id) => '/note/$id';
   static String history(String noteId) => '${note(noteId)}/history';
   static String revision(String noteId, String revisionId) =>

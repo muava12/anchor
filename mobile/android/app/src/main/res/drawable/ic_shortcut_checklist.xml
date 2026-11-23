@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Quick action: New checklist. Three boxes, the first two ticked. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFD5DBE4"
+        android:strokeColor="#FF2D3142"
+        android:strokeWidth="3.5"
+        android:strokeLineJoin="round"
+        android:pathData="M32 32h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H32a2 2 0 0 1-2-2V34a2 2 0 0 1 2-2z" />
+    <path
+        android:fillColor="#FFD5DBE4"
+        android:strokeColor="#FF2D3142"
+        android:strokeWidth="3.5"
+        android:strokeLineJoin="round"
+        android:pathData="M32 54h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H32a2 2 0 0 1-2-2V56a2 2 0 0 1 2-2z" />
+    <path
+        android:fillColor="#FFD5DBE4"
+        android:strokeColor="#FF2D3142"
+        android:strokeWidth="3.5"
+        android:strokeLineJoin="round"
+        android:pathData="M32 76h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H32a2 2 0 0 1-2-2V78a2 2 0 0 1 2-2z" />
+    <path
+        android:strokeColor="#FF2D3142"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M33.5 39l3 3 5.5-6M33.5 61l3 3 5.5-6" />
+    <path
+        android:strokeColor="#FF2D3142"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M54 39h28M54 61h28M54 83h20" />
+</vector>
