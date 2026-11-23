@@ -11,6 +11,7 @@ import '../../../notes/presentation/widgets/note_surface.dart';
 import '../../../tags/domain/tag.dart';
 import '../../domain/journal_day.dart';
 import '../journal_entry_text.dart';
+import 'journal_photo_strip.dart';
 import 'mood_face.dart';
 
 /// One journal entry as it renders inside a [JournalCardShell]: a time and
@@ -33,6 +34,11 @@ class JournalEntryCard extends StatelessWidget {
 
     final children = <Widget>[
       if (note.hasTitle) ..._titled(context) else ..._untitled(context, time),
+      if (note.imagePreviewData.isNotEmpty)
+        JournalPhotoStrip(
+          previews: note.imagePreviewData,
+          more: journalMoreImages(note),
+        ),
       if (location != null || tags.isNotEmpty)
         Padding(
           padding: const EdgeInsets.only(top: 8),

@@ -2762,6 +2762,12 @@ abstract class AppLocalizations {
   /// **'Location: {place}'**
   String journalLocationLabel(String place);
 
+  /// Badge on the last photo of a journal entry card: how many more pictures the entry has.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count}'**
+  String journalPhotosMore(int count);
+
   /// Screen reader label of the account row at the bottom of the menu.
   ///
   /// In en, this message translates to:

@@ -1754,6 +1754,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String journalPhotosMore(int count) {
+    return '+$count';
+  }
+
+  @override
   String drawerAccount(String name) {
     return '$name, Settings';
   }

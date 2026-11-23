@@ -2281,6 +2281,7 @@
   "journalStatDays": "{count, plural, =1{1 day} other{{count} days}}",
   "journalStatYearsAgo": "{count, plural, =1{1 year ago} other{{count} years ago}}",
   "journalLocationLabel": "Location: {place}",
+  "journalPhotosMore": "+{count}",
   "@navJournal": {
     "description": "Noun: the side menu item and list title for the journal."
   },
@@ -2437,6 +2438,14 @@
     "placeholders": {
       "place": {
         "type": "String"
+      }
+    }
+  },
+  "@journalPhotosMore": {
+    "description": "Badge on the last photo of a journal entry card: how many more pictures the entry has.",
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   },
