@@ -7,11 +7,12 @@ import '../../../../app/router/app_routes.dart';
 import '../../../../core/widgets/app_buttons.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_scaffold.dart';
-import '../../../../core/widgets/bar_title.dart';
 import '../../../../l10n/l10n.dart';
 import '../../notes/domain/note.dart';
+import '../../notes/presentation/note_folder.dart';
 import '../../notes/presentation/widgets/app_drawer.dart';
 import '../../notes/presentation/widgets/drawer_host.dart';
+import '../../notes/presentation/widgets/list_title.dart';
 import '../../notes/presentation/widgets/notes_bottom_bar.dart';
 import '../domain/journal_day.dart';
 import 'journal_providers.dart';
@@ -30,6 +31,8 @@ class JournalScreen extends ConsumerStatefulWidget {
 class _JournalScreenState extends ConsumerState<JournalScreen> {
   final _drawerKey = GlobalKey<DrawerHostState>();
   final _scroll = ScrollController();
+  final _isBottomBarCompact = ValueNotifier(false);
+  double _scrollDistance = 0;
   bool _calendar = false;
   bool _searching = false;
   DateTime? _selectedDay;
@@ -45,7 +48,31 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
   @override
   void dispose() {
     _scroll.dispose();
+    _isBottomBarCompact.dispose();
     super.dispose();
+  }
+
+  bool _onScroll(ScrollUpdateNotification update) {
+    final metrics = update.metrics;
+    if (update.depth != 0 || metrics.axis != Axis.vertical || _searching) {
+      return false;
+    }
+    if (metrics.pixels < 40) {
+      _scrollDistance = 0;
+      _isBottomBarCompact.value = false;
+      return false;
+    }
+    final delta = update.scrollDelta ?? 0;
+    if (delta == 0 || metrics.outOfRange) return false;
+    _scrollDistance = delta.sign == _scrollDistance.sign
+        ? _scrollDistance + delta
+        : delta;
+    if (_scrollDistance > 4) {
+      _isBottomBarCompact.value = true;
+    } else if (_scrollDistance < -4) {
+      _isBottomBarCompact.value = false;
+    }
+    return false;
   }
 
   void _openMenu() => _drawerKey.currentState?.open();
@@ -96,12 +123,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
       isTall: true,
       showBack: false,
       controller: _scroll,
-      largeTitle: LargeBarTitle(
-        l10n.navJournal,
-        line: null,
-        onTap: _openMenu,
-        semanticLabel: l10n.listTitleMenu(l10n.navJournal),
-      ),
+      largeTitle: ListBarTitle(folder: NoteFolder.journal, tag: null, onOpenMenu: _openMenu),
       actions: [
         BarButton(
           icon: _calendar ? LucideIcons.rows3 : LucideIcons.calendarDays,
@@ -175,15 +197,18 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
           ],
         ],
       ],
-      bottomBar: NotesBottomBar(
-        placeholder: l10n.journalSearchHint,
-        compact: false,
-        searching: _searching,
-        query: query,
-        onStartSearch: _startSearch,
-        onQuery: (q) => ref.read(journalQueryProvider.notifier).set(q),
-        onCancel: _endSearch,
-        onNewNote: _newEntry,
+      bottomBar: ValueListenableBuilder<bool>(
+        valueListenable: _isBottomBarCompact,
+        builder: (context, compact, _) => NotesBottomBar(
+          placeholder: l10n.journalSearchHint,
+          compact: compact,
+          searching: _searching,
+          query: query,
+          onStartSearch: _startSearch,
+          onQuery: (q) => ref.read(journalQueryProvider.notifier).set(q),
+          onCancel: _endSearch,
+          onNewNote: _newEntry,
+        ),
       ),
     );
 
@@ -195,7 +220,10 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
         onOpenSettings: () => context.push(AppRoutes.settings),
         onOpenList: _endSearch,
       ),
-      child: page,
+      child: NotificationListener<ScrollUpdateNotification>(
+        onNotification: _onScroll,
+        child: page,
+      ),
     );
   }
 

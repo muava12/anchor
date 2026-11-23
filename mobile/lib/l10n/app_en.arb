@@ -932,7 +932,7 @@
   "@settingsMotionHelp": {
     "description": "Under the motion setting: what it changes."
   },
-  "settingsMotionSlow": "Slow",
+  "settingsMotionSlow": "Normal",
   "@settingsMotionSlow": {
     "description": "Motion setting that keeps the design's own durations."
   },

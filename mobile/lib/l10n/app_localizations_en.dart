@@ -686,7 +686,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsMotionHelp => 'How much the app animates.';
 
   @override
-  String get settingsMotionSlow => 'Slow';
+  String get settingsMotionSlow => 'Normal';
 
   @override
   String get settingsMotionFast => 'Fast';

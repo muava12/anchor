@@ -10,6 +10,7 @@ import '../../../../core/widgets/pressable.dart';
 import '../../../../l10n/l10n.dart';
 import '../../../notes/domain/note.dart';
 import '../../../notes/domain/note_dates.dart';
+import '../../../notes/presentation/widgets/card_registry.dart';
 import '../../../notes/presentation/widgets/note_chips.dart';
 import '../../../notes/presentation/widgets/note_surface.dart';
 import '../../../tags/domain/tag.dart';
@@ -160,65 +161,74 @@ class _EntryCard extends ConsumerWidget {
     final mood = meta.mood;
     final hasMeta = time.isNotEmpty || mood != null || otherTag != null;
 
-    return Pressable(
-      style: PressStyle.plain,
-      onTap: () => onOpen(note),
-      semanticLabel: time.isEmpty ? title : '$title · $time',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.row.copyWith(
-              fontWeight: FontWeight.w600,
-              color: colors.appText,
-            ),
-          ),
-          if (preview.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                preview,
+    return ValueListenableBuilder<Set<String>>(
+      valueListenable: CardRegistry.hidden,
+      builder: (context, hidden, child) =>
+          Opacity(opacity: hidden.contains(note.id) ? 0 : 1, child: child),
+      child: Pressable(
+        style: PressStyle.plain,
+        onTap: () => onOpen(note),
+        semanticLabel: time.isEmpty ? title : '$title · $time',
+        child: RepaintBoundary(
+          // The morph close target: the card flies back to this entry.
+          key: CardRegistry.keyFor(note.id),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: AppTypography.cardBody.copyWith(
-                  color: colors.appMuted,
+                style: AppTypography.row.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: colors.appText,
                 ),
               ),
-            ),
-          if (hasMeta)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Row(
-                children: [
-                  if (time.isNotEmpty)
-                    Text(
-                      time,
-                      style: AppTypography.footnote.copyWith(
-                        color: colors.appMuted,
-                      ),
+              if (preview.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    preview,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.cardBody.copyWith(
+                      color: colors.appMuted,
                     ),
-                  if (mood != null) ...[
-                    if (time.isNotEmpty || otherTag != null)
-                      const SizedBox(width: 8),
-                    MoodFace(mood: mood, size: AnchorTokens.sizeIconMedium),
-                  ],
-                  if (otherTag != null) ...[
-                    if (time.isNotEmpty || mood != null)
-                      const SizedBox(width: 8),
-                    Flexible(
-                      child: TagChip(
-                        tag: otherTag,
-                        appearance: NoteAppearance.of(context, null),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-        ],
+                  ),
+                ),
+              if (hasMeta)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Row(
+                    children: [
+                      if (time.isNotEmpty)
+                        Text(
+                          time,
+                          style: AppTypography.footnote.copyWith(
+                            color: colors.appMuted,
+                          ),
+                        ),
+                      if (mood != null) ...[
+                        if (time.isNotEmpty || otherTag != null)
+                          const SizedBox(width: 8),
+                        MoodFace(mood: mood, size: AnchorTokens.sizeIconMedium),
+                      ],
+                      if (otherTag != null) ...[
+                        if (time.isNotEmpty || mood != null)
+                          const SizedBox(width: 8),
+                        Flexible(
+                          child: TagChip(
+                            tag: otherTag,
+                            appearance: NoteAppearance.of(context, null),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }

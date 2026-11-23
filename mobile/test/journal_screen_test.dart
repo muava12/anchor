@@ -1,14 +1,17 @@
 import 'package:anchor/core/theme/app_theme.dart';
+import 'package:anchor/core/widgets/pressable.dart';
 import 'package:anchor/features/journal/presentation/journal_providers.dart';
 import 'package:anchor/features/journal/presentation/journal_screen.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_calendar.dart';
 import 'package:anchor/features/notes/domain/note.dart';
+import 'package:anchor/features/notes/presentation/widgets/card_registry.dart';
 import 'package:anchor/features/tags/domain/tag.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons_500.dart';
 
 void main() {
   Note entry(String id, String title, String mood) => Note(
@@ -44,6 +47,44 @@ void main() {
   testWidgets('shows the timeline entries', (tester) async {
     await pump(tester, [entry('a', 'Morning pages', 'good')]);
     expect(find.text('Morning pages'), findsOneWidget);
+  });
+
+  testWidgets('the top bar shows the journal label with a chevron', (tester) async {
+    await pump(tester, [entry('a', 'Morning pages', 'good')]);
+    expect(find.text('Journal'), findsWidgets);
+    expect(find.byIcon(LucideIcons500.chevronDown), findsOneWidget);
+  });
+
+  testWidgets('the bottom bar goes compact when the timeline scrolls', (tester) async {
+    final many = List.generate(
+      24,
+      (i) => Note(
+        id: 'd$i',
+        title: 'Day $i',
+        tagIds: ['journal'],
+        content: '{"ops":[{"insert":"mood: good\\n---\\nDay $i\\n"}]}',
+        updatedAt: DateTime.utc(2026, 11, 17 - i),
+      ),
+    );
+    await pump(tester, many);
+    Finder pill() => find
+        .ancestor(
+          of: find.byIcon(LucideIcons.search),
+          matching: find.byType(Pressable),
+        )
+        .first;
+    final before = tester.getSize(pill()).width;
+    await tester.drag(find.text('Day 0'), const Offset(0, -800));
+    await tester.pumpAndSettle();
+    final after = tester.getSize(pill()).width;
+    expect(after, lessThan(before));
+  });
+
+  testWidgets('the entry card registers with the morph card registry', (tester) async {
+    await pump(tester, [entry('a', 'Morning pages', 'good')]);
+    // Registration is what lets the close morph fly the card back to its
+    // home in the journal list and show the list behind it (the Notes path).
+    expect(CardRegistry.rectOf('a'), isNotNull);
   });
 
   testWidgets('the calendar action shows the month grid', (tester) async {

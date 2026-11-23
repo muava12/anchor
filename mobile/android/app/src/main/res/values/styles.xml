@@ -8,6 +8,7 @@
     <!-- Full-screen reminder sheet: translucent, shows on lockscreen. -->
     <style name="Theme.FsiActivity" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
         <item name="android:backgroundDimEnabled">false</item>
         <item name="android:showWhenLocked">true</item>
         <item name="android:turnScreenOn">true</item>

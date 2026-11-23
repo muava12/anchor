@@ -46,11 +46,11 @@ void main() {
     return container;
   }
 
-  testWidgets('the motion row offers slow, fast and off', (tester) async {
+  testWidgets('the motion row offers normal, fast and off', (tester) async {
     await pump(tester);
 
     expect(find.text('Motion'), findsOneWidget);
-    expect(find.text('Slow'), findsOneWidget);
+    expect(find.text('Normal'), findsOneWidget);
     expect(find.text('Fast'), findsOneWidget);
     expect(find.text('Off'), findsOneWidget);
   });

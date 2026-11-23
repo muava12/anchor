@@ -1273,7 +1273,7 @@ abstract class AppLocalizations {
   /// Motion setting that keeps the design's own durations.
   ///
   /// In en, this message translates to:
-  /// **'Slow'**
+  /// **'Normal'**
   String get settingsMotionSlow;
 
   /// Motion setting that runs animations at three tenths of the design duration.

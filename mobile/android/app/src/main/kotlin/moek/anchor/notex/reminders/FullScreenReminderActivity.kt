@@ -2,10 +2,14 @@ package moek.anchor.notex.reminders
 
 import moek.anchor.notex.MainActivity
 import moek.anchor.notex.R
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.view.animation.PathInterpolator
 import android.widget.TextView
 
 /**
@@ -31,6 +35,7 @@ class FullScreenReminderActivity : Activity() {
     }
 
     private var sheetView: View? = null
+    private var enterAnimator: ValueAnimator? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,6 +69,9 @@ class FullScreenReminderActivity : Activity() {
 
         sheetView = findViewById(R.id.fsi_sheet)
 
+        // Slide up on entry, per the design motion guide (standard easing).
+        findViewById<View>(R.id.fsi_sheet).post { if (isFinishing) finish() else slideSheetUp() }
+
         // Wire up the five action rows (icon + label LinearLayouts).
         findViewById<View>(R.id.btn_open_note).setOnClickListener {
             // Open note: bring the app to the front; Flutter opens the note.
@@ -80,12 +88,12 @@ class FullScreenReminderActivity : Activity() {
         findViewById<View>(R.id.btn_mark_done).setOnClickListener {
             // Done: settle + drop the card + finish. Toast shown by the receiver.
             sendActionBroadcast(noteId, notificationId, ReminderActionReceiver.ACTION_DONE)
-            finish()
+            slideDownAndFinish()
         }
         findViewById<View>(R.id.btn_dismiss).setOnClickListener {
             // Dismiss: quiet this occurrence, drop the card, no toast.
             sendActionBroadcast(noteId, notificationId, ReminderActionReceiver.ACTION_DISMISS)
-            finish()
+            slideDownAndFinish()
         }
         findViewById<View>(R.id.btn_snooze).setOnClickListener {
             // Snooze: the standalone snooze sheet — no app launch.
@@ -102,7 +110,41 @@ class FullScreenReminderActivity : Activity() {
         }
         findViewById<View>(R.id.btn_close).setOnClickListener {
             // Close: slide the sheet down, banner stays.
+            slideDownAndFinish()
+        }
+    }
+
+    private fun slideSheetUp() {
+        val sheet = sheetView ?: return
+        sheet.translationY = sheet.height.toFloat()
+        enterAnimator = ValueAnimator.ofFloat(1f, 0f).apply {
+            duration = 300
+            interpolator = PathInterpolator(0.2f, 0.7f, 0.2f, 1f)
+            addUpdateListener { sheet.translationY = (it.animatedValue as Float) * sheet.height }
+            start()
+        }
+    }
+
+    /** Slide the sheet down, then finish (Done / Dismiss / Close). */
+    private fun slideDownAndFinish() {
+        val sheet = sheetView
+        enterAnimator?.cancel()
+        if (sheet == null) {
             finish()
+            return
+        }
+        ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 280
+            interpolator = PathInterpolator(0.5f, 0f, 0.8f, 0.4f)
+            addUpdateListener { sheet.translationY = (it.animatedValue as Float) * sheet.height }
+            addListener(
+                object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        finish()
+                    }
+                }
+            )
+            start()
         }
     }
 
