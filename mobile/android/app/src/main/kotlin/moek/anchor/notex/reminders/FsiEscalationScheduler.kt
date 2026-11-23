@@ -35,6 +35,8 @@ object FsiEscalationScheduler {
         val body: String,
         val recurrence: String,
         val postedWhen: Long,
+        val atMillis: Long,
+        val tag: String,
     )
 
     /**
@@ -50,12 +52,14 @@ object FsiEscalationScheduler {
         body: String,
         recurrence: String,
         postedWhen: Long,
+        atMillis: Long = 0L,
+        tag: String = "",
     ) {
         val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
         if (!pm.isInteractive) return
         val km = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         if (km.isKeyguardLocked()) return
-        arm(context, id, noteId, title, body, recurrence, postedWhen)
+        arm(context, id, noteId, title, body, recurrence, postedWhen, atMillis, tag)
     }
 
     private fun arm(
@@ -66,13 +70,15 @@ object FsiEscalationScheduler {
         body: String,
         recurrence: String,
         postedWhen: Long,
+        atMillis: Long,
+        tag: String,
     ) {
         // Persist the extras first: [cancel] rebuilds the IDENTICAL pending
         // intent, and am.cancel only matches on exact extras. A memory map
         // would lose the record when the canceling process never called arm.
-        remember(context, Record(id, noteId, title, body, recurrence, postedWhen))
+        remember(context, Record(id, noteId, title, body, recurrence, postedWhen, atMillis, tag))
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val pi = escalateIntent(context, id, noteId, title, body, recurrence, postedWhen)
+        val pi = escalateIntent(context, id, noteId, title, body, recurrence, postedWhen, atMillis, tag)
         // ELAPSED_REALTIME: the 60 s clock keeps running through doze,
         // so a screen-off before the alarm still launches the sheet.
         val triggerAt = SystemClock.elapsedRealtime() + DELAY_MS
@@ -95,7 +101,7 @@ object FsiEscalationScheduler {
     fun cancel(context: Context, id: Int) {
         val rec = record(context, id) ?: return
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        am.cancel(escalateIntent(context, rec.id, rec.noteId, rec.title, rec.body, rec.recurrence, rec.postedWhen))
+        am.cancel(escalateIntent(context, rec.id, rec.noteId, rec.title, rec.body, rec.recurrence, rec.postedWhen, rec.atMillis, rec.tag))
         forget(context, id)
     }
 
@@ -124,6 +130,8 @@ object FsiEscalationScheduler {
         body: String,
         recurrence: String,
         postedWhen: Long,
+        atMillis: Long,
+        tag: String,
     ): PendingIntent {
         val intent = Intent(context, FsiEscalationReceiver::class.java).apply {
             action = ACTION_ESCALATE
@@ -133,6 +141,8 @@ object FsiEscalationScheduler {
             putExtra("body", body)
             putExtra("recurrence", recurrence)
             putExtra("posted_when", postedWhen)
+            putExtra("at_millis", atMillis)
+            putExtra("tag", tag)
         }
         return PendingIntent.getBroadcast(context, id, intent, pendingFlags())
     }
@@ -156,6 +166,8 @@ object FsiEscalationScheduler {
                     .put("body", r.body)
                     .put("recurrence", r.recurrence)
                     .put("postedWhen", r.postedWhen)
+                    .put("atMillis", r.atMillis)
+                    .put("tag", r.tag)
             )
         }
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -177,6 +189,8 @@ object FsiEscalationScheduler {
                     o.optString("body"),
                     o.optString("recurrence", "none"),
                     o.getLong("postedWhen"),
+                    o.optLong("atMillis"),
+                    o.optString("tag"),
                 )
             )
         }

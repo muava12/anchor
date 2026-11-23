@@ -27,13 +27,14 @@ object ReminderAlarmStore {
                     .put("atMillis", r["atMillis"] as Long)
                     .put("snoozeNoteId", r["snoozeNoteId"] as String)
                     .put("recurrence", r["recurrence"] as? String ?: "none")
+                    .put("tag", r["tag"] as? String ?: "")
             )
         }
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit().putString(KEY, arr.toString()).apply()
     }
 
-    /** The persisted reminders, each a map with id/noteId/title/body/atMillis/snoozeNoteId/recurrence. */
+    /** The persisted reminders, each a map with id/noteId/title/body/atMillis/snoozeNoteId/recurrence/tag. */
     fun load(context: Context): List<Map<String, Any>> {
         val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getString(KEY, null) ?: return emptyList()
@@ -50,6 +51,7 @@ object ReminderAlarmStore {
                     "atMillis" to o.getLong("atMillis"),
                     "snoozeNoteId" to o.optString("snoozeNoteId"),
                     "recurrence" to o.optString("recurrence", "none"),
+                    "tag" to o.optString("tag"),
                 )
             )
         }

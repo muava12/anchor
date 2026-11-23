@@ -29,8 +29,10 @@ object ReminderAlarmScheduler {
         val noteId: String,
         val title: String,
         val body: String,
+        val atMillis: Long,
         val snoozeNoteId: String,
         val recurrence: String,
+        val tag: String,
     )
 
     private fun fireIntent(
@@ -39,8 +41,10 @@ object ReminderAlarmScheduler {
         noteId: String,
         title: String,
         body: String,
+        atMillis: Long,
         snoozeNoteId: String,
         recurrence: String,
+        tag: String,
     ): PendingIntent {
         val intent = Intent(context, ReminderFireReceiver::class.java).apply {
             action = ACTION_FIRE
@@ -48,8 +52,10 @@ object ReminderAlarmScheduler {
             putExtra("note_id", noteId)
             putExtra("title", title)
             putExtra("body", body)
+            putExtra("at_millis", atMillis)
             putExtra("snooze_note_id", snoozeNoteId)
             putExtra("recurrence", recurrence)
+            putExtra("tag", tag)
         }
         return PendingIntent.getBroadcast(context, id, intent, pendingFlags())
     }
@@ -71,12 +77,13 @@ object ReminderAlarmScheduler {
         atMillis: Long,
         snoozeNoteId: String,
         recurrence: String,
+        tag: String = "",
     ) {
         // Persist the extras before arming: [cancel] rebuilds the identical
         // pending intent from this record.
-        remember(context, ArmedRecord(id, noteId, title, body, snoozeNoteId, recurrence))
+        remember(context, ArmedRecord(id, noteId, title, body, atMillis, snoozeNoteId, recurrence, tag))
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val pi = fireIntent(context, id, noteId, title, body, snoozeNoteId, recurrence)
+        val pi = fireIntent(context, id, noteId, title, body, atMillis, snoozeNoteId, recurrence, tag)
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, atMillis, pi)
@@ -96,7 +103,7 @@ object ReminderAlarmScheduler {
     fun cancel(context: Context, id: Int) {
         val rec = recordFor(context, id) ?: return
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        am.cancel(fireIntent(context, rec.id, rec.noteId, rec.title, rec.body, rec.snoozeNoteId, rec.recurrence))
+        am.cancel(fireIntent(context, rec.id, rec.noteId, rec.title, rec.body, rec.atMillis, rec.snoozeNoteId, rec.recurrence, rec.tag))
         forget(context, id)
     }
 
@@ -133,8 +140,10 @@ object ReminderAlarmScheduler {
             store["noteId"] as String,
             store["title"] as String,
             store["body"] as String,
+            store["atMillis"] as Long,
             store["snoozeNoteId"] as String,
             store["recurrence"] as String,
+            store["tag"] as String,
         )
     }
 
@@ -153,8 +162,10 @@ object ReminderAlarmScheduler {
                     .put("noteId", r.noteId)
                     .put("title", r.title)
                     .put("body", r.body)
+                    .put("atMillis", r.atMillis)
                     .put("snoozeNoteId", r.snoozeNoteId)
                     .put("recurrence", r.recurrence)
+                    .put("tag", r.tag)
             )
         }
         context.getSharedPreferences(ARMED_PREFS, Context.MODE_PRIVATE)
@@ -174,8 +185,10 @@ object ReminderAlarmScheduler {
                     o.getString("noteId"),
                     o.getString("title"),
                     o.optString("body"),
+                    o.optLong("atMillis"),
                     o.optString("snoozeNoteId"),
                     o.optString("recurrence", "none"),
+                    o.optString("tag"),
                 )
             )
         }
@@ -194,6 +207,7 @@ object ReminderAlarmScheduler {
                 r["atMillis"] as Long,
                 r["snoozeNoteId"] as String,
                 r["recurrence"] as String,
+                r["tag"] as String,
             )
         }
     }

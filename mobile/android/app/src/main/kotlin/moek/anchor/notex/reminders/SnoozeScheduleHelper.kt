@@ -33,6 +33,7 @@ object SnoozeScheduleHelper {
         body: String,
         recurrence: String,
         targetMillis: Long,
+        tag: String = "",
     ) {
         ReminderAlarmScheduler.cancel(context, notificationId)
         // Snoozing is an acknowledgement: drop this occurrence's escalation.
@@ -46,6 +47,7 @@ object SnoozeScheduleHelper {
             targetMillis,
             snoozeNoteId = "",
             recurrence = recurrence,
+            tag = tag,
         )
         ReminderAlarmStore.upsert(
             context,
@@ -57,6 +59,7 @@ object SnoozeScheduleHelper {
                 "atMillis" to targetMillis,
                 "snoozeNoteId" to "",
                 "recurrence" to recurrence,
+                "tag" to tag,
             )
         )
         // Drop the sticky card so it does not linger for the new time.

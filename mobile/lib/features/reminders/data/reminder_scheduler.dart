@@ -16,6 +16,8 @@ import '../../notes/data/repository/notes_repository.dart';
 import '../../notes/domain/note.dart';
 import '../../notes/domain/note_blocks.dart';
 import '../../notes/presentation/notes_controller.dart';
+import '../../tags/data/repository/tags_repository.dart';
+import '../../tags/domain/tag.dart';
 import '../domain/reminder_schedule.dart';
 import '../domain/snoozed_occurrences.dart';
 import 'notification_gateway.dart';
@@ -236,11 +238,13 @@ class ReminderScheduler extends _$ReminderScheduler {
         await preferences.setSnoozedOccurrences(pruned);
       }
 
+      final allTags = await ref.read(tagsRepositoryProvider).getTags();
       final desired = desiredReminders(
         _latest,
         now: now,
         l10n: deviceL10n(),
         snoozed: _snoozed,
+        tagsById: {for (final tag in allTags) tag.id: tag},
       );
 
       if (_sameAs(desired)) return;
@@ -383,11 +387,22 @@ String reminderBody(Note note) {
   return rest.isEmpty ? '' : rest.first;
 }
 
+/// The note's first tag name (its display order), or '' when it has none;
+/// drawn as "#name" on the native reminder sheet's meta line.
+String _firstTagName(Note note, Map<String, Tag> tagsById) {
+  for (final id in note.tagIds) {
+    final name = tagsById[id]?.name;
+    if (name != null && name.isNotEmpty) return name;
+  }
+  return '';
+}
+
 List<DesiredReminder> desiredReminders(
   List<Note> notes, {
   required DateTime now,
   required AppLocalizations l10n,
   SnoozedOccurrences snoozed = const SnoozedOccurrences.empty(),
+  Map<String, Tag> tagsById = const <String, Tag>{},
 }) {
   final desired = <DesiredReminder>[];
   for (final note in notes) {
@@ -414,6 +429,7 @@ List<DesiredReminder> desiredReminders(
           repeat: repeat,
           noteId: note.id,
           recurrence: reminder.recurrence.name,
+          tag: _firstTagName(note, tagsById),
         );
 
     // A repeating reminder with a live snooze rings the snoozed time once, not
@@ -473,6 +489,7 @@ class DesiredReminder {
     required this.repeat,
     required this.noteId,
     this.recurrence = 'none',
+    this.tag = '',
   });
 
   final int id;
@@ -486,6 +503,10 @@ class DesiredReminder {
   /// does not repeat), carried to the native stack for the snooze chain.
   final String recurrence;
 
+  /// The note's first tag name (no leading "#"), drawn on the native sheet's
+  /// meta line; empty when the note has no tag.
+  final String tag;
+
   ScheduledNotification toNotification() => ScheduledNotification(
     id: id,
     title: title,
@@ -494,6 +515,7 @@ class DesiredReminder {
     repeat: repeat,
     payload: noteId,
     recurrence: recurrence,
+    tag: tag,
   );
 
   @override

@@ -12,6 +12,7 @@ import '../../../core/storage/preferences_repository.dart';
 import '../../../l10n/l10n.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../notes/data/repository/notes_repository.dart';
+import '../../tags/data/repository/tags_repository.dart';
 import '../data/notification_gateway.dart';
 import '../data/reminder_actions.dart';
 import '../data/reminder_scheduler.dart';
@@ -34,6 +35,7 @@ Future<void> promptReminderSnooze(
   required NotificationGateway gateway,
   required NotesRepository repo,
   required PreferencesRepository preferences,
+  TagsRepository? tags,
   GlobalKey<NavigatorState>? navigatorKey,
   int maxFrames = 5,
 }) async {
@@ -78,6 +80,7 @@ Future<void> promptReminderSnooze(
         gateway: gateway,
         repo: repo,
         preferences: preferences,
+        tags: tags,
       ),
     );
   }
@@ -117,6 +120,7 @@ class ReminderTapHandler extends _$ReminderTapHandler {
         gateway: gateway,
         repo: repo,
         preferences: preferences,
+        tags: ref.read(tagsRepositoryProvider),
         navigatorKey: navigatorKey,
       ),
       // Settling an occurrence changes no note, so ask for the cards to be
@@ -150,6 +154,7 @@ class ReminderTapHandler extends _$ReminderTapHandler {
         gateway: gateway,
         repo: repo,
         preferences: preferences,
+        tags: ref.read(tagsRepositoryProvider),
         navigatorKey: navigatorKey,
       ),
     );
@@ -159,6 +164,7 @@ class ReminderTapHandler extends _$ReminderTapHandler {
         gateway: gateway,
         repo: repo,
         preferences: preferences,
+        tags: ref.read(tagsRepositoryProvider),
         navigatorKey: navigatorKey,
       ),
     );
@@ -178,6 +184,7 @@ Future<void> _drainNativeLaunchExtras({
   required NotesRepository repo,
   required PreferencesRepository preferences,
   required GlobalKey<NavigatorState> navigatorKey,
+  TagsRepository? tags,
 }) async {
   final extras = await drainNativeLaunchExtras();
   if (extras == null) return;
@@ -187,6 +194,7 @@ Future<void> _drainNativeLaunchExtras({
       gateway: gateway,
       repo: repo,
       preferences: preferences,
+      tags: tags,
       navigatorKey: navigatorKey,
     );
   }

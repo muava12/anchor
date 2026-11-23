@@ -31,6 +31,8 @@ class FsiEscalationReceiver : BroadcastReceiver() {
         val body = intent.getStringExtra("body") ?: ""
         val recurrence = intent.getStringExtra("recurrence") ?: "none"
         val postedWhen = intent.getLongExtra("posted_when", 0L)
+        val atMillis = intent.getLongExtra("at_millis", 0L)
+        val tag = intent.getStringExtra("tag") ?: ""
         // The escalation fired: its extras record is spent.
         FsiEscalationScheduler.forget(context, id)
 
@@ -38,15 +40,17 @@ class FsiEscalationReceiver : BroadcastReceiver() {
             Outcome.LAUNCH -> {
                 try {
                     context.startActivity(
-                        FullScreenReminderActivity.buildIntent(context, noteId, title, body, id, recurrence)
+                        FullScreenReminderActivity.buildIntent(
+                            context, noteId, title, body, id, recurrence, atMillis, tag,
+                        )
                     )
                 } catch (e: Exception) {
                     // Launch failed (overlay revoked, card swiped on Android 14):
                     // fall back to the banner, once.
-                    repostBanner(context, id, noteId, title, body, recurrence)
+                    repostBanner(context, id, noteId, title, body, recurrence, atMillis, tag)
                 }
             }
-            Outcome.REPOST -> repostBanner(context, id, noteId, title, body, recurrence)
+            Outcome.REPOST -> repostBanner(context, id, noteId, title, body, recurrence, atMillis, tag)
             Outcome.SKIP -> Unit
         }
     }
@@ -93,7 +97,11 @@ class FsiEscalationReceiver : BroadcastReceiver() {
         title: String,
         body: String,
         recurrence: String,
+        atMillis: Long,
+        tag: String,
     ) {
-        ReminderNotificationBuilder.show(context, id, noteId, title, body, "", recurrence)
+        ReminderNotificationBuilder.show(
+            context, id, noteId, title, body, "", recurrence, atMillis, tag,
+        )
     }
 }

@@ -39,6 +39,7 @@ class ScheduledNotification {
     required this.payload,
     this.tier = NotificationTier.important,
     this.recurrence = 'none',
+    this.tag,
   });
 
   final int id;
@@ -57,6 +58,10 @@ class ScheduledNotification {
   /// one-off); the native stack keeps it so a snooze of the card can restash
   /// the series correctly.
   final String recurrence;
+
+  /// The note's first tag name (no leading "#") for the native sheet's meta
+  /// line. Null on platforms or paths that don't carry it.
+  final String? tag;
 }
 
 abstract class NotificationGateway {
@@ -269,6 +274,7 @@ class LocalNotificationGateway implements NotificationGateway {
         'atMillis': notification.at.millisecondsSinceEpoch,
         'snoozeNoteId': notification.payload,
         'recurrence': notification.recurrence,
+        'tag': notification.tag ?? '',
       });
       return true;
     } on PlatformException {

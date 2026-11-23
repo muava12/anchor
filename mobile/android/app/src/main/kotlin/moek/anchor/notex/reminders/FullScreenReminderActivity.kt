@@ -31,6 +31,8 @@ class FullScreenReminderActivity : Activity() {
         const val EXTRA_TITLE = "title"
         const val EXTRA_BODY = "body"
         const val EXTRA_NOTIFICATION_ID = "notification_id"
+        const val EXTRA_AT_MILLIS = "at_millis"
+        const val EXTRA_TAG = "tag"
 
         /**
          * Shared sheet intent: the extras every reminder sheet needs, in
@@ -44,12 +46,16 @@ class FullScreenReminderActivity : Activity() {
             body: String,
             notificationId: Int,
             recurrence: String,
+            atMillis: Long = 0L,
+            tag: String = "",
         ): Intent = Intent(context, FullScreenReminderActivity::class.java).apply {
             putExtra(EXTRA_NOTE_ID, noteId)
             putExtra(EXTRA_TITLE, title)
             putExtra(EXTRA_BODY, body)
             putExtra(EXTRA_NOTIFICATION_ID, notificationId)
             putExtra(SnoozeReminderActivity.EXTRA_RECURRANCE, recurrence)
+            putExtra(EXTRA_AT_MILLIS, atMillis)
+            putExtra(EXTRA_TAG, tag)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
     }
@@ -64,6 +70,8 @@ class FullScreenReminderActivity : Activity() {
     private var title = ""
     private var body = ""
     private var recurrence = ""
+    private var atMillis = 0L
+    private var tag = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -113,6 +121,7 @@ class FullScreenReminderActivity : Activity() {
                 putExtra(SnoozeReminderActivity.EXTRA_BODY, body)
                 putExtra(SnoozeReminderActivity.EXTRA_RECURRANCE, recurrence)
                 putExtra(SnoozeReminderActivity.EXTRA_NOTIFICATION_ID, notificationId)
+                putExtra(SnoozeReminderActivity.EXTRA_TAG, tag)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             startActivity(snoozeIntent)
@@ -159,12 +168,34 @@ class FullScreenReminderActivity : Activity() {
         title = intent.getStringExtra(EXTRA_TITLE) ?: ""
         body = intent.getStringExtra(EXTRA_BODY) ?: ""
         recurrence = intent.getStringExtra(SnoozeReminderActivity.EXTRA_RECURRANCE) ?: ""
+        atMillis = intent.getLongExtra(EXTRA_AT_MILLIS, 0L)
+        tag = intent.getStringExtra(EXTRA_TAG) ?: ""
 
-        findViewById<TextView>(R.id.fsi_header_meta).text = "Anchor"
+        findViewById<TextView>(R.id.fsi_header_meta).text = headerMeta()
         findViewById<TextView>(R.id.fsi_title).text = title
         val fsiBody = findViewById<TextView>(R.id.fsi_body)
         fsiBody.text = body
         fsiBody.visibility = if (body.isEmpty()) View.GONE else View.VISIBLE
+    }
+
+    /**
+     * The header meta line: "Anchor", then the reminder's scheduled time and
+     * the note's first tag when the native stack carried them, e.g.
+     * "Anchor · 3:40 AM · #journal". Time is formatted in the device's zone
+     * and locale so every fire path (original, escalation, snooze re-fire)
+     * reads the same.
+     */
+    private fun headerMeta(): String {
+        val parts = mutableListOf("Anchor")
+        if (atMillis > 0L) {
+            val locale = resources.configuration.locale ?: java.util.Locale.getDefault()
+            parts.add(
+                java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT, locale)
+                    .format(java.util.Date(atMillis))
+            )
+        }
+        if (tag.isNotBlank()) parts.add("#" + tag.removePrefix("#"))
+        return parts.joinToString(" · ")
     }
 
     private fun slideSheetUp() {

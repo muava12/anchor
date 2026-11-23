@@ -30,6 +30,8 @@ object ReminderNotificationBuilder {
         body: String,
         snoozeNoteId: String,
         recurrence: String,
+        atMillis: Long = 0L,
+        tag: String = "",
     ): Long {
         ensureChannel(context)
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -48,7 +50,7 @@ object ReminderNotificationBuilder {
         // Full-screen intent: the reminder sheet, so a heads-up lands on the
         // lock screen and home screen instead of just the shade.
         val sheet = FullScreenReminderActivity.buildIntent(
-            context, noteId, title, body, id, recurrence
+            context, noteId, title, body, id, recurrence, atMillis, tag,
         )
         val fullScreen = PendingIntent.getActivity(context, id * 2 + 1, sheet, flags)
 
@@ -70,7 +72,7 @@ object ReminderNotificationBuilder {
                 dismissAction(context, id * 3 + 2, noteId, id)
             )
             .addAction(
-                snoozeAction(context, id * 3 + 3, noteId, title, body, recurrence, id)
+                snoozeAction(context, id * 3 + 3, noteId, title, body, recurrence, id, atMillis, tag)
             )
             .build()
 
@@ -108,6 +110,8 @@ object ReminderNotificationBuilder {
         body: String,
         recurrence: String,
         notificationId: Int,
+        atMillis: Long,
+        tag: String,
     ): NotificationCompat.Action {
         // The standalone sheet re-arms the reminder natively; the extras it
         // needs (incl. notification_id) come straight off this occurrence.
@@ -117,6 +121,8 @@ object ReminderNotificationBuilder {
             putExtra(SnoozeReminderActivity.EXTRA_BODY, body)
             putExtra(SnoozeReminderActivity.EXTRA_RECURRANCE, recurrence)
             putExtra(SnoozeReminderActivity.EXTRA_NOTIFICATION_ID, notificationId)
+            putExtra(SnoozeReminderActivity.EXTRA_AT_MILLIS, atMillis)
+            putExtra(SnoozeReminderActivity.EXTRA_TAG, tag)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         val pi = PendingIntent.getActivity(context, code, intent, pendingFlags())
