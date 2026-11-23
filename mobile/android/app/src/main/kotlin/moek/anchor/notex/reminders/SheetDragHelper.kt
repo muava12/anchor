@@ -61,6 +61,7 @@ class SheetDragHelper(
 
                 MotionEvent.ACTION_POINTER_DOWN -> {
                     // Two pointers: abandon the drag, spring back.
+                    dragging = false
                     springBack()
                     false
                 }
