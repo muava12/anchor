@@ -6,6 +6,7 @@ import '../../../../core/theme/context_extensions.dart';
 import '../../../../core/theme/tokens/anchor_tokens.dart';
 import '../../../../l10n/l10n.dart';
 import '../../domain/journal_day.dart';
+import '../../domain/journal_stats.dart';
 
 /// The timeline's headline stats: a row of up to three cards, each shown only
 /// when its data exists.
@@ -25,25 +26,24 @@ class JournalStatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final stats = _Stats.of(days, DateTime.now());
-    if (stats == null) return const SizedBox.shrink();
+    final now = DateTime.now();
+    final streak = journalStreakOf(days, now);
+    final throwback = journalThrowbackOf(days, now);
+    if (throwback == null && streak == null) return const SizedBox.shrink();
 
     final l10n = context.l10n;
     final cards = <Widget>[
-      if (stats.onThisDay)
-        _StatCard(
-          icon: _StatIcon.history,
-          label: l10n.journalStatOnThisDay,
-        ),
-      if (stats.streak != null)
+      if (throwback != null)
+        _StatCard(icon: _StatIcon.history, label: l10n.journalStatOnThisDay),
+      if (streak != null)
         _StatCard(
           icon: _StatIcon.streak,
-          label: l10n.journalStatStreak(stats.streak!),
+          label: l10n.journalStatStreak(streak!),
         ),
-      if (stats.throwbackYear != null)
+      if (throwback != null)
         _StatCard(
           icon: _StatIcon.throwback,
-          label: l10n.journalStatThrowback('${stats.throwbackYear}'),
+          label: l10n.journalStatThrowback('${throwback.year}'),
         ),
     ];
 
@@ -112,77 +112,6 @@ class _StatCard extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// The three trigger computations, evaluated once per build.
-class _Stats {
-  const _Stats({
-    required this.onThisDay,
-    required this.streak,
-    required this.throwbackYear,
-  });
-
-  /// An entry exists on today's month-day in a prior year.
-  final bool onThisDay;
-
-  /// Length of the consecutive-days run ending today or yesterday, or null
-  /// when fewer than two days qualify.
-  final int? streak;
-
-  /// The most recent prior year (not the current one) with an entry on
-  /// today's month-day.
-  final int? throwbackYear;
-
-  static _Stats? of(List<JournalDay> days, DateTime now) {
-    final today = DateTime(now.year, now.month, now.day);
-    final todayMonth = now.month;
-    final todayDay = now.day;
-
-    // Distinct entry days, as local midnights, for fast lookup.
-    final entryDays = <DateTime>{for (final day in days) day.day};
-
-    // On this day: any entry day in a prior year with the same month-day.
-    final onThisDay = entryDays.any(
-      (day) =>
-          day.year < now.year &&
-          day.month == todayMonth &&
-          day.day == todayDay,
-    );
-
-    // Throwback: the most recent prior year with today's month-day.
-    int? throwbackYear;
-    for (final day in entryDays) {
-      if (day.year >= now.year) continue;
-      if (day.month != todayMonth || day.day != todayDay) continue;
-      if (throwbackYear == null || day.year > throwbackYear) {
-        throwbackYear = day.year;
-      }
-    }
-
-    // Streak: consecutive entry days ending today or yesterday.
-    var anchor = entryDays.contains(today)
-        ? today
-        : (entryDays.contains(DateTime(now.year, now.month, now.day - 1))
-              ? DateTime(now.year, now.month, now.day - 1)
-              : null);
-    int? streak;
-    if (anchor != null) {
-      var length = 0;
-      var cursor = anchor;
-      while (entryDays.contains(cursor)) {
-        length++;
-        cursor = DateTime(cursor.year, cursor.month, cursor.day - 1);
-      }
-      if (length >= 2) streak = length;
-    }
-
-    if (!onThisDay && streak == null && throwbackYear == null) return null;
-    return _Stats(
-      onThisDay: onThisDay,
-      streak: streak,
-      throwbackYear: throwbackYear,
     );
   }
 }

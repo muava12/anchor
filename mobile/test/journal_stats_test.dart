@@ -2,21 +2,21 @@ import 'package:anchor/core/theme/app_theme.dart';
 import 'package:anchor/core/theme/tokens/anchor_tokens.dart';
 import 'package:anchor/features/journal/domain/journal_day.dart';
 import 'package:anchor/features/journal/domain/journal_meta.dart';
+import 'package:anchor/features/journal/domain/journal_stats.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_stats_row.dart';
 import 'package:anchor/features/notes/domain/note.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Note note(String id) {
-  return Note(
-    id: id,
-    title: id,
-    content: '{"ops":[{"insert":"$id\n"}]}',
-  );
+  return Note(id: id, title: id, content: '{"ops":[{"insert":"$id\n"}]}');
 }
 
 JournalDayEntry entry(String id, DateTime at) {
-  return JournalDayEntry(note: note(id), meta: JournalMeta(entryAt: at));
+  return JournalDayEntry(
+    note: note(id),
+    meta: JournalMeta(entryAt: at),
+  );
 }
 
 Future<void> pump(WidgetTester tester, List<JournalDay> days) async {
@@ -30,6 +30,48 @@ Future<void> pump(WidgetTester tester, List<JournalDay> days) async {
 }
 
 void main() {
+  group('journal stats domain', () {
+    test('throwback is the nearest prior year with its entry count', () {
+      final days = [
+        JournalDay(
+          day: DateTime(2025, 11, 23),
+          entries: [
+            entry('a', DateTime(2025, 11, 23)),
+            entry('b', DateTime(2025, 11, 23)),
+          ],
+        ),
+        JournalDay(
+          day: DateTime(2024, 11, 23),
+          entries: [entry('c', DateTime(2024, 11, 23))],
+        ),
+      ];
+      expect(journalThrowbackOf(days, DateTime(2026, 11, 23)), (
+        year: 2025,
+        entryCount: 2,
+      ));
+    });
+
+    test('a leap-day entry gives no throwback on 28 Feb of a common year', () {
+      final days = [
+        JournalDay(
+          day: DateTime(2024, 2, 29),
+          entries: [entry('a', DateTime(2024, 2, 29))],
+        ),
+      ];
+      expect(journalThrowbackOf(days, DateTime(2027, 2, 28)), isNull);
+    });
+
+    test('streak needs two days', () {
+      final today = DateTime(2026, 11, 23);
+      expect(
+        journalStreakOf([
+          JournalDay(day: today, entries: [entry('a', today)]),
+        ], today),
+        isNull,
+      );
+    });
+  });
+
   testWidgets(
     'renders all three cards when streak, on-this-day and throwback data exist',
     (tester) async {
