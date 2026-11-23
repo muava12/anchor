@@ -1,5 +1,4 @@
 import 'package:anchor/core/theme/app_theme.dart';
-import 'package:anchor/core/theme/tokens/anchor_tokens.dart';
 import 'package:anchor/features/journal/domain/journal_day.dart';
 import 'package:anchor/features/journal/domain/journal_meta.dart';
 import 'package:anchor/features/journal/domain/journal_stats.dart';
@@ -30,6 +29,31 @@ Future<void> pump(WidgetTester tester, List<JournalDay> days) async {
 }
 
 void main() {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+
+  /// [n] consecutive entry days ending today.
+  List<JournalDay> daysWithStreak(int n) => [
+    for (var i = 0; i < n; i++)
+      JournalDay(
+        day: DateTime(today.year, today.month, today.day - i),
+        entries: [
+          entry('s$i', DateTime(today.year, today.month, today.day - i)),
+        ],
+      ),
+  ];
+
+  /// A day [yearsAgo] on today's month-day, with [entries] entries.
+  List<JournalDay> daysWithThrowback({required int yearsAgo, int entries = 1}) {
+    final day = DateTime(now.year - yearsAgo, now.month, now.day);
+    return [
+      JournalDay(
+        day: day,
+        entries: [for (var i = 0; i < entries; i++) entry('t$i', day)],
+      ),
+    ];
+  }
+
   group('journal stats domain', () {
     test('throwback is the nearest prior year with its entry count', () {
       final days = [
@@ -72,94 +96,29 @@ void main() {
     });
   });
 
-  testWidgets(
-    'renders all three cards when streak, on-this-day and throwback data exist',
-    (tester) async {
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final yesterday = DateTime(now.year, now.month, now.day - 1);
-      final dayBefore = DateTime(now.year, now.month, now.day - 2);
-      final priorYear = DateTime(now.year - 1, now.month, now.day);
-      final olderYear = DateTime(now.year - 2, now.month, now.day);
-
-      await pump(tester, [
-        JournalDay(day: today, entries: [entry('today', today)]),
-        JournalDay(day: yesterday, entries: [entry('y', yesterday)]),
-        JournalDay(day: dayBefore, entries: [entry('db', dayBefore)]),
-        JournalDay(day: priorYear, entries: [entry('py', priorYear)]),
-        JournalDay(day: olderYear, entries: [entry('oy', olderYear)]),
-      ]);
-
-      expect(find.text('On this day'), findsOneWidget);
-      expect(find.text('3-day streak'), findsOneWidget);
-      expect(find.text('Throwback · ${priorYear.year}'), findsOneWidget);
-    },
-  );
-
-  testWidgets('renders nothing when no stat data exists', (tester) async {
-    final now = DateTime.now();
-    final old = DateTime(now.year - 1, now.month, now.day == 1 ? 2 : 1);
-
-    await pump(tester, [
-      JournalDay(day: old, entries: [entry('old', old)]),
-    ]);
-
-    expect(find.text('On this day'), findsNothing);
-    expect(find.textContaining('streak'), findsNothing);
-    expect(find.textContaining('Throwback'), findsNothing);
-    expect(find.byType(Row), findsNothing);
+  testWidgets('today tile shows the date and the streak badge', (tester) async {
+    await pump(tester, daysWithStreak(3));
+    expect(find.byKey(const ValueKey('journal-tile-today')), findsOneWidget);
+    expect(find.text('Today'), findsOneWidget);
+    expect(find.text('3 days'), findsOneWidget);
   });
 
-  testWidgets('a stat tile keeps its own 72, not the 56 thumbnail', (
-    tester,
-  ) async {
-    // The timeline thumbnail is 56; the stats tiles kept their Task-8 72.
-    expect(AnchorTokens.sizeJournalStatTile, 72);
-    expect(AnchorTokens.sizeJournalThumb, 56);
-
-    final now = DateTime.now();
-    final priorYear = DateTime(now.year - 1, now.month, now.day);
-
-    await pump(tester, [
-      JournalDay(day: priorYear, entries: [entry('py', priorYear)]),
-    ]);
-
-    final tile = tester.getSize(
-      find
-          .descendant(
-            of: find.byType(JournalStatsRow),
-            matching: find.byType(Container),
-          )
-          .first,
-    );
-    expect(tile, const Size(72, 72));
+  testWidgets('throwback tile shows count and years ago', (tester) async {
+    // On 29 Feb of a leap year the clamped prior year throws no throwback.
+    if (now.month == 2 && now.day == 29) return;
+    await pump(tester, daysWithThrowback(yearsAgo: 2, entries: 2));
+    expect(find.text('Throwback'), findsOneWidget);
+    expect(find.text('2 entries'), findsOneWidget);
+    expect(find.text('2 years ago'), findsOneWidget);
   });
 
-  testWidgets('streak of one (only today) shows no streak card', (
+  testWidgets('no throwback hides the tile; no streak hides the badge', (
     tester,
   ) async {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-
     await pump(tester, [
-      JournalDay(day: today, entries: [entry('today', today)]),
+      JournalDay(day: today, entries: [entry('t', today)]),
     ]);
-
-    expect(find.textContaining('streak'), findsNothing);
-  });
-
-  testWidgets('streak ending yesterday (today empty) still counts', (
-    tester,
-  ) async {
-    final now = DateTime.now();
-    final yesterday = DateTime(now.year, now.month, now.day - 1);
-    final dayBefore = DateTime(now.year, now.month, now.day - 2);
-
-    await pump(tester, [
-      JournalDay(day: yesterday, entries: [entry('y', yesterday)]),
-      JournalDay(day: dayBefore, entries: [entry('db', dayBefore)]),
-    ]);
-
-    expect(find.text('2-day streak'), findsOneWidget);
+    expect(find.byKey(const ValueKey('journal-tile-throwback')), findsNothing);
+    expect(find.textContaining(RegExp(r'\d+ days?$')), findsNothing);
   });
 }

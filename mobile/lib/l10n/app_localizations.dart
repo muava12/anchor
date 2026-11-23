@@ -2738,6 +2738,24 @@ abstract class AppLocalizations {
   /// **'Throwback · {year}'**
   String journalStatThrowback(String year);
 
+  /// Title of the throwback stat tile on the journal, over the years-ago sub line.
+  ///
+  /// In en, this message translates to:
+  /// **'Throwback'**
+  String get journalThrowback;
+
+  /// Streak badge on the today tile of the journal: N consecutive entry days.
+  ///
+  /// In en, this message translates to:
+  /// **'1 day' or '{count} days'**
+  String journalStatDays(int count);
+
+  /// Sub line of the throwback tile: how many years before today the entry's month-day was written.
+  ///
+  /// In en, this message translates to:
+  /// **'1 year ago' or '{count} years ago'**
+  String journalStatYearsAgo(int count);
+
   /// Screen reader label of the account row at the bottom of the menu.
   ///
   /// In en, this message translates to:

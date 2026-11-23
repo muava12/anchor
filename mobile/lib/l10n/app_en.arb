@@ -2277,6 +2277,9 @@
   "journalStatOnThisDay": "On this day",
   "journalStatStreak": "{count}-day streak",
   "journalStatThrowback": "Throwback · {year}",
+  "journalThrowback": "Throwback",
+  "journalStatDays": "{count, plural, =1{1 day} other{{count} days}}",
+  "journalStatYearsAgo": "{count, plural, =1{1 year ago} other{{count} years ago}}",
   "@navJournal": {
     "description": "Noun: the side menu item and list title for the journal."
   },
@@ -2406,6 +2409,25 @@
       "year": {
         "type": "String",
         "example": "2024"
+      }
+    }
+  },
+  "@journalThrowback": {
+    "description": "Title of the throwback stat tile on the journal, over the years-ago sub line."
+  },
+  "@journalStatDays": {
+    "description": "Streak badge on the today tile of the journal: N consecutive entry days.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@journalStatYearsAgo": {
+    "description": "Sub line of the throwback tile: how many years before today the entry's month-day was written.",
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   },

@@ -24,6 +24,10 @@ void main() {
     expect(english.logsCopied(1), '1 log copied');
     expect(english.logsCopied(4), '4 logs copied');
     expect(english.passwordHelp(8), 'At least 8 characters.');
+    expect(english.journalStatDays(1), '1 day');
+    expect(english.journalStatDays(3), '3 days');
+    expect(english.journalStatYearsAgo(1), '1 year ago');
+    expect(english.journalStatYearsAgo(2), '2 years ago');
   });
 
   final arb =

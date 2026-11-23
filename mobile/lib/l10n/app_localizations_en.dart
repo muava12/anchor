@@ -775,7 +775,8 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other:
           '$count changes haven’t synced yet. They stay on this phone and sync when you sign in again.',
-      one: '1 change hasn’t synced yet. It stays on this phone and syncs when you sign in again.',
+      one:
+          '1 change hasn’t synced yet. It stays on this phone and syncs when you sign in again.',
       zero: 'Your notes stay on this phone and sync again when you sign in.',
     );
     return '$_temp0';
@@ -1106,8 +1107,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Android may delay reminders to save battery. Allow exact alarms so they ring on time.';
 
   @override
-  String get reminderFullScreenTitle =>
-      'Keep reminders visible';
+  String get reminderFullScreenTitle => 'Keep reminders visible';
 
   @override
   String get reminderFullScreenMessage =>
@@ -1724,6 +1724,31 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get journalThrowback => 'Throwback';
+
+  @override
+  String journalStatDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String journalStatYearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count years ago',
+      one: '1 year ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String drawerAccount(String name) {
     return '$name, Settings';
   }
@@ -2002,7 +2027,8 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other:
           '$count notes shared with you will be removed from your notes. To see them again, their owners have to share them with you again.',
-      one: 'A note shared with you will be removed from your notes. To see it again, its owner has to share it with you again.',
+      one:
+          'A note shared with you will be removed from your notes. To see it again, its owner has to share it with you again.',
     );
     return '$_temp0';
   }
@@ -2026,8 +2052,10 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'This can’t be undone. People you shared them with will lose access too.',
-      one: 'This can’t be undone. People you shared it with will lose access too.',
+      other:
+          'This can’t be undone. People you shared them with will lose access too.',
+      one:
+          'This can’t be undone. People you shared it with will lose access too.',
     );
     return '$_temp0';
   }
@@ -3000,8 +3028,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backupMonthly => 'Monthly';
 
   @override
-  String get backupPeriodDesc =>
-      'How often Anchor makes an automatic backup';
+  String get backupPeriodDesc => 'How often Anchor makes an automatic backup';
 
   @override
   String get backupKeepDesc =>
