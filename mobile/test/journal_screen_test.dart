@@ -4,6 +4,7 @@ import 'package:anchor/features/journal/presentation/journal_providers.dart';
 import 'package:anchor/features/journal/presentation/journal_screen.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_calendar.dart';
 import 'package:anchor/features/notes/domain/note.dart';
+import 'package:anchor/features/notes/presentation/widgets/card_registry.dart';
 import 'package:anchor/features/tags/domain/tag.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -77,6 +78,13 @@ void main() {
     await tester.pumpAndSettle();
     final after = tester.getSize(pill()).width;
     expect(after, lessThan(before));
+  });
+
+  testWidgets('the entry card registers with the morph card registry', (tester) async {
+    await pump(tester, [entry('a', 'Morning pages', 'good')]);
+    // Registration is what lets the close morph fly the card back to its
+    // home in the journal list and show the list behind it (the Notes path).
+    expect(CardRegistry.rectOf('a'), isNotNull);
   });
 
   testWidgets('the calendar action shows the month grid', (tester) async {

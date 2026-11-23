@@ -11,6 +11,7 @@ import '../../../../core/widgets/pressable.dart';
 import '../../../../l10n/l10n.dart';
 import '../../../notes/data/repository/attachment_file_provider.dart';
 import '../../../notes/domain/note.dart';
+import '../../../notes/presentation/widgets/card_registry.dart';
 import '../../../notes/presentation/widgets/note_chips.dart';
 import '../../../notes/presentation/widgets/note_surface.dart';
 import '../../../tags/domain/tag.dart';
@@ -97,73 +98,82 @@ class _EntryRow extends ConsumerWidget {
     final tag = _firstOtherTag(ref, note, ref.watch(journalTagProvider)?.id);
     final hasPicture = note.imagePreviewData.isNotEmpty;
 
-    return Pressable(
-      style: PressStyle.plain,
-      onTap: () => onOpen(note),
-      semanticLabel: time.isEmpty ? title : '$title · $time',
-      child: Padding(
-        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            if (!isLastOfDay)
-              Positioned(
-                left: 7, // off-scale: the 16px ring's centre
-                top: 0,
-                bottom: -16,
-                width: 2,
-                child: ColoredBox(color: colors.appBorder),
-              ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return ValueListenableBuilder<Set<String>>(
+      valueListenable: CardRegistry.hidden,
+      builder: (context, hidden, child) =>
+          Opacity(opacity: hidden.contains(note.id) ? 0 : 1, child: child),
+      child: Pressable(
+        style: PressStyle.plain,
+        onTap: () => onOpen(note),
+        semanticLabel: time.isEmpty ? title : '$title · $time',
+        child: RepaintBoundary(
+          // The morph close target: the card flies back to this row.
+          key: CardRegistry.keyFor(note.id),
+          child: Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+            child: Stack(
+              clipBehavior: Clip.none,
               children: [
-                const _RailRing(),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.cardTitle.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: colors.appText,
-                        ),
-                      ),
-                      if (preview.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            preview,
+                if (!isLastOfDay)
+                  Positioned(
+                    left: 7, // off-scale: the 16px ring's centre
+                    top: 0,
+                    bottom: -16,
+                    width: 2,
+                    child: ColoredBox(color: colors.appBorder),
+                  ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const _RailRing(),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: AppTypography.cardBody.copyWith(
-                              color: colors.appMuted,
+                            style: AppTypography.cardTitle.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: colors.appText,
                             ),
                           ),
-                        ),
-                      if (time.isNotEmpty || mood != null || tag != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: _MetaRow(
-                            time: time,
-                            mood: mood,
-                            tag: tag,
-                          ),
-                        ),
+                          if (preview.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Text(
+                                preview,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTypography.cardBody.copyWith(
+                                  color: colors.appMuted,
+                                ),
+                              ),
+                            ),
+                          if (time.isNotEmpty || mood != null || tag != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: _MetaRow(
+                                time: time,
+                                mood: mood,
+                                tag: tag,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    if (hasPicture) ...[
+                      const SizedBox(width: 12),
+                      _EntryThumbnails(previews: note.imagePreviewData),
                     ],
-                  ),
+                  ],
                 ),
-                if (hasPicture) ...[
-                  const SizedBox(width: 12),
-                  _EntryThumbnails(previews: note.imagePreviewData),
-                ],
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
