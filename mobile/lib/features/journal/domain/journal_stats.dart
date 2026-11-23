@@ -9,8 +9,8 @@ int? journalStreakOf(List<JournalDay> days, DateTime now) {
   var anchor = entryDays.contains(today)
       ? today
       : entryDays.contains(DateTime(now.year, now.month, now.day - 1))
-          ? DateTime(now.year, now.month, now.day - 1)
-          : null;
+      ? DateTime(now.year, now.month, now.day - 1)
+      : null;
   if (anchor == null) return null;
 
   var length = 0;
