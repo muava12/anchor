@@ -142,16 +142,30 @@ void main() {
     expect(find.byIcon(LucideIcons.rows3), findsNothing);
   });
 
-  testWidgets('tapping the calendar icon twice returns to the timeline', (
+  testWidgets('tapping the calendar icon twice returns to the list', (
     tester,
   ) async {
     await pump(tester, [entry('a', 'Morning pages', 'good')]);
     await tester.tap(find.byIcon(LucideIcons.calendarDays));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.byType(JournalCalendar), findsOneWidget);
-    expect(find.byIcon(LucideIcons.rows3), findsOneWidget);
-    await tester.tap(find.byIcon(LucideIcons.rows3));
-    await tester.pump();
+    await tester.tap(find.byIcon(LucideIcons.calendarDays));
+    await tester.pumpAndSettle();
+    expect(find.byType(JournalCalendar), findsNothing);
+    expect(find.byIcon(LucideIcons.calendarDays), findsOneWidget);
+  });
+
+  testWidgets('the calendar icon stays while the calendar is on', (
+    tester,
+  ) async {
+    await pump(tester, [entry('a', 'Morning pages', 'good')]);
+    await tester.tap(find.byIcon(LucideIcons.calendarDays));
+    await tester.pumpAndSettle();
+    expect(find.byType(JournalCalendar), findsOneWidget);
+    expect(find.byIcon(LucideIcons.calendarDays), findsOneWidget);
+    expect(find.byIcon(LucideIcons.rows3), findsNothing);
+    await tester.tap(find.byIcon(LucideIcons.calendarDays));
+    await tester.pumpAndSettle();
     expect(find.byType(JournalCalendar), findsNothing);
     expect(find.byIcon(LucideIcons.calendarDays), findsOneWidget);
   });

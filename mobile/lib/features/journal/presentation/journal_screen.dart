@@ -136,7 +136,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
       ),
       actions: [
         BarButton(
-          icon: _calendar ? LucideIcons.rows3 : LucideIcons.calendarDays,
+          icon: LucideIcons.calendarDays,
           label: _calendar ? l10n.journalTimeline : l10n.journalCalendar,
           isOn: _calendar ? true : null,
           onPressed: () => setState(() {
