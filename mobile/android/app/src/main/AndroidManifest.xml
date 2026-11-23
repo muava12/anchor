@@ -13,6 +13,9 @@
          Without this, the system auto-dismisses it after ~5 seconds.
          With it, the HUN stays 60s (denied) or persists (granted). -->
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
+    <!-- Reminders: the 60 s escalation (Task 3) re-shows the reminder sheet
+         over the app in use; needs the runtime overlay grant on Android 6+. -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <!-- Saving a picture to the gallery on Android 10 and older. -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
@@ -113,6 +116,15 @@
             android:name="moek.anchor.notex.reminders.ReminderFireReceiver">
             <intent-filter>
                 <action android:name="moek.anchor.notex.REMINDER_FIRE"/>
+            </intent-filter>
+        </receiver>
+        <!-- Fires 60 s after a reminder banner; re-shows the reminder sheet
+             over the app in use if the banner was ignored (escalation, Task 3). -->
+        <receiver
+            android:exported="false"
+            android:name="moek.anchor.notex.reminders.FsiEscalationReceiver">
+            <intent-filter>
+                <action android:name="moek.anchor.notex.FSI_ESCALATE"/>
             </intent-filter>
         </receiver>
         <!-- Re-arms pending reminders after a reboot or an app update. -->
