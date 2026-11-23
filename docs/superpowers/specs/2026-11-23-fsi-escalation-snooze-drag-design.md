@@ -58,3 +58,6 @@ Multiple simultaneous reminders (per-id alarms; one sheet, rebind via `onNewInte
 
 ## Left to the builder
 Exact strings (native `strings.xml`, ARB), dialog copy, interpolator details, flag/naming conventions.
+
+## Rulings
+Closing the visible sheet does not cancel the 60 s escalation: the banner stays, and the re-shown sheet at 60 s is the intended no-snooze behavior.

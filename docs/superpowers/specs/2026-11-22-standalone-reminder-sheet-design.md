@@ -31,6 +31,7 @@ opening the app" behavior, now with the Doop visual design.
 - iOS: out of scope for this change (Android native reminder system).
 
 ## Constraints (Android platform)
+- Superseded in part by `2026-11-23-fsi-escalation-snooze-drag-design.md`: with the overlay grant, a 60 s escalation does show the sheet over other apps while awake.
 - A full-screen sheet **auto-appears only when the device is locked / screen
   off** (full-screen intent). When the device is **awake**, the standalone
   surface is the **system heads-up notification** (dashboard-free, in system
