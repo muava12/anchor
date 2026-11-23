@@ -376,6 +376,8 @@ testWidgets('legend has zero, one and two swatches between Less and More', (test
 
 Update the old assertion `find.text('November 2026')` and the 4-entry heat expectations in `journal_calendar_test.dart`.
 
+> **Ruling (journal-v5 execution):** to keep the today-ring test deterministic, `JournalCalendar` gains one optional `DateTime? now` parameter (defaults to `DateTime.now()`); "today" is computed from it. The constructor otherwise keeps its shape. `pumpCalendar` passes `now: today`.
+
 - [ ] **Step 2: Run** `rflutter test test/journal_day_test.dart test/journal_calendar_test.dart`. Expected: FAIL.
 - [ ] **Step 3: Implement** `heatLevelOf`, then restyle `journal_calendar.dart` per the spec F3 table: card radius `radius3xl` with `shadowRaised`; nav buttons `sizeControlSmall` with a 7% text tint; month in `typeHeading` plus a muted `typeLabel` year; weekday labels caption semibold; cells `childAspectRatio: 1`, radius `radiusXl`, gaps `space4` rows and 3 columns (`// off-scale: design column gap 3`); heat alpha `[0, 0.14, 0.28]`; ring on any non-selected today; selected cell with `shadowControl`; out-of-month cells opacity 0.4; legend swatch row of three keyed swatches (12 px, radius 4, `// off-scale: heat swatch`).
 - [ ] **Step 4: Run** the two test files plus `test/theme/layout_scale_test.dart`. Expected: PASS.
