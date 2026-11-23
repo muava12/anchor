@@ -34,8 +34,8 @@ class AttachmentTile extends StatelessWidget {
           Positioned.fill(child: child),
           if (onDelete != null)
             Positioned(
-              top: 4,
-              right: 4,
+              top: -5, // off-scale: the remove knob hangs past the corner
+              right: -4,
               child: _RemoveButton(
                 label: deleteLabel,
                 appearance: appearance,

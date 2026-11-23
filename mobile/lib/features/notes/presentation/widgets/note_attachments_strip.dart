@@ -154,10 +154,13 @@ class _NoteAttachmentsStripState extends ConsumerState<NoteAttachmentsStrip> {
                     height: AttachmentTile.height + 8,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
+                      // Room for the remove knob that hangs past the tile
+                      // corner (5 px above the tile's top edge).
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
-                        vertical: 4,
+                        vertical: 9,
                       ),
+                      clipBehavior: Clip.none,
                       physics: const BouncingScrollPhysics(),
                       itemCount: tiles.length,
                       separatorBuilder: (_, _) => const SizedBox(width: 8),
