@@ -14,7 +14,6 @@ import 'package:anchor/features/journal/presentation/journal_providers.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_cards_list.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_day_cards.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_stats_row.dart';
-import 'package:anchor/features/journal/presentation/widgets/journal_timeline.dart';
 import 'package:anchor/features/notes/domain/note.dart';
 import 'package:anchor/features/tags/domain/tag.dart';
 import 'package:anchor/features/tags/presentation/tags_controller.dart';
@@ -102,27 +101,6 @@ JournalDayEntry _entry({
 
 void main() {
   setUpAll(_loadAppFonts);
-
-  testWidgets('journal timeline: mood + tag meta row', (tester) async {
-    await _pumpPhone(
-      tester,
-      JournalTimeline(
-        days: [
-          JournalDay(
-            day: DateTime(2026, 11, 17),
-            entries: [
-              _entry(mood: JournalMood.calm, tagIds: ['journal', 't1']),
-            ],
-          ),
-        ],
-        onOpen: (_) {},
-      ),
-    );
-    await expectLater(
-      find.byType(JournalTimeline),
-      matchesGoldenFile('goldens/journal_timeline.png'),
-    );
-  });
 
   testWidgets('journal day cards: mood chip + tag', (tester) async {
     await _pumpPhone(

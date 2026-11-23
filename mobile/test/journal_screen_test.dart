@@ -4,7 +4,6 @@ import 'package:anchor/features/journal/presentation/journal_providers.dart';
 import 'package:anchor/features/journal/presentation/journal_screen.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_calendar.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_card_shell.dart';
-import 'package:anchor/features/journal/presentation/widgets/journal_timeline.dart';
 import 'package:anchor/features/notes/domain/note.dart';
 import 'package:anchor/features/notes/presentation/widgets/card_registry.dart';
 import 'package:anchor/features/tags/domain/tag.dart';
@@ -58,7 +57,6 @@ void main() {
     expect(find.text('ENTRIES'), findsOneWidget);
     expect(find.text('November 17, 2026 \u00b7 Tue'), findsOneWidget);
     expect(find.byType(JournalCardShell), findsOneWidget);
-    expect(find.byType(JournalTimeline), findsNothing);
   });
 
   testWidgets(

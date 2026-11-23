@@ -2274,9 +2274,6 @@
   "journalMonthEntries": "{count, plural, =1{1 entry this month} other{{count} entries this month}}",
   "journalCalendarLess": "Less",
   "journalCalendarMore": "More",
-  "journalStatOnThisDay": "On this day",
-  "journalStatStreak": "{count}-day streak",
-  "journalStatThrowback": "Throwback · {year}",
   "journalThrowback": "Throwback",
   "journalStatDays": "{count, plural, =1{1 day} other{{count} days}}",
   "journalStatYearsAgo": "{count, plural, =1{1 year ago} other{{count} years ago}}",
@@ -2394,27 +2391,6 @@
   },
   "@journalCalendarMore": {
     "description": "Right end of the calendar heat-map legend (more entries)."
-  },
-  "@journalStatOnThisDay": {
-    "description": "Caption of the stat card shown when an entry exists on today's month-day in a prior year."
-  },
-  "@journalStatStreak": {
-    "description": "Caption of the stat card showing the run of consecutive entry days ending today or yesterday.",
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "example": "5"
-      }
-    }
-  },
-  "@journalStatThrowback": {
-    "description": "Caption of the stat card showing the most recent prior year with an entry on today's month-day.",
-    "placeholders": {
-      "year": {
-        "type": "String",
-        "example": "2024"
-      }
-    }
   },
   "@journalThrowback": {
     "description": "Title of the throwback stat tile on the journal, over the years-ago sub line."

@@ -1711,19 +1711,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get journalCalendarMore => 'More';
 
   @override
-  String get journalStatOnThisDay => 'On this day';
-
-  @override
-  String journalStatStreak(int count) {
-    return '$count-day streak';
-  }
-
-  @override
-  String journalStatThrowback(String year) {
-    return 'Throwback · $year';
-  }
-
-  @override
   String get journalThrowback => 'Throwback';
 
   @override
