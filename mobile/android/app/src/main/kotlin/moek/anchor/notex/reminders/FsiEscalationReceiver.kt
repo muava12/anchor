@@ -31,6 +31,8 @@ class FsiEscalationReceiver : BroadcastReceiver() {
         val body = intent.getStringExtra("body") ?: ""
         val recurrence = intent.getStringExtra("recurrence") ?: "none"
         val postedWhen = intent.getLongExtra("posted_when", 0L)
+        // The escalation fired: its extras record is spent.
+        FsiEscalationScheduler.forget(context, id)
 
         when (decide(context, id, postedWhen)) {
             Outcome.LAUNCH -> {

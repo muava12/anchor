@@ -20,6 +20,8 @@ class ReminderFireReceiver : BroadcastReceiver() {
         val snoozeNoteId = intent.getStringExtra("snooze_note_id") ?: ""
         val recurrence = intent.getStringExtra("recurrence") ?: "none"
         ReminderAlarmStore.remove(context, id)
+        // The alarm fired: its extras record is spent.
+        ReminderAlarmScheduler.forget(context, id)
         val postedWhen = ReminderNotificationBuilder.show(context, id, noteId, title, body, snoozeNoteId, recurrence)
         FsiEscalationScheduler.scheduleIfUnlocked(context, id, noteId, title, body, recurrence, postedWhen)
     }

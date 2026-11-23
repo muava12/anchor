@@ -9,6 +9,8 @@ import android.content.Intent
 import android.os.Build
 import android.os.PowerManager
 import android.os.SystemClock
+import org.json.JSONArray
+import org.json.JSONObject
 
 /**
  * Arms the 60 s escalation for a fired reminder: if the banner is
@@ -22,6 +24,18 @@ import android.os.SystemClock
 object FsiEscalationScheduler {
     const val ACTION_ESCALATE = "moek.anchor.notex.FSI_ESCALATE"
     const val DELAY_MS = 60_000L
+
+    private const val PREFS = "fsi_escalations"
+    private const val KEY = "escalations"
+
+    private data class Record(
+        val id: Int,
+        val noteId: String,
+        val title: String,
+        val body: String,
+        val recurrence: String,
+        val postedWhen: Long,
+    )
 
     /**
      * Arms a one-shot escalation alarm for this occurrence, but only
@@ -53,6 +67,10 @@ object FsiEscalationScheduler {
         recurrence: String,
         postedWhen: Long,
     ) {
+        // Persist the extras first: [cancel] rebuilds the IDENTICAL pending
+        // intent, and am.cancel only matches on exact extras. A memory map
+        // would lose the record when the canceling process never called arm.
+        remember(context, Record(id, noteId, title, body, recurrence, postedWhen))
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val pi = escalateIntent(context, id, noteId, title, body, recurrence, postedWhen)
         // ELAPSED_REALTIME: the 60 s clock keeps running through doze,
@@ -69,10 +87,24 @@ object FsiEscalationScheduler {
         }
     }
 
-    /** Cancels the pending escalation for this occurrence. */
+    /**
+     * Cancels the pending escalation for this occurrence. Rebuilds the armed
+     * intent from the persisted extras so am.cancel actually matches; no-op
+     * when nothing is armed (record absent), so double-cancel is safe.
+     */
     fun cancel(context: Context, id: Int) {
+        val rec = record(context, id) ?: return
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        am.cancel(escalateIntent(context, id, "", "", "", "", 0L))
+        am.cancel(escalateIntent(context, rec.id, rec.noteId, rec.title, rec.body, rec.recurrence, rec.postedWhen))
+        forget(context, id)
+    }
+
+    /** Drops the armed record after the escalation alarm has fired. */
+    fun forget(context: Context, id: Int) {
+        val current = load(context)
+        val kept = current.filter { it.id != id }
+        if (kept.size == current.size) return
+        save(context, kept)
     }
 
     /** Cancels the escalation of every active notification. */
@@ -103,6 +135,52 @@ object FsiEscalationScheduler {
             putExtra("posted_when", postedWhen)
         }
         return PendingIntent.getBroadcast(context, id, intent, pendingFlags())
+    }
+
+    private fun record(context: Context, id: Int) = load(context).firstOrNull { it.id == id }
+
+    private fun remember(context: Context, rec: Record) {
+        val kept = load(context).filter { it.id != rec.id }.toMutableList()
+        kept.add(rec)
+        save(context, kept)
+    }
+
+    private fun save(context: Context, records: List<Record>) {
+        val arr = JSONArray()
+        for (r in records) {
+            arr.put(
+                JSONObject()
+                    .put("id", r.id)
+                    .put("noteId", r.noteId)
+                    .put("title", r.title)
+                    .put("body", r.body)
+                    .put("recurrence", r.recurrence)
+                    .put("postedWhen", r.postedWhen)
+            )
+        }
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putString(KEY, arr.toString()).apply()
+    }
+
+    private fun load(context: Context): List<Record> {
+        val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getString(KEY, null) ?: return emptyList()
+        val out = mutableListOf<Record>()
+        val arr = JSONArray(raw)
+        for (i in 0 until arr.length()) {
+            val o = arr.getJSONObject(i)
+            out.add(
+                Record(
+                    o.getInt("id"),
+                    o.getString("noteId"),
+                    o.getString("title"),
+                    o.optString("body"),
+                    o.optString("recurrence", "none"),
+                    o.getLong("postedWhen"),
+                )
+            )
+        }
+        return out
     }
 
     private fun pendingFlags() =
