@@ -30,10 +30,11 @@ object ReminderNotificationBuilder {
         body: String,
         snoozeNoteId: String,
         recurrence: String,
-    ) {
+    ): Long {
         ensureChannel(context)
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val flags = pendingFlags()
+        val whenMs = System.currentTimeMillis()
 
         // A plain tap opens the note in the app.
         val tap = Intent(context, MainActivity::class.java).apply {
@@ -44,14 +45,9 @@ object ReminderNotificationBuilder {
 
         // Full-screen intent: the reminder sheet, so a heads-up lands on the
         // lock screen and home screen instead of just the shade.
-        val sheet = Intent(context, FullScreenReminderActivity::class.java).apply {
-            putExtra(FullScreenReminderActivity.EXTRA_NOTE_ID, noteId)
-            putExtra(FullScreenReminderActivity.EXTRA_TITLE, title)
-            putExtra(FullScreenReminderActivity.EXTRA_BODY, body)
-            putExtra(ReminderActionReceiver.EXTRA_NOTIFICATION_ID, id)
-            putExtra(SnoozeReminderActivity.EXTRA_RECURRANCE, recurrence)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
+        val sheet = FullScreenReminderActivity.buildIntent(
+            context, noteId, title, body, id, recurrence
+        )
         val fullScreen = PendingIntent.getActivity(context, id * 2 + 1, sheet, flags)
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
@@ -62,7 +58,7 @@ object ReminderNotificationBuilder {
             .setOngoing(true)
             .setAutoCancel(false)
             .setShowWhen(true)
-            .setWhen(System.currentTimeMillis())
+            .setWhen(whenMs)
             .setContentIntent(content)
             .setFullScreenIntent(fullScreen, true)
             .addAction(
@@ -77,6 +73,9 @@ object ReminderNotificationBuilder {
             .build()
 
         nm.notify(id, notification)
+        // The `setWhen` value: callers (Task 3 escalation) can tell when
+        // this occurrence fired.
+        return whenMs
     }
 
     private fun doneAction(context: Context, code: Int, noteId: String, notificationId: Int): NotificationCompat.Action {

@@ -6,6 +6,7 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -29,13 +30,40 @@ class FullScreenReminderActivity : Activity() {
         const val EXTRA_NOTE_ID = "note_id"
         const val EXTRA_TITLE = "title"
         const val EXTRA_BODY = "body"
-        const val EXTRA_TAG = "tag"
-        const val EXTRA_TIME = "time"
         const val EXTRA_NOTIFICATION_ID = "notification_id"
+
+        /**
+         * Shared sheet intent: the extras every reminder sheet needs, in
+         * one place, so the notification builder, a future re-fire path
+         * (escalation), and the activity itself agree on the format.
+         */
+        fun buildIntent(
+            context: Context,
+            noteId: String,
+            title: String,
+            body: String,
+            notificationId: Int,
+            recurrence: String,
+        ): Intent = Intent(context, FullScreenReminderActivity::class.java).apply {
+            putExtra(EXTRA_NOTE_ID, noteId)
+            putExtra(EXTRA_TITLE, title)
+            putExtra(EXTRA_BODY, body)
+            putExtra(EXTRA_NOTIFICATION_ID, notificationId)
+            putExtra(SnoozeReminderActivity.EXTRA_RECURRANCE, recurrence)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
     }
 
     private var sheetView: View? = null
     private var enterAnimator: ValueAnimator? = null
+
+    // Bound from the launching (or re-launching) intent; read by the click
+    // listeners so `onNewIntent` can rebind a second, later reminder.
+    private var noteId = ""
+    private var notificationId = -1
+    private var title = ""
+    private var body = ""
+    private var recurrence = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,28 +72,7 @@ class FullScreenReminderActivity : Activity() {
         // Let the home screen show through.
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
 
-        val noteId = intent?.getStringExtra(EXTRA_NOTE_ID) ?: ""
-        val notificationId = intent?.getIntExtra(EXTRA_NOTIFICATION_ID, -1) ?: -1
-        val title = intent?.getStringExtra(EXTRA_TITLE) ?: ""
-        val body = intent?.getStringExtra(EXTRA_BODY) ?: ""
-        val tag = intent?.getStringExtra(EXTRA_TAG) ?: ""
-        val time = intent?.getStringExtra(EXTRA_TIME) ?: ""
-        // Recurrence comes through the fire path: the receiver reads it from
-        // the alarm extras and the builder puts it on the sheet intent. Blank
-        // means "none" to the snooze sheet, which hides the repeating-only
-        // chip and suffix.
-        val recurrence = intent?.getStringExtra(SnoozeReminderActivity.EXTRA_RECURRANCE) ?: ""
-
-        // Fill the header + body.
-        val headerMeta = findViewById<TextView>(R.id.fsi_header_meta)
-        headerMeta.text = "Anchor · $time · $tag".trimStart('·', ' ')
-
-        val fsiTitle = findViewById<TextView>(R.id.fsi_title)
-        fsiTitle.text = title
-
-        val fsiBody = findViewById<TextView>(R.id.fsi_body)
-        fsiBody.text = body
-        fsiBody.visibility = if (body.isEmpty()) View.GONE else View.VISIBLE
+        bind(intent)
 
         sheetView = findViewById(R.id.fsi_sheet)
 
@@ -112,6 +119,49 @@ class FullScreenReminderActivity : Activity() {
             // Close: slide the sheet down, banner stays.
             slideDownAndFinish()
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        ReminderSheetState.shown()
+    }
+
+    override fun onStop() {
+        ReminderSheetState.hidden()
+        super.onStop()
+    }
+
+    /**
+     * `singleInstance`: a second reminder that fires while the sheet is
+     * open is delivered here instead of stacking. Rebind the text and
+     * the fields the action rows read; the enter animation does not
+     * re-run (it was posted once from `onCreate`).
+     */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        bind(intent)
+    }
+
+    /**
+     * Fill the header + body and store the extras the click rows use.
+     * Recurrence comes through the fire path: the receiver reads it from
+     * the alarm extras and the builder puts it on the sheet intent. Blank
+     * means "none" to the snooze sheet, which hides the repeating-only
+     * chip and suffix.
+     */
+    private fun bind(intent: Intent) {
+        noteId = intent.getStringExtra(EXTRA_NOTE_ID) ?: ""
+        notificationId = intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1)
+        title = intent.getStringExtra(EXTRA_TITLE) ?: ""
+        body = intent.getStringExtra(EXTRA_BODY) ?: ""
+        recurrence = intent.getStringExtra(SnoozeReminderActivity.EXTRA_RECURRANCE) ?: ""
+
+        findViewById<TextView>(R.id.fsi_header_meta).text = "Anchor"
+        findViewById<TextView>(R.id.fsi_title).text = title
+        val fsiBody = findViewById<TextView>(R.id.fsi_body)
+        fsiBody.text = body
+        fsiBody.visibility = if (body.isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun slideSheetUp() {

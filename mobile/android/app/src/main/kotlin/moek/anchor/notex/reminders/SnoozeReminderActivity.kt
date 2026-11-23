@@ -42,6 +42,16 @@ class SnoozeReminderActivity : Activity() {
         private const val ALPHA_BORDER = 31 // ~12% text on surface
     }
 
+    override fun onStart() {
+        super.onStart()
+        ReminderSheetState.shown()
+    }
+
+    override fun onStop() {
+        ReminderSheetState.hidden()
+        super.onStop()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_snooze_reminder)
