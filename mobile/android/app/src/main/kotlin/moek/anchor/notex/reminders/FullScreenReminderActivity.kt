@@ -84,6 +84,9 @@ class FullScreenReminderActivity : Activity() {
             // Open note: bring the app to the front; Flutter opens the note.
             val appIntent = Intent(this, MainActivity::class.java).apply {
                 putExtra("open_note_id", noteId)
+                // The notification id lets MainActivity cancel the
+                // escalation armed for this occurrence.
+                putExtra(ReminderActionReceiver.EXTRA_NOTIFICATION_ID, notificationId)
                 // NEW_TASK | CLEAR_TOP matches the banner-tap intent: a
                 // background launch reuses the task instead of stacking a
                 // duplicate MainActivity; the extras reach onNewIntent.

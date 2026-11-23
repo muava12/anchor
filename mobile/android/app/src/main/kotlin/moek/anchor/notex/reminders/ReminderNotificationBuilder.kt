@@ -36,9 +36,11 @@ object ReminderNotificationBuilder {
         val flags = pendingFlags()
         val whenMs = System.currentTimeMillis()
 
-        // A plain tap opens the note in the app.
+        // A plain tap opens the note in the app; the notification id lets
+        // MainActivity cancel this occurrence's escalation alarm.
         val tap = Intent(context, MainActivity::class.java).apply {
             putExtra("open_note_id", noteId)
+            putExtra(ReminderActionReceiver.EXTRA_NOTIFICATION_ID, id)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         }
         val content = PendingIntent.getActivity(context, id, tap, flags)

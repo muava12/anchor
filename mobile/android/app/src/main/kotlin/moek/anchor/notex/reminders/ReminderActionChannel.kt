@@ -71,12 +71,14 @@ class ReminderActionChannel(
             "cancelReminder" -> {
                 val id = call.argument<Int>("id") ?: 0
                 ReminderAlarmScheduler.cancel(context, id)
+                FsiEscalationScheduler.cancel(context, id)
                 ReminderAlarmStore.remove(context, id)
                 result.success(true)
             }
 
             "cancelAllReminders" -> {
                 ReminderAlarmScheduler.cancelAll(context)
+                FsiEscalationScheduler.cancelAllActive(context)
                 result.success(true)
             }
 

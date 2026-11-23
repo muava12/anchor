@@ -35,6 +35,8 @@ object SnoozeScheduleHelper {
         targetMillis: Long,
     ) {
         ReminderAlarmScheduler.cancel(context, notificationId)
+        // Snoozing is an acknowledgement: drop this occurrence's escalation.
+        FsiEscalationScheduler.cancel(context, notificationId)
         ReminderAlarmScheduler.arm(
             context,
             notificationId,
