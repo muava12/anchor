@@ -1114,6 +1114,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Without this, a reminder banner disappears after a few seconds. Turn on full-screen notifications so it stays until you act. Go to Settings → Special app access → Manage full screen intents → Notesx → ON.';
 
   @override
+  String get reminderOverlayTitle => 'Show reminders over other apps?';
+
+  @override
+  String get reminderOverlayMessage =>
+      'If you don\'t react to a reminder banner within a minute, it can open as a sheet over the app you\'re using. Allow Notesx to display over other apps.';
+
+  @override
   String get reminderNotificationsOff =>
       'Notifications are off. Turn them on in your phone’s settings.';
 

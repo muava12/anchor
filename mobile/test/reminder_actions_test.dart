@@ -48,6 +48,18 @@ class RecordingGateway implements NotificationGateway {
 
   @override
   Future<bool> requestFullScreenIntentPermission() async => true;
+
+  @override
+  Future<bool> canDrawOverlays() async => true;
+
+  @override
+  Future<void> requestOverlayPermission() async {}
+
+  @override
+  Future<bool> canUseFullScreenIntent() async => true;
+
+  @override
+  Future<int> androidSdkInt() async => 0;
 }
 
 class RefusingGateway extends RecordingGateway {

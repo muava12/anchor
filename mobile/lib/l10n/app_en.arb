@@ -1524,6 +1524,14 @@
   "@reminderFullScreenMessage": {
     "description": "Message of the dialog that asks for the full-screen notification permission."
   },
+  "reminderOverlayTitle": "Show reminders over other apps?",
+  "@reminderOverlayTitle": {
+    "description": "Title of the dialog that asks for Android's display-over-other-apps permission."
+  },
+  "reminderOverlayMessage": "If you don't react to a reminder banner within a minute, it can open as a sheet over the app you're using. Allow Notesx to display over other apps.",
+  "@reminderOverlayMessage": {
+    "description": "Message of the dialog that asks for Android's display-over-other-apps permission."
+  },
   "reminderNotificationsOff": "Notifications are off. Turn them on in your phone’s settings.",
   "@reminderNotificationsOff": {
     "description": "Toast when a reminder is set but notifications for the app are blocked."

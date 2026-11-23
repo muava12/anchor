@@ -1960,6 +1960,18 @@ abstract class AppLocalizations {
   /// **'Without this, a reminder banner disappears after a few seconds...'**
   String get reminderFullScreenMessage;
 
+  /// Title of the dialog that asks for Android's display-over-other-apps permission.
+  ///
+  /// In en, this message translates to:
+  /// **'Show reminders over other apps?'**
+  String get reminderOverlayTitle;
+
+  /// Message of the dialog that asks for Android's display-over-other-apps permission.
+  ///
+  /// In en, this message translates to:
+  /// **'If you don't react to a reminder banner within a minute, it can open as a sheet over the app you're using. Allow Notesx to display over other apps.'**
+  String get reminderOverlayMessage;
+
   /// Toast when a reminder is set but notifications for the app are blocked.
   ///
   /// In en, this message translates to:
