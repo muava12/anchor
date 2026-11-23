@@ -6,21 +6,21 @@ import '../../../../core/text/date_formats.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/context_extensions.dart';
 import '../../../../core/theme/tokens/anchor_tokens.dart';
-import '../../../../core/widgets/pressable.dart';
 import '../../../../l10n/l10n.dart';
 import '../../../notes/domain/note.dart';
 import '../../../notes/domain/note_dates.dart';
-import '../../../notes/presentation/widgets/card_registry.dart';
 import '../../../notes/presentation/widgets/note_chips.dart';
 import '../../../notes/presentation/widgets/note_surface.dart';
 import '../../../tags/domain/tag.dart';
 import '../../../tags/presentation/tags_controller.dart';
 import '../../domain/journal_day.dart';
-import '../../domain/journal_meta.dart';
 import '../journal_entry_text.dart';
+import 'journal_card_shell.dart';
+import 'journal_thumb_stack.dart';
 import 'mood_face.dart';
 
-/// The selected day in the calendar: a day header, then a card per entry.
+/// The selected day in the calendar: a day header, then one card holding all
+/// of the day's entries, oldest first, with a thumbnail stack per entry.
 class JournalDayCards extends ConsumerWidget {
   const JournalDayCards({
     super.key,
@@ -35,33 +35,18 @@ class JournalDayCards extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = context.anchor;
     return SliverList(
       delegate: SliverChildListDelegate([
         for (final day in days) ...[
           _DayHeader(day: day),
-          for (var i = 0; i < day.entries.length; i++) ...[
-            if (i > 0)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Container(
-                  key: const ValueKey('journal-day-hairline'),
-                  height: 1,
-                  color: colors.appBorder,
-                ),
-              ),
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: context.density.space12,
-              ),
-              child: _EntryCard(
-                entry: day.entries[i],
-                journalTagId: journalTagId,
-                onOpen: onOpen,
-              ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: AnchorTokens.space12),
+            child: _DayCard(
+              day: day,
+              journalTagId: journalTagId,
+              onOpen: onOpen,
             ),
-          ],
+          ),
         ],
       ]),
     );
@@ -76,35 +61,44 @@ class _DayHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.anchor;
+    final l10n = context.l10n;
     final isToday = isSameDay(day.day, DateTime.now());
     final label = DateFormat(
-      'EEE, MMM d',
+      'EEE, d MMM',
       dateLocale,
     ).format(day.day).toUpperCase();
+
     return Padding(
-      padding: EdgeInsets.fromLTRB(
+      padding: const EdgeInsets.fromLTRB(
         16,
-        context.density.space16,
+        14,
         16,
-        context.density.space8,
-      ),
+        8,
+      ), // off-scale: design day header padding
       child: Row(
         children: [
           Text(
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: AppTypography.label.copyWith(color: colors.appMuted),
+            style: AppTypography.label.copyWith(
+              fontWeight: FontWeight.w700,
+              color: colors.appText,
+            ),
           ),
           if (isToday)
             Padding(
-              padding: const EdgeInsets.only(left: 8),
+              padding: const EdgeInsets.only(
+                left: 6,
+              ), // off-scale: design pill gap 6
               child: _TodayPill(),
             ),
           const Spacer(),
           Text(
-            context.l10n.journalEntriesCount(day.entries.length),
-            style: AppTypography.footnote.copyWith(color: colors.appMuted),
+            l10n.journalEntriesCount(day.entries.length),
+            style: AppTypography.caption
+                .copyWith(color: colors.appMuted)
+                .tabular,
           ),
         ],
       ),
@@ -120,14 +114,19 @@ class _TodayPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.anchor;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AnchorTokens.space6, // off-scale: design pill padding 6
+        vertical: 2, // off-scale: design pill padding 2
+      ),
       decoration: BoxDecoration(
-        color: colors.accentStrong.withValues(alpha: 0.14),
+        color: colors.accentStrong.withValues(
+          alpha: 0.20,
+        ), // off-scale: design pill tint 20
         borderRadius: BorderRadius.circular(AnchorTokens.radiusPill),
       ),
       child: Text(
         context.l10n.commonToday.toUpperCase(),
-        style: AppTypography.footnote.copyWith(
+        style: AppTypography.caption.copyWith(
           fontWeight: FontWeight.w700,
           color: colors.accentStrong,
         ),
@@ -136,112 +135,183 @@ class _TodayPill extends StatelessWidget {
   }
 }
 
-class _EntryCard extends ConsumerWidget {
-  const _EntryCard({
-    required this.entry,
-    this.journalTagId,
+/// One day's card: a [JournalCardShell] with every entry registered for the
+/// note morph, oldest entry first.
+class _DayCard extends ConsumerWidget {
+  const _DayCard({
+    required this.day,
+    required this.journalTagId,
     required this.onOpen,
   });
 
-  final JournalDayEntry entry;
+  final JournalDay day;
   final String? journalTagId;
   final ValueChanged<Note> onOpen;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final note = entry.note;
-    final colors = context.anchor;
-    final title = journalTitleOf(note, context.l10n);
-    final preview = journalPreviewOf(note, title);
-    final meta = parseJournalContent(note.content).meta;
-    final time = meta.entryAt == null
-        ? ''
-        : clockLabel(meta.entryAt!);
-    final otherTag = _firstOtherTag(ref, note, journalTagId);
-    final mood = meta.mood;
-    final hasMeta = time.isNotEmpty || mood != null || otherTag != null;
+    final allTags = ref.watch(tagsControllerProvider).value ?? const <Tag>[];
 
-    return ValueListenableBuilder<Set<String>>(
-      valueListenable: CardRegistry.hidden,
-      builder: (context, hidden, child) =>
-          Opacity(opacity: hidden.contains(note.id) ? 0 : 1, child: child),
-      child: Pressable(
-        style: PressStyle.plain,
-        onTap: () => onOpen(note),
-        semanticLabel: time.isEmpty ? title : '$title · $time',
-        child: RepaintBoundary(
-          // The morph close target: the card flies back to this entry.
-          key: CardRegistry.keyFor(note.id),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: AppTypography.row.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: colors.appText,
-                ),
+    // The day's entries are stored newest first; the card shows them in
+    // chronological order.
+    final entries = [for (final entry in day.entries) entry].reversed.toList();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: JournalCardShell(
+        children: [
+          for (final entry in entries)
+            JournalRegisteredEntry(
+              noteId: entry.note.id,
+              semanticLabel: _label(context, entry),
+              onTap: () => onOpen(entry.note),
+              child: _DayEntryRow(
+                entry: entry,
+                tags: journalDisplayTags(entry.note, allTags, journalTagId),
               ),
-              if (preview.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    preview,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.cardBody.copyWith(
-                      color: colors.appMuted,
-                    ),
-                  ),
-                ),
-              if (hasMeta)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Row(
-                    children: [
-                      if (time.isNotEmpty)
-                        Text(
-                          time,
-                          style: AppTypography.footnote.copyWith(
-                            color: colors.appMuted,
-                          ),
-                        ),
-                      if (mood != null) ...[
-                        if (time.isNotEmpty || otherTag != null)
-                          const SizedBox(width: 8),
-                        MoodFace(mood: mood, size: AnchorTokens.sizeIconMedium),
-                      ],
-                      if (otherTag != null) ...[
-                        if (time.isNotEmpty || mood != null)
-                          const SizedBox(width: 8),
-                        Flexible(
-                          child: TagChip(
-                            tag: otherTag,
-                            appearance: NoteAppearance.of(context, null),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-            ],
-          ),
-        ),
+            ),
+        ],
       ),
     );
   }
 
-  /// The first tag on the note that is not the journal tag, if any.
-  Tag? _firstOtherTag(WidgetRef ref, Note note, String? journalTagId) {
-    final all = ref.watch(tagsControllerProvider).value ?? const <Tag>[];
-    for (final id in note.tagIds) {
-      if (id == journalTagId) continue;
-      for (final tag in all) {
-        if (tag.id == id) return tag;
-      }
+  /// "title · time"; the time drops out when the entry has none.
+  String _label(BuildContext context, JournalDayEntry entry) {
+    final title = journalTitleOf(entry.note, context.l10n);
+    final at = entry.meta.entryAt ?? entry.note.updatedAt?.toLocal();
+    final time = at == null ? '' : clockLabel(at);
+    return time.isEmpty ? title : '$title · $time';
+  }
+}
+
+/// One entry inside the day card: the text on the left, a thumbnail stack on
+/// the right when the entry has pictures.
+class _DayEntryRow extends StatelessWidget {
+  const _DayEntryRow({required this.entry, required this.tags});
+
+  final JournalDayEntry entry;
+  final List<Tag> tags;
+
+  @override
+  Widget build(BuildContext context) {
+    final note = entry.note;
+    final colors = context.anchor;
+    final title = journalTitleOf(note, context.l10n);
+    final snippet = journalPreviewOf(note, title);
+    final lead = note.hasTitle ? '' : journalLeadOf(note);
+    final mood = entry.meta.mood;
+    final at = entry.meta.entryAt ?? note.updatedAt?.toLocal();
+    final time = at == null ? '' : clockLabel(at);
+    final hasPictures = note.imagePreviewData.isNotEmpty;
+
+    final metaParts = <Widget>[
+      if (time.isNotEmpty)
+        Text(
+          time,
+          style: AppTypography.caption.copyWith(color: colors.appMuted).tabular,
+        ),
+      if (mood != null)
+        MoodFace(mood: mood, size: 20), // off-scale: design day-card mood 20
+      for (final tag in tags)
+        TagChip(tag: tag, appearance: NoteAppearance.of(context, null)),
+    ];
+    final metaChildren = <Widget>[];
+    for (var i = 0; i < metaParts.length; i++) {
+      if (i > 0) metaChildren.add(const _MetaDot());
+      metaChildren.add(metaParts[i]);
     }
-    return null;
+
+    return Padding(
+      padding: const EdgeInsets.all(
+        AnchorTokens.space14,
+      ), // off-scale: design entry padding 14
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (note.hasTitle)
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.cardTitle.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colors.appText,
+                    ),
+                  )
+                else if (lead.isNotEmpty)
+                  Text(
+                    lead,
+                    key: const ValueKey('journal-lead'),
+                    maxLines: 4,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.cardTitle.copyWith(
+                      fontWeight: FontWeight.w500,
+                      height: 1.55,
+                      color: colors.appText,
+                    ),
+                  ),
+                if (note.hasTitle && snippet.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      snippet,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.cardBody.copyWith(
+                        color: colors.appMuted,
+                      ),
+                    ),
+                  ),
+                if (metaChildren.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top:
+                          AnchorTokens.space10, // off-scale: design meta gap 10
+                    ),
+                    child: Wrap(
+                      spacing:
+                          AnchorTokens.space6, // off-scale: design meta gap 6
+                      runSpacing:
+                          AnchorTokens.space6, // off-scale: design meta gap 6
+                      children: metaChildren,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (hasPictures) ...[
+            const SizedBox(width: 12),
+            JournalThumbStack(previews: note.imagePreviewData),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// The dot between two meta parts.
+class _MetaDot extends StatelessWidget {
+  const _MetaDot();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AnchorTokens.space2,
+      ), // off-scale: meta dot gap
+      child: Container(
+        width: 3, // off-scale: the meta row's separator dot
+        height: 3, // off-scale: the meta row's separator dot
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: context.anchor.appMuted,
+        ),
+      ),
+    );
   }
 }
