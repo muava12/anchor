@@ -1759,6 +1759,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get journalEntriesSection => 'Entries';
+
+  @override
+  String get journalEntriesOptions => 'Entry options';
+
+  @override
   String drawerAccount(String name) {
     return '$name, Settings';
   }

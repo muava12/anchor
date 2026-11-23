@@ -11,6 +11,7 @@ import 'package:anchor/core/theme/app_theme.dart';
 import 'package:anchor/features/journal/domain/journal_day.dart';
 import 'package:anchor/features/journal/domain/journal_meta.dart';
 import 'package:anchor/features/journal/presentation/journal_providers.dart';
+import 'package:anchor/features/journal/presentation/widgets/journal_cards_list.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_day_cards.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_stats_row.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_timeline.dart';
@@ -77,10 +78,17 @@ Future<void> _pumpPhone(WidgetTester tester, Widget sliver) async {
   await tester.pumpAndSettle();
 }
 
-/// A journal entry with an optional mood and tag list.
-JournalDayEntry _entry({JournalMood? mood, List<String> tagIds = const []}) {
-  final at = DateTime(2026, 11, 17, 9, 41);
-  final content = composeJournalContent(JournalMeta(mood: mood, entryAt: at), 'body line')!;
+/// A journal entry with an optional mood, tag list and time.
+JournalDayEntry _entry({
+  JournalMood? mood,
+  List<String> tagIds = const [],
+  DateTime? at,
+}) {
+  final time = at ?? DateTime(2026, 11, 17, 9, 41);
+  final content = composeJournalContent(
+    JournalMeta(mood: mood, entryAt: time),
+    'body line',
+  )!;
   return JournalDayEntry(
     note: Note(
       id: 'n1',
@@ -88,7 +96,7 @@ JournalDayEntry _entry({JournalMood? mood, List<String> tagIds = const []}) {
       content: content,
       tagIds: tagIds,
     ),
-    meta: JournalMeta(mood: mood, entryAt: at),
+    meta: JournalMeta(mood: mood, entryAt: time),
   );
 }
 
@@ -102,7 +110,9 @@ void main() {
         days: [
           JournalDay(
             day: DateTime(2026, 11, 17),
-            entries: [_entry(mood: JournalMood.calm, tagIds: ['journal', 't1'])],
+            entries: [
+              _entry(mood: JournalMood.calm, tagIds: ['journal', 't1']),
+            ],
           ),
         ],
         onOpen: (_) {},
@@ -121,7 +131,9 @@ void main() {
         days: [
           JournalDay(
             day: DateTime(2026, 11, 17),
-            entries: [_entry(mood: JournalMood.calm, tagIds: ['journal', 't1'])],
+            entries: [
+              _entry(mood: JournalMood.calm, tagIds: ['journal', 't1']),
+            ],
           ),
         ],
         journalTagId: 'journal',
@@ -131,6 +143,44 @@ void main() {
     await expectLater(
       find.byType(JournalDayCards),
       matchesGoldenFile('goldens/journal_day_cards.png'),
+    );
+  });
+
+  testWidgets('journal cards list', (tester) async {
+    await _pumpPhone(
+      tester,
+      JournalCardsList(
+        days: [
+          JournalDay(
+            day: DateTime(2026, 11, 19),
+            // Newest first, as groupJournalDays stores the day's entries.
+            entries: [
+              JournalDayEntry(
+                note: Note(
+                  id: 'n2',
+                  title: '',
+                  content: composeJournalContent(
+                    JournalMeta(entryAt: DateTime(2026, 11, 19, 20, 15)),
+                    'Slow start. Coffee, toast, and the radio next door.',
+                  ),
+                ),
+                meta: JournalMeta(entryAt: DateTime(2026, 11, 19, 20, 15)),
+              ),
+              _entry(
+                mood: JournalMood.calm,
+                tagIds: ['journal', 't1'],
+                at: DateTime(2026, 11, 19, 8, 12),
+              ),
+            ],
+          ),
+        ],
+        journalTagId: 'journal',
+        onOpen: (_) {},
+      ),
+    );
+    await expectLater(
+      find.byType(JournalCardsList),
+      matchesGoldenFile('goldens/journal_cards_list.png'),
     );
   });
 
@@ -145,9 +195,18 @@ void main() {
         child: JournalStatsRow(
           days: [
             JournalDay(day: today, entries: [_entry()]),
-            JournalDay(day: DateTime(today.year, today.month, today.day - 1), entries: [_entry()]),
-            JournalDay(day: DateTime(today.year, today.month, today.day - 2), entries: [_entry()]),
-            JournalDay(day: DateTime(today.year - 1, today.month, today.day), entries: [_entry()]),
+            JournalDay(
+              day: DateTime(today.year, today.month, today.day - 1),
+              entries: [_entry()],
+            ),
+            JournalDay(
+              day: DateTime(today.year, today.month, today.day - 2),
+              entries: [_entry()],
+            ),
+            JournalDay(
+              day: DateTime(today.year - 1, today.month, today.day),
+              entries: [_entry()],
+            ),
           ],
         ),
       ),

@@ -2768,6 +2768,18 @@ abstract class AppLocalizations {
   /// **'+{count}'**
   String journalPhotosMore(int count);
 
+  /// Uppercase label of the journal list's entries section, above the day groups.
+  ///
+  /// In en, this message translates to:
+  /// **'Entries'**
+  String get journalEntriesSection;
+
+  /// Screen reader label of the inert options icon beside the entries section label.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry options'**
+  String get journalEntriesOptions;
+
   /// Screen reader label of the account row at the bottom of the menu.
   ///
   /// In en, this message translates to:

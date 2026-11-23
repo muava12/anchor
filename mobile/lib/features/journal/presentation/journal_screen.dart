@@ -17,9 +17,10 @@ import '../../notes/presentation/widgets/notes_bottom_bar.dart';
 import '../domain/journal_day.dart';
 import 'journal_providers.dart';
 import 'widgets/journal_calendar.dart';
+import 'widgets/journal_cards_list.dart';
 import 'widgets/journal_day_cards.dart';
+import 'widgets/journal_section_header.dart';
 import 'widgets/journal_stats_row.dart';
-import 'widgets/journal_timeline.dart';
 
 class JournalScreen extends ConsumerStatefulWidget {
   const JournalScreen({super.key});
@@ -198,11 +199,14 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
             ),
           ] else ...[
             SliverToBoxAdapter(
-              child: JournalStatsRow(
-                days: ref.watch(journalAllDaysProvider),
-              ),
+              child: JournalStatsRow(days: ref.watch(journalAllDaysProvider)),
             ),
-            JournalTimeline(days: shownDays, onOpen: _open),
+            SliverToBoxAdapter(child: const JournalSectionHeader()),
+            JournalCardsList(
+              days: shownDays,
+              journalTagId: tag.id,
+              onOpen: _open,
+            ),
           ],
         ],
       ],

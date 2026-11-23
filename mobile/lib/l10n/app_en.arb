@@ -2282,6 +2282,8 @@
   "journalStatYearsAgo": "{count, plural, =1{1 year ago} other{{count} years ago}}",
   "journalLocationLabel": "Location: {place}",
   "journalPhotosMore": "+{count}",
+  "journalEntriesSection": "Entries",
+  "journalEntriesOptions": "Entry options",
   "@navJournal": {
     "description": "Noun: the side menu item and list title for the journal."
   },
@@ -2448,6 +2450,12 @@
         "type": "int"
       }
     }
+  },
+  "@journalEntriesSection": {
+    "description": "Uppercase label of the journal list's entries section, above the day groups."
+  },
+  "@journalEntriesOptions": {
+    "description": "Screen reader label of the inert options icon beside the entries section label."
   },
   "@navTrash": {
     "description": "Noun: the side menu item and list title for deleted notes."
