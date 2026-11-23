@@ -7,11 +7,12 @@ import '../../../../app/router/app_routes.dart';
 import '../../../../core/widgets/app_buttons.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_scaffold.dart';
-import '../../../../core/widgets/bar_title.dart';
 import '../../../../l10n/l10n.dart';
 import '../../notes/domain/note.dart';
+import '../../notes/presentation/note_folder.dart';
 import '../../notes/presentation/widgets/app_drawer.dart';
 import '../../notes/presentation/widgets/drawer_host.dart';
+import '../../notes/presentation/widgets/list_title.dart';
 import '../../notes/presentation/widgets/notes_bottom_bar.dart';
 import '../domain/journal_day.dart';
 import 'journal_providers.dart';
@@ -96,12 +97,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
       isTall: true,
       showBack: false,
       controller: _scroll,
-      largeTitle: LargeBarTitle(
-        l10n.navJournal,
-        line: null,
-        onTap: _openMenu,
-        semanticLabel: l10n.listTitleMenu(l10n.navJournal),
-      ),
+      largeTitle: ListBarTitle(folder: NoteFolder.journal, tag: null, onOpenMenu: _openMenu),
       actions: [
         BarButton(
           icon: _calendar ? LucideIcons.rows3 : LucideIcons.calendarDays,

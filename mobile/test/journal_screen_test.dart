@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons_500.dart';
 
 void main() {
   Note entry(String id, String title, String mood) => Note(
@@ -44,6 +45,12 @@ void main() {
   testWidgets('shows the timeline entries', (tester) async {
     await pump(tester, [entry('a', 'Morning pages', 'good')]);
     expect(find.text('Morning pages'), findsOneWidget);
+  });
+
+  testWidgets('the top bar shows the journal label with a chevron', (tester) async {
+    await pump(tester, [entry('a', 'Morning pages', 'good')]);
+    expect(find.text('Journal'), findsWidgets);
+    expect(find.byIcon(LucideIcons500.chevronDown), findsOneWidget);
   });
 
   testWidgets('the calendar action shows the month grid', (tester) async {
