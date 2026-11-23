@@ -98,20 +98,14 @@ class SnoozeReminderActivity : Activity() {
             )
         }
 
-        // Selected chip gets the 1.5dp accent border; default selection is
-        // "1 hour". Unselected chips and the presets share the subtle fill
-        // (presets add the 1dp border).
+        // All chips share one style (subtle fill, no accent border); the
+        // presets and the cancel row add the 1dp border.
         val subtle = subtleColor()
-        val accent = ContextCompat.getColor(this, R.color.fsi_accent)
-        findViewById<View>(R.id.chip_1hour).background = pill().apply {
-            setColor(subtle)
-            setStroke(rounded(1.5f).toInt(), accent)
+        val chip = pill().apply { setColor(subtle) }
+        for (id in listOf(R.id.chip_10min, R.id.chip_30min, R.id.chip_1hour, R.id.chip_4hours, R.id.chip_1day)) {
+            findViewById<View>(id).background = chip
         }
-        val unselectedChip = pill().apply { setColor(subtle) }
-        for (id in listOf(R.id.chip_10min, R.id.chip_30min, R.id.chip_4hours, R.id.chip_1day)) {
-            findViewById<View>(id).background = unselectedChip
-        }
-        for (id in listOf(R.id.preset_later_today, R.id.preset_tomorrow, R.id.preset_pick)) {
+        for (id in listOf(R.id.preset_later_today, R.id.preset_tomorrow, R.id.preset_pick, R.id.snooze_cancel)) {
             findViewById<View>(id).background = roundedBox(subtle)
         }
     }
@@ -179,6 +173,10 @@ class SnoozeReminderActivity : Activity() {
         findViewById<View>(R.id.preset_pick).setOnClickListener {
             pickDateTime(noteId, notificationId, title, body, recurrence)
         }
+
+        // Cancel: close the sheet without rescheduling; the fired reminder
+        // stays as-is.
+        findViewById<View>(R.id.snooze_cancel).setOnClickListener { finish() }
     }
 
     /** Native date → time pickers, prefilled to now + 1h. */
