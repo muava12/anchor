@@ -306,6 +306,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(gateway.fsiRequests, 1);
+      expect(prefs.offeredFullScreen, isTrue);
     },
   );
 
