@@ -24,7 +24,6 @@ import '../features/home_widget/data/home_widget_payload.dart';
 import '../features/reminders/presentation/notification_launch.dart';
 import '../features/settings/domain/editor_preferences.dart';
 import '../features/settings/presentation/motion_speed_controller.dart';
-import '../features/shortcuts/data/shortcut_launch.dart';
 import 'app_bootstrap.dart';
 import 'router/app_routes.dart';
 
@@ -121,10 +120,7 @@ Future<AppBootstrap> initializeApp({
     initialRoute = AppRoutes.login;
   } else {
     initialRoute =
-        notificationRoute ??
-        await _shortcutLaunchRoute() ??
-        await _widgetLaunchRoute() ??
-        AppRoutes.home;
+        notificationRoute ?? await _widgetLaunchRoute() ?? AppRoutes.home;
   }
 
   final motionSpeed = motionSpeedFromName(
@@ -166,15 +162,6 @@ Future<String?> _widgetLaunchRoute() async {
   try {
     final uri = await HomeWidget.initiallyLaunchedFromHomeWidget();
     return homeWidgetRouteForUri(uri);
-  } catch (_) {
-    return null;
-  }
-}
-
-/// A launcher shortcut cold-starts the app; open the route it asked for.
-Future<String?> _shortcutLaunchRoute() async {
-  try {
-    return shortcutRouteFor(await drainNativeShortcut());
   } catch (_) {
     return null;
   }

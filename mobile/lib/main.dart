@@ -15,7 +15,6 @@ import 'features/settings/presentation/editor_preferences_controller.dart';
 import 'features/settings/presentation/theme_preferences_controller.dart';
 import 'features/share_target/data/share_target_service.dart';
 import 'features/share_target/presentation/share_sheet_app.dart';
-import 'features/shortcuts/data/shortcut_launch.dart';
 import 'features/sync/data/sync_manager.dart';
 import 'l10n/l10n.dart';
 
@@ -59,19 +58,6 @@ class _AnchorAppState extends ConsumerState<AnchorApp>
 
   @override
   void didChangeAccessibilityFeatures() => setState(() {});
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    // A launcher shortcut tapped while the app is warm resumes it; open the
-    // stashed route now. A cold start is handled by initializeApp instead.
-    if (state == AppLifecycleState.resumed) _openPendingShortcut();
-  }
-
-  /// Opens the route a warm launcher shortcut asked for, if one was stashed.
-  Future<void> _openPendingShortcut() async {
-    final route = shortcutRouteFor(await drainNativeShortcut());
-    if (route != null && mounted) ref.read(goRouterProvider).go(route);
-  }
 
   @override
   Widget build(BuildContext context) {

@@ -64,6 +64,7 @@ class NoteEditScreen extends ConsumerStatefulWidget {
     this.noteId,
     this.note,
     this.journal = false,
+    this.startAsChecklist = false,
   });
 
   final String? noteId;
@@ -71,6 +72,10 @@ class NoteEditScreen extends ConsumerStatefulWidget {
 
   /// The journal mode: a hidden metadata block and the mood tool.
   final bool journal;
+
+  /// A new note opens with a checklist line, the launcher's "New checklist"
+  /// shortcut. Left empty, it is discarded like any new note.
+  final bool startAsChecklist;
 
   @override
   ConsumerState<NoteEditScreen> createState() => _NoteEditScreenState();
@@ -107,9 +112,11 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
     sharesOf: (noteId) =>
         ref.read(noteSharesRepositoryProvider).getNoteShares(noteId),
     editor: _EditorContent(_editorKey),
-    newNoteTagIds: [?widget.journal
-        ? ref.read(journalTagProvider)?.id
-        : ref.read(selectedTagFilterProvider)],
+    newNoteTagIds: [
+      ?widget.journal
+          ? ref.read(journalTagProvider)?.id
+          : ref.read(selectedTagFilterProvider),
+    ],
     onNoteDeleted: _handleNoteDeleted,
     note: widget.note,
     noteId: widget.noteId,
@@ -164,7 +171,13 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
     _editorOverlay.addListener(_editorOverlayChanged);
     if (_openedAsNew) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _titleFocus.requestFocus();
+        if (!mounted) return;
+        if (widget.startAsChecklist) {
+          // As the empty note's checklist button does.
+          _editor?.applyLineKind(LineKind.checklist);
+          return;
+        }
+        _titleFocus.requestFocus();
       });
     }
     _titleFocus.addListener(_focusChanged);
@@ -234,9 +247,7 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
       onPick: (mood) {
         if (!mounted) return;
         setState(() {
-          _meta = mood == null
-              ? _meta.clearMood()
-              : _meta.copyWith(mood: mood);
+          _meta = mood == null ? _meta.clearMood() : _meta.copyWith(mood: mood);
         });
         _draft.contentChanged();
       },
@@ -659,19 +670,19 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
             onClose: _closeSearch,
           )
         : NoteBar(
-      appearance: appearance,
-      scrollOffset: _scrollOffset,
-      reminder: note?.reminder,
-      isUnsynced: note != null && !note.isSynced && !_isReadOnly,
-      isTrashed: isTrashed,
-      isReadOnly: _isReadOnly,
-      onBack: _back,
-      onHistory: _openHistory,
-      onBackground: _showBackground,
-      onReminder: _showReminder,
-      onMore: isNew ? null : _showMore,
-      onSearch: _openSearch,
-    );
+            appearance: appearance,
+            scrollOffset: _scrollOffset,
+            reminder: note?.reminder,
+            isUnsynced: note != null && !note.isSynced && !_isReadOnly,
+            isTrashed: isTrashed,
+            isReadOnly: _isReadOnly,
+            onBack: _back,
+            onHistory: _openHistory,
+            onBackground: _showBackground,
+            onReminder: _showReminder,
+            onMore: isNew ? null : _showMore,
+            onSearch: _openSearch,
+          );
 
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

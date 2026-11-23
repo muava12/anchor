@@ -60,3 +60,11 @@ _Avoid_: our repo, local anchor
 **Upstream sync**:
 A merge of upstream commits into the fork, followed by the four gates.
 _Avoid_: rebase, update, pull
+
+## Quick actions
+
+**Quick action**:
+A menu Android shows when the user long-presses the app icon; the fork
+publishes them at launch and they open a new note, journal entry, or
+checklist.
+_Avoid_: launcher shortcut, pinned action, widget button
