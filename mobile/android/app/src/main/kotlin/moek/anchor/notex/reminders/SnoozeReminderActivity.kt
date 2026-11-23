@@ -196,7 +196,7 @@ class SnoozeReminderActivity : Activity() {
         }
 
         findViewById<View>(R.id.preset_pick).setOnClickListener {
-            pickDateTime(noteId, notificationId, title, body, recurrence)
+            pickDateTime(noteId, notificationId, title, body, recurrence, tag)
         }
 
         // Cancel: close the sheet without rescheduling; the fired reminder
@@ -211,6 +211,7 @@ class SnoozeReminderActivity : Activity() {
         title: String,
         body: String,
         recurrence: String,
+        tag: String,
     ) {
         val prefill = Calendar.getInstance().apply { add(Calendar.HOUR_OF_DAY, 1) }
         DatePickerDialog(

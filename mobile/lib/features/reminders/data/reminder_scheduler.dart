@@ -238,13 +238,20 @@ class ReminderScheduler extends _$ReminderScheduler {
         await preferences.setSnoozedOccurrences(pruned);
       }
 
-      final allTags = await ref.read(tagsRepositoryProvider).getTags();
+      Map<String, Tag> tagsById = const <String, Tag>{};
+      try {
+        final allTags = await ref.read(tagsRepositoryProvider).getTags();
+        tagsById = {for (final tag in allTags) tag.id: tag};
+      } catch (_) {
+        // No tag data (the repository is unavailable, e.g. in a test or
+        // before the database is up): the sheet simply omits the tag.
+      }
       final desired = desiredReminders(
         _latest,
         now: now,
         l10n: deviceL10n(),
         snoozed: _snoozed,
-        tagsById: {for (final tag in allTags) tag.id: tag},
+        tagsById: tagsById,
       );
 
       if (_sameAs(desired)) return;
