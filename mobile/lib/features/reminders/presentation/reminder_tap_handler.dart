@@ -64,7 +64,7 @@ Future<void> promptReminderSnooze(
     final repeatText = repeat != null && repeat.repeats
         ? repeatLabel(repeat, l10n)
         : null;
-    final label = [title, if (repeatText != null) repeatText]
+    final label = [title, ?repeatText]
         .where((s) => s.isNotEmpty)
         .join(' · ');
     await showSnoozeSheet(

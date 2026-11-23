@@ -204,7 +204,7 @@ class LocalNotificationGateway implements NotificationGateway {
     final pluginIds =
         (await _plugin.pendingNotificationRequests()).map((request) => request.id);
     final native = (await _nativePendingTimes()).keys;
-    return [...pluginIds, ...native].toSet().toList();
+    return {...pluginIds, ...native}.toList();
   }
 
   @override
