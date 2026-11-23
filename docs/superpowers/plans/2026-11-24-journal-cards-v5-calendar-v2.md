@@ -471,3 +471,11 @@ Branch `chore/journal-cards-polish` from `main` after PR2 merges.
 - [ ] **Step 4: Commit** `git commit -m 'test(mobile): add dark journal goldens'`
 - [ ] **Step 5: Fix what the device pass found**, one `fix(mobile): ...` commit per problem, each with its own failing test first: lead threshold if the owner corrects D5, `TagChip` colour parity, morph radius on multi-entry cards, text scale 1.3 overflow. Re-run the Review Focus tests after each fix.
 - [ ] **Step 6: Final check** `cd mobile && dart format lib test && rflutter analyze && rflutter test`; Expected: no format diff, no analyzer issues, all tests pass. Open PR3.
+
+## Rulings recorded during execution (journal-v5 worktree)
+
+- **Divider keys (Task 4):** `JournalCardShell` keys each divider `ValueKey('journal-card-divider-$i')` (i = child index), not one shared `journal-card-divider` key: a day with 3+ entries would otherwise register duplicate sibling keys (debug assertion). Tests updated to `journal-card-divider-1` (+ a new 3-entry test).
+- **Untitled header (Task 4, F2):** header is a `minHeight: 28` container (key `journal-untitled-header`) with the row centred, not a fixed 28 `SizedBox` (spec §7: safe at text scale 1.3).
+- **`JournalCalendar` `now` param (Task 8):** optional `DateTime? now` for deterministic today-ring tests (defaults to `DateTime.now()`).
+- **l10n files:** bulk `dart format` on box-05 re-wrapped two unrelated strings in `app_localizations_en.dart`; restored to base formatting so the feat commits carry only the journal keys.
+- **Commit author:** this host's git identity is `openhands <openhands@all-hands.dev>`; AGENTS.md forbids an AI author. Left as-is (identity is host-wide, not branch-wide); the owner picks the author when pushing — name the tool in the PR body instead.

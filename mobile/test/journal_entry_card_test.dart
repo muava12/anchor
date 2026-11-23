@@ -143,6 +143,20 @@ void main() {
     expect(find.byKey(const ValueKey('journal-card-footer')), findsNothing);
   });
 
+  testWidgets('untitled header is at least 28 tall and centres its content', (
+    tester,
+  ) async {
+    await pumpCard(tester, untitled(body: 'Slow start.'));
+    final header = tester.getSize(
+      find.byKey(const ValueKey('journal-untitled-header')),
+    );
+    expect(header.height, 28);
+
+    // Text scale 1.3 must not overflow the header row.
+    await pumpCard(tester, untitled(body: 'x ' * 120), textScale: 1.3);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('long tag and location ellipsize at text scale 1.3 on 320 dp', (
     tester,
   ) async {

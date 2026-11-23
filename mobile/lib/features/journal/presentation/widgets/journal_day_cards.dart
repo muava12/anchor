@@ -178,8 +178,7 @@ class _DayCard extends ConsumerWidget {
   /// "title · time"; the time drops out when the entry has none.
   String _label(BuildContext context, JournalDayEntry entry) {
     final title = journalTitleOf(entry.note, context.l10n);
-    final at = entry.meta.entryAt ?? entry.note.updatedAt?.toLocal();
-    final time = at == null ? '' : clockLabel(at);
+    final time = journalTimeOf(entry);
     return time.isEmpty ? title : '$title · $time';
   }
 }
@@ -200,8 +199,7 @@ class _DayEntryRow extends StatelessWidget {
     final snippet = journalPreviewOf(note, title);
     final lead = note.hasTitle ? '' : journalLeadOf(note);
     final mood = entry.meta.mood;
-    final at = entry.meta.entryAt ?? note.updatedAt?.toLocal();
-    final time = at == null ? '' : clockLabel(at);
+    final time = journalTimeOf(entry);
     final hasPictures = note.imagePreviewData.isNotEmpty;
 
     final metaParts = <Widget>[

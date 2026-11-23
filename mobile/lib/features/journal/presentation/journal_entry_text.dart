@@ -35,16 +35,21 @@ String journalPreviewOf(Note note, String title) {
   return body;
 }
 
+/// The entry's local time: the parsed entry time, or the note's last
+/// update when the entry predates stored times.
+DateTime? journalTimeAt(JournalDayEntry entry) =>
+    entry.meta.entryAt ?? entry.note.updatedAt?.toLocal();
+
 /// The entry's time in the phone's 12- or 24-hour form.
 String journalTimeOf(JournalDayEntry entry) {
-  final at = entry.meta.entryAt ?? entry.note.updatedAt?.toLocal();
+  final at = journalTimeAt(entry);
   return at == null ? '' : clockLabel(at);
 }
 
 /// The entry time in the phone's clock form, plus " · GMT+7" when the
 /// entry's timezone is known. Empty when the entry has no time.
 String journalTimeLabel(JournalDayEntry entry) {
-  final at = entry.meta.entryAt ?? entry.note.updatedAt?.toLocal();
+  final at = journalTimeAt(entry);
   if (at == null) return '';
   var label = clockLabel(at);
   final tz = entry.meta.tzOffset;

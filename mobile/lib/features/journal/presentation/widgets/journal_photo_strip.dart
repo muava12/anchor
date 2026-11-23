@@ -9,6 +9,7 @@ import '../../../../core/theme/context_extensions.dart';
 import '../../../../core/theme/tokens/anchor_tokens.dart';
 import '../../../../l10n/l10n.dart';
 import '../../../notes/data/repository/attachment_file_provider.dart';
+import '../../../notes/data/repository/notes_repository.dart';
 import '../../../notes/domain/note.dart';
 
 /// The entry's pictures, in a row of four equal cells. The fourth cell
@@ -22,7 +23,7 @@ class JournalPhotoStrip extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final shown = previews.take(4).toList();
+    final shown = previews.take(maxImagePreviews).toList();
 
     // Every photo loads its own real file, or shows the missing-file
     // placeholder while it is unresolved.
@@ -36,7 +37,7 @@ class JournalPhotoStrip extends ConsumerWidget {
         top: AnchorTokens.space10, // off-scale: design strip gap 10
       ),
       child: GridView.count(
-        crossAxisCount: 4,
+        crossAxisCount: maxImagePreviews,
         mainAxisExtent: 68, // off-scale: design strip cell height 68
         crossAxisSpacing: AnchorTokens.space6, // off-scale: design strip gap 6
         mainAxisSpacing: AnchorTokens.space6, // off-scale: design strip gap 6

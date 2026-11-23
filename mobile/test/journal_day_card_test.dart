@@ -90,7 +90,7 @@ void main() {
       );
       expect(find.byType(JournalCardShell), findsOneWidget);
       expect(
-        find.byKey(const ValueKey('journal-card-divider')),
+        find.byKey(const ValueKey('journal-card-divider-1')),
         findsOneWidget,
       );
       expect(
@@ -101,6 +101,36 @@ void main() {
       expect(CardRegistry.keyFor('late').currentContext, isNotNull);
     },
   );
+
+  testWidgets('three entries: two keyed dividers, no crash, all registered', (
+    tester,
+  ) async {
+    await pumpDay(
+      tester,
+      dayWith([
+        ('c', DateTime(2026, 11, 15, 20, 0)),
+        ('b', DateTime(2026, 11, 15, 14, 0)),
+        ('a', DateTime(2026, 11, 15, 8, 0)),
+      ]),
+    );
+    expect(tester.takeException(), isNull);
+    expect(find.byType(JournalCardShell), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('journal-card-divider-1')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('journal-card-divider-2')),
+      findsOneWidget,
+    );
+    for (final id in ['a', 'b', 'c']) {
+      expect(CardRegistry.keyFor(id).currentContext, isNotNull);
+    }
+    expect(
+      tester.getTopLeft(find.text('a')).dy,
+      lessThan(tester.getTopLeft(find.text('c')).dy),
+    );
+  });
 
   testWidgets('single entry: the registered boundary wraps the whole card', (
     tester,

@@ -31,7 +31,9 @@ class JournalCardShell extends StatelessWidget {
           for (var i = 0; i < children.length; i++) ...[
             if (i > 0)
               Container(
-                key: const ValueKey('journal-card-divider'),
+                // Each divider keeps its own key, so a day with three or
+                // more entries never repeats one.
+                key: ValueKey('journal-card-divider-$i'),
                 height: 1,
                 margin: const EdgeInsets.symmetric(
                   horizontal: AnchorTokens

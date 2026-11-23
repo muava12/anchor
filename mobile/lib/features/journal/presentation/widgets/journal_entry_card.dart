@@ -140,10 +140,14 @@ class JournalEntryCard extends StatelessWidget {
     ];
 
     return [
-      SizedBox(
-        height: 28, // off-scale: design untitled header height 28
+      Container(
+        key: const ValueKey('journal-untitled-header'),
+        constraints: const BoxConstraints(
+          minHeight: 28, // off-scale: design untitled header min height 28
+        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: headerChildren,
         ),
       ),
@@ -178,7 +182,7 @@ class _TimeLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.anchor;
-    final at = entry.meta.entryAt ?? entry.note.updatedAt?.toLocal();
+    final at = journalTimeAt(entry);
     final clock = at == null ? '' : clockLabel(at);
     final tz = entry.meta.tzOffset;
     if (clock.isEmpty) return const SizedBox.shrink();

@@ -115,7 +115,10 @@ void main() {
     expect(find.text('TUE, 17 NOV'), findsOneWidget);
     expect(find.text('2 entries'), findsOneWidget);
     expect(find.byType(JournalCardShell), findsOneWidget);
-    expect(find.byKey(const ValueKey('journal-card-divider')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('journal-card-divider-1')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('stack only for entries with pictures', (tester) async {
