@@ -10,7 +10,7 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Re-schedules a fired reminder NATIVELY — without launching the app:
+ * Re-schedules a fired reminder NATIVELY, without launching the app:
  *
  * 1. cancels the occurrence's alarm (already fired and removed from the
  *    store) and re-arms the same id at [targetMillis];

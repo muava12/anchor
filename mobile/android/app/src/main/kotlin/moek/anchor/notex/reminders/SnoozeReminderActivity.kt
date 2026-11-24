@@ -17,8 +17,8 @@ import moek.anchor.notex.R
 import java.util.Calendar
 
 /**
- * Standalone snooze sheet (Doop "Reminder — Snooze picker (sheet flat)",
- * frame Wn02ojCMhA).
+ * Standalone snooze sheet. It comes from Doop frame Wn02ojCMhA, the
+ * flat snooze picker.
  *
  * Translucent, show-when-locked sibling of [FullScreenReminderActivity]:
  * re-schedules a fired reminder WITHOUT launching the app, via

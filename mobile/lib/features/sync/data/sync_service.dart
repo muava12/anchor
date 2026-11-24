@@ -618,8 +618,8 @@ class SyncService {
     await _db.setNoteTags(note.id, note.tagIds);
   }
 
-  /// Moves [row] onto the server's newer copy, keeping only the fields
-  /// changed on this device.
+  /// Moves [row] onto the server's newer copy. Only the fields changed
+  /// on this device are kept.
   NotesCompanion _rebasedOnto(NoteRow row, SyncServerNote server) {
     bool isChangedLocally(Object? local, Object? synced) =>
         !_hasSyncedCopy(row) || local != synced;
