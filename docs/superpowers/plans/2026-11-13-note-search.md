@@ -1,4 +1,4 @@
-# Search inside a note — implementation plan
+# Search inside a note: implementation plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -77,7 +77,7 @@ void main() {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/note_search_test.dart`
-Expected: FAIL — the file does not exist.
+Expected: FAIL. The file does not exist.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -239,7 +239,7 @@ Append to `mobile/test/note_search_test.dart`:
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/note_search_test.dart`
-Expected: FAIL — `NoteSearchController` is not defined.
+Expected: FAIL. `NoteSearchController` is not defined.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -379,7 +379,7 @@ void main() {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/widgets/note_search_test.dart`
-Expected: FAIL — `RichTextEditor` has no `search` parameter.
+Expected: FAIL. `RichTextEditor` has no `search` parameter.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -608,7 +608,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/widgets/note_search_test.dart`
-Expected: FAIL — `NoteSearchBar` is not defined.
+Expected: FAIL. `NoteSearchBar` is not defined.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -879,7 +879,7 @@ Append to `mobile/test/widgets/note_search_test.dart`:
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/widgets/note_search_test.dart`
-Expected: FAIL — `NoteBar` has no `onSearch`.
+Expected: FAIL. `NoteBar` has no `onSearch`.
 
 - [ ] **Step 3: Write minimal implementation**
 

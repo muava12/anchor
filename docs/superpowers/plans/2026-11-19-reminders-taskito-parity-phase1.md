@@ -1,4 +1,4 @@
-# Reminder Notif Taskito-Parity — Plan Fase 1 (pure FLLP)
+# Reminder Notif Taskito-Parity: Plan Fase 1 (pure FLLP)
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development
 > (recommended) or superpowers:executing-plans to implement this plan task-by-task.
@@ -51,17 +51,17 @@ Riverpod, drift (note.reminder), FFI `MethodChannel`/broadcast untuk action.
    done barulah selesaikan. → Task 4.
 
 ## File Structure
-- `lib/features/reminders/data/notification_gateway.dart` — `ScheduledNotification`
+- `lib/features/reminders/data/notification_gateway.dart`: `ScheduledNotification`
   (tambah `tier` + `actions`), channel MAX/MIN, action handling.
-- `lib/features/reminders/data/reminder_actions.dart` (baru) — handler
+- `lib/features/reminders/data/reminder_actions.dart` (baru): handler
   done/snooze/dismiss per-occurrence + parsing action.
-- `lib/features/reminders/data/reminder_scheduler.dart` — reschedule per-period
+- `lib/features/reminders/data/reminder_scheduler.dart`: reschedule per-period
   + boot-resync hook.
-- `lib/features/reminders/data/reminder_snooze.dart` (baru) — durasi + reschedule
+- `lib/features/reminders/data/reminder_snooze.dart` (baru): durasi + reschedule
   + simpan durasi terakhir.
-- `lib/features/reminders/presentation/snooze_sheet.dart` (baru) — UI pilih durasi.
+- `lib/features/reminders/presentation/snooze_sheet.dart` (baru): UI pilih durasi.
 - Android: `NotificationActionReceiver` (broadcast) + manifest; BOOT receiver.
-- `lib/features/notes/domain/note.dart` — tak ubah (reminder sudah ada).
+- `lib/features/notes/domain/note.dart`: tak ubah (reminder sudah ada).
 
 ---
 
@@ -77,11 +77,11 @@ Riverpod, drift (note.reminder), FFI `MethodChannel`/broadcast untuk action.
   `reminders` (important, `Importance.max`) + `pinned_notes` (silent,
   `Importance.min`). Nama/deskripsi dari l10n.
 
-- [ ] **Step 1: failing test** — `schedule(...)` untuk `tier: important` membuat
+- [ ] **Step 1: failing test**: `schedule(...)` untuk `tier: important` membuat
   channel `reminders` dgn `Importance.max`; `tier: silent` → channel
   `pinned_notes` `Importance.min`. Assert via mock plugin atau channel-registry.
 - [ ] **Step 2: run → FAIL** (channel belum tiered).
-- [ ] **Step 3: implement** — tambah `NotificationTier`, `_channelId(tier)`,
+- [ ] **Step 3: implement**: tambah `NotificationTier`, `_channelId(tier)`,
   buat 2 channel di `initialize()` (importance MAX/MIN), set `Importance.max`
   + `Priority.max` untuk important.
 - [ ] **Step 4: run → PASS**.
@@ -94,10 +94,10 @@ Riverpod, drift (note.reminder), FFI `MethodChannel`/broadcast untuk action.
 `setGroup`, `body` penuh, style `BigTextStyle` (expanded), `ongoing` selama belum
 di-handle.
 
-- [ ] **Step 1: test** — `AndroidNotificationDetails` yang di-generate: tak ada
+- [ ] **Step 1: test**: `AndroidNotificationDetails` yang di-generate: tak ada
   groupId, punya `body`, `bigTextStyle`/body, `ongoing: true` untuk reminder.
 - [ ] **Step 2: run → FAIL**.
-- [ ] **Step 3: implement** — hapus setGroup (kalau ada), set body + BigText +
+- [ ] **Step 3: implement**: hapus setGroup (kalau ada), set body + BigText +
   ongoing.
 - [ ] **Step 4: run → PASS**.
 - [ ] **Step 5: commit** `feat(reminders): individual expanded reminder notification`.
@@ -112,11 +112,11 @@ di-handle.
   (enum `type` { done, snooze, dismiss }). FLLP `actions:` (3 `AndroidAction`) +
   `onAndroidNotificationUpdated` → broadcast/receiver → `handleReminderAction`.
 
-- [ ] **Step 1: test** — `handleReminderAction(ReminderAction(type: dismiss,
+- [ ] **Step 1: test**: `handleReminderAction(ReminderAction(type: dismiss,
   noteId: 'n1'))` memanggil gateway cancel(n1-slot); `done` → mark done;
   `snooze` → reschedule. (mock gateway + mock snooze service.)
 - [ ] **Step 2: run → FAIL** (handler belum ada).
-- [ ] **Step 3: implement** — `actions: [done, snooze, dismiss]` (ikon Lucide,
+- [ ] **Step 3: implement**: `actions: [done, snooze, dismiss]` (ikon Lucide,
   label l10n) di `AndroidNotificationDetails`; `reminder_actions.dart` parse
   action-id + payload → `ReminderAction`; Android broadcast receiver meneruskan
   ke Flutter (MethodChannel).
@@ -132,16 +132,16 @@ Test: `test/reminder_actions_test.dart`.
 next period tetap via scheduler); `dismissOccurrence(noteId)` (hanya cancel
 notif, tak mark done).
 
-- [ ] **Step 1: test** — done on one-off → `note.reminder` di-unset (repo
+- [ ] **Step 1: test**: done on one-off → `note.reminder` di-unset (repo
   update); done on recurring → `note.reminder` tetap (recurrence hidup).
   dismiss → notif cancel, note tak berubah.
 - [ ] **Step 2: run → FAIL**.
-- [ ] **Step 3: implement** — sesuai `NoteReminder.recurrence`: one-off unset;
+- [ ] **Step 3: implement**: sesuai `NoteReminder.recurrence`: one-off unset;
   recurring biarkan (next period di-schedule ulang Task 6).
 - [ ] **Step 4: run → PASS**.
 - [ ] **Step 5: commit** `feat(reminders): done/dismiss resolve the occurrence, not the recurrence`.
 
-### Task 5: Snooze — durasi + reschedule + simpan terakhir
+### Task 5: Snooze, durasi + reschedule + simpan terakhir
 
 **Files:** Create `lib/features/reminders/data/reminder_snooze.dart` +
 `lib/features/reminders/presentation/snooze_sheet.dart`. Test:
@@ -155,10 +155,10 @@ tokens app).
   (recurring → occurrence di-snooze, period tetap); simpan
   `settingsPreferences` key `latest_snooze_duration`.
 
-- [ ] **Step 1: test** — `snooze(noteId, 30)` schedule ulang di now+30m; durasi
+- [ ] **Step 1: test**: `snooze(noteId, 30)` schedule ulang di now+30m; durasi
   list benar; durasi terakhir terbaca.
 - [ ] **Step 2: run → FAIL**.
-- [ ] **Step 3: implement** — reschedule via gateway (`zonedSchedule` di
+- [ ] **Step 3: implement**: reschedule via gateway (`zonedSchedule` di
   now+minutes), persist durasi, sheet UI 4-5 tombol durasi.
 - [ ] **Step 4: run → PASS**.
 - [ ] **Step 5: commit** `feat(reminders): snooze a reminder occurrence`.
@@ -171,10 +171,10 @@ tokens app).
 di-handle (done) → schedule **occurrence berikutnya**; tak re-notif occurrence
 yang sama.
 
-- [ ] **Step 1: test** — recurring daily, occurrence hari ini di-done →
+- [ ] **Step 1: test**: recurring daily, occurrence hari ini di-done →
   ter-schedule besok; occurrence single setelah fire → tak reschedule.
 - [ ] **Step 2: run → FAIL**.
-- [ ] **Step 3: implement** — di reconcile: recurring → `matchDateTimeComponents`
+- [ ] **Step 3: implement**: di reconcile: recurring → `matchDateTimeComponents`
   / `nextOccurrence`; satu occurrence = satu fire.
 - [ ] **Step 4: run → PASS**.
 - [ ] **Step 5: commit** `feat(reminders): recurring reminders fire per period`.
@@ -187,9 +187,9 @@ Android manifest `BOOT_COMPLETED` receiver + MethodChannel callback. Test:
 **Interfaces:** Produces: `resyncAll()` dipanggil saat boot + app-start;
 reconcile semua reminder dari `allActiveNotesProvider`.
 
-- [ ] **Step 1: test** — `resyncAll()` reschedule semua pending + cancel orphan.
+- [ ] **Step 1: test**: `resyncAll()` reschedule semua pending + cancel orphan.
 - [ ] **Step 2: run → FAIL** (boot hook belum).
-- [ ] **Step 3: implement** — receiver BOOT → MethodChannel →
+- [ ] **Step 3: implement**: receiver BOOT → MethodChannel →
   `resyncAll()` (sama jalur on-resume). Verifikasi manifest + manual di device.
 - [ ] **Step 4: run → PASS** (unit) + catatan manual-test device.
 - [ ] **Step 5: commit** `feat(reminders): re-arm reminders on device boot`.

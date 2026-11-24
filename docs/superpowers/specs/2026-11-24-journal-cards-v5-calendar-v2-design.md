@@ -1,12 +1,12 @@
-# Journal cards v5 + calendar grid v2 — design mapping (spec)
+# Journal cards v5 + calendar grid v2: design mapping (spec)
 
 Repo: `/home/mimin/projects/anchorx` (branch `main`), kode di `mobile/`. Hanya Flutter; tak sentuh `server/`, `web/`, DB, sync.
 Sumber desain (canvas Doop `-IAXF4NORn`, semua `ready_for_dev`, approved by moe):
 
 | Kode | Frame ID | Nama |
 | --- | --- | --- |
-| F1 | `iQ7khvzQwZ` | Journal · 5b Cards — all items in one card (full + long content), 360x1120 |
-| F2 | `2U-HM5j_dP` | Journal · 5c Cards — entries without title, 360x1180 |
+| F1 | `iQ7khvzQwZ` | Journal · 5b Cards: all items in one card (full + long content), 360x1120 |
+| F2 | `2U-HM5j_dP` | Journal · 5c Cards: entries without title, 360x1180 |
 | F3 | `YesVmaWc4W` | Journal · 3 Calendar grid v2, 360x880 |
 
 Catatan sumber: plan ini dibuat dari HTML+CSS frame (`doop:get_frame`) dan pembacaan kode. Screenshot PNG belum dilihat, style guide Doop `anchor-shadow-motion` belum dibuka, dan `flutter test` belum dijalankan. Verifikasi visual ada di bagian 8.
@@ -38,7 +38,7 @@ Catatan sumber: plan ini dibuat dari HTML+CSS frame (`doop:get_frame`) dan pemba
 
 ## 2. Pemetaan per frame
 
-### F1 (5b) — kartu entri penuh + stats tiles
+### F1 (5b): kartu entri penuh + stats tiles
 
 | Elemen desain | Spesifikasi (dari frame) | Widget / file | Sumber data |
 | --- | --- | --- | --- |
@@ -67,7 +67,7 @@ Sumber data stats tiles:
 | Sub `1 year ago` | `now.year - throwbackYear` | **hitung baru**; l10n plural `journalStatYearsAgo` |
 | Edge: 29 Feb | tahun non-kabisat tak punya 29 Feb | belum ditangani kode sekarang; tambah tes, perilaku = tidak ada throwback |
 
-### F2 (5c) — kartu tanpa judul
+### F2 (5c): kartu tanpa judul
 
 Semua komponen F1 dipakai ulang. Varian tanpa judul di `journal_entry_card.dart` (cabang `!note.hasTitle`):
 
@@ -77,7 +77,7 @@ Semua komponen F1 dipakai ulang. Varian tanpa judul di `journal_entry_card.dart`
 - Entri tanpa judul tetap boleh punya strip foto dan footer (F2 kartu pertama punya strip + lokasi + tag).
 - Kartu multi F2: entri pertama tanpa judul pendek, kedua berjudul tanpa foto (judul + snippet + chip). Ini kasus uji.
 
-### F3 (Calendar grid v2) — delta terhadap kode
+### F3 (Calendar grid v2): delta terhadap kode
 
 | Elemen | Frame | Kode sekarang | Perubahan |
 | --- | --- | --- | --- |
@@ -103,21 +103,21 @@ Semua komponen F1 dipakai ulang. Varian tanpa judul di `journal_entry_card.dart`
 ## 3. Daftar file
 
 Baru (`mobile/lib/features/journal/`):
-- `domain/journal_stats.dart` — streak, throwback (tahun, jumlah entri) sebagai fungsi murni.
-- `presentation/widgets/journal_card_shell.dart` — kartu single/multi + divider.
-- `presentation/widgets/journal_entry_card.dart` — isi entri list view (judul / tanpa judul, mood, footer).
-- `presentation/widgets/journal_photo_strip.dart` — strip 4 foto + `+N`.
-- `presentation/widgets/journal_thumb_stack.dart` — stack miring (diekstrak dari timeline).
-- `presentation/widgets/journal_cards_list.dart` — sliver list: separator tanggal + shell + entri, menggantikan `JournalTimeline` di mode list.
+- `domain/journal_stats.dart`: streak, throwback (tahun, jumlah entri) sebagai fungsi murni.
+- `presentation/widgets/journal_card_shell.dart`: kartu single/multi + divider.
+- `presentation/widgets/journal_entry_card.dart`: isi entri list view (judul / tanpa judul, mood, footer).
+- `presentation/widgets/journal_photo_strip.dart`: strip 4 foto + `+N`.
+- `presentation/widgets/journal_thumb_stack.dart`: stack miring (diekstrak dari timeline).
+- `presentation/widgets/journal_cards_list.dart`: sliver list, separator tanggal + shell + entri, menggantikan `JournalTimeline` di mode list.
 - `presentation/widgets/journal_section_header.dart`.
 
 Ubah:
-- `journal_screen.dart` — mode list pakai `JournalCardsList`; section header; tombol calendar (ikon tetap).
-- `journal_stats_row.dart` — 2 tile.
-- `journal_calendar.dart` — visual F3.
-- `journal_day_cards.dart` — satu kartu + stack.
-- `journal_entry_text.dart` — `journalDaySeparator`, `journalLeadOf`, `journalTimeLabel` (waktu + GMT), `journalLocationOf`, `gmtLabel` (D10), pembantu tag non-journal.
-- `domain/journal_day.dart` — hanya `heatLevelOf` (D6).
+- `journal_screen.dart`: mode list pakai `JournalCardsList`; section header; tombol calendar (ikon tetap).
+- `journal_stats_row.dart`: 2 tile.
+- `journal_calendar.dart`: visual F3.
+- `journal_day_cards.dart`: satu kartu + stack.
+- `journal_entry_text.dart`: `journalDaySeparator`, `journalLeadOf`, `journalTimeLabel` (waktu + GMT), `journalLocationOf`, `gmtLabel` (D10), pembantu tag non-journal.
+- `domain/journal_day.dart`: hanya `heatLevelOf` (D6).
 - `mobile/lib/l10n/app_en.arb`, `app_localizations.dart`, `app_localizations_en.dart`.
 
 Dihapus di PR3: `journal_timeline.dart`, `journal_timeline_test.dart`, golden `journal_timeline.png`, key l10n yang tak terpakai (`journalStatOnThisDay`, `journalStatThrowback` lama, `journalStatStreak` lama bila tak dipakai).
@@ -144,7 +144,7 @@ Aturan repo: edit ARB, lalu patch tangan `app_localizations.dart` (getter/method
 
 Setiap commit: `type(mobile): ...`, stage hanya file yang disentuh, tanpa `git add -A`, tanpa AI sebagai author/co-author (sebut alat di body PR). Pisahkan commit refactor murni dari commit fitur.
 
-### PR1 — kartu list view + stats tiles (F1, F2)
+### PR1: kartu list view + stats tiles (F1, F2)
 
 Cabang: `feat/journal-cards-v5`.
 
@@ -158,7 +158,7 @@ Cabang: `feat/journal-cards-v5`.
 | 1.6 | `JournalCardsList` + `JournalSectionHeader`; `journal_screen.dart` mode list pakai ini (timeline masih ada di repo) | `feat(mobile): switch the journal list to cards` |
 | 1.7 | Regenerasi golden yang berubah (stats row) + golden baru | `test(mobile): add journal card goldens` |
 
-### PR2 — calendar grid v2 (F3)
+### PR2: calendar grid v2 (F3)
 
 Cabang: `feat/journal-calendar-v2` (dari main setelah PR1 merge).
 
@@ -170,7 +170,7 @@ Cabang: `feat/journal-calendar-v2` (dari main setelah PR1 merge).
 | 2.4 | Ikon calendar tetap saat aktif; verifikasi chevron | `feat(mobile): keep the calendar icon while the calendar is on` |
 | 2.5 | Golden calendar + day cards | `test(mobile): update journal calendar goldens` |
 
-### PR3 — polish, hapus kode lama, visual test
+### PR3: polish, hapus kode lama, visual test
 
 Cabang: `chore/journal-cards-cleanup`.
 

@@ -14,7 +14,7 @@
 ## Global Constraints
 
 - Hanya `mobile/` diubah. `server/` dan `web/` tidak disentuh.
-- Token warna/radius/spacing dari `AnchorTokens` + `context.anchor` — jangan hardcode hex baru di widget.
+- Token warna/radius/spacing dari `AnchorTokens` + `context.anchor`: jangan hardcode hex baru di widget.
 - Semua teks UI lewat l10n; tambah string di `lib/l10n/app_en.arb` lalu generate.
 - Kompresi gagal = fallback ke original, tetap tanpa error UI (perilaku lama dipertahankan).
 - Tidak ada field DB baru, tidak ada provider baru.
@@ -27,12 +27,12 @@
 - Chip cepat (Daily/Weekly/Monthly) harus sinkron dua arah: geser slider ke 1/7/30 mengaktifkan chip, klik chip menggeser value.
 - Snakbar sukses gambar dengan suffix tidak boleh memecahkan snackbar audio/other (cuma branch untuk picture).
 - `AddedFile` adalah record public; ekstensi field harus default-friendly (pemanggil lama tidak berubah).
-- Dialog backup: unit "days" vs "files" beda per caller — lewat parameter, bukan string global.
+- Dialog backup: unit "days" vs "files" beda per caller, jadi lewat parameter, bukan string global.
 - HEIC/large image: `compress` tetap async lama; status row harus aman bila widget unmount di tengah await.
 
 ---
 
-## Task 1 — Text size slider: tema + label rentang
+## Task 1: Text size slider, tema + label rentang
 
 File: `mobile/lib/features/settings/presentation/settings_screen.dart`
 
@@ -40,9 +40,9 @@ File: `mobile/lib/features/settings/presentation/settings_screen.dart`
 - [ ] Tambah Row label min/max (`NoteTextSize.min` / `.max`, 11px `appMuted`) di bawah track.
 - [ ] Simpan `value badge` (labelMedium, kanan) seperti sekarang.
 
-Verify: `flutter analyze`; screenshot Settings di emulator/hot reload — bandingkan frame Doop `aQYM9UiQJ2`.
+Verify: `flutter analyze`; screenshot Settings di emulator/hot reload, lalu bandingkan frame Doop `aQYM9UiQJ2`.
 
-## Task 2 — Backup number dialog rework
+## Task 2: Backup number dialog rework
 
 File: `mobile/lib/features/backup/presentation/backup_section.dart`
 
@@ -59,25 +59,25 @@ l10n (Task 5 generate): `backupEvery`, `backupKeepWord`, `backupDaysUnit`, `back
 
 Verify: `flutter analyze`; buka Settings → Backup → period & keep, cocokkan frame `QHiJXx9KNO`.
 
-## Task 3 — Compression status row di add sheet
+## Task 3: Compression status row di add sheet
 
 File: `mobile/lib/features/notes/presentation/widgets/add_sheet.dart`
 
 - [ ] State `bool _compressing` di `_AddSheet`; set true sebelum `await …compress`, false di finally (periksa `mounted`).
-- [ ] Saat `_compressing`: tampilkan row atas body sheet — `Spinner` (ukuran `sizeIconSmall`, warna `accentStrong`) + teks `l10n.imageCompressing` (13px); row muncul frame-same saat kompresi mulai (tanpa delay buatan); spinner = status kontinu, tanpa haptics/suara; semantik: terbaca, bukan cuma spinner.
+- [ ] Saat `_compressing`: tampilkan row atas body sheet: `Spinner` (ukuran `sizeIconSmall`, warna `accentStrong`) + teks `l10n.imageCompressing` (13px); row muncul frame-same saat kompresi mulai (tanpa delay buatan); spinner = status kontinu, tanpa haptics/suara; semantik: terbaca, bukan cuma spinner.
 - [ ] Disable tombol pick (camera/gallery) selama `_compressing` (onTap null / `IgnorePointer`).
 - [ ] Setelah sukses, kemas `originalBytes`/`compressedBytes` ke `AddedFile`.
 
-## Task 4 — AddedFile ekstensi + snackbar suffix
+## Task 4: AddedFile ekstensi + snackbar suffix
 
 File: `add_sheet.dart` (typedef), `note_edit_screen.dart` (`_showAdd`)
 
-- [ ] `typedef AddedFile = ({String path, String mime, String name, int? originalBytes, int? compressedBytes});` — field record default null? (Record field tidak default — semua pemanggil lama harus di-update; hanya `_pickPicture` dan audio/image branch yang bikin `AddedFile`, cek semua site.)
+- [ ] `typedef AddedFile = ({String path, String mime, String name, int? originalBytes, int? compressedBytes});`: field record default null? (Record field tidak default, jadi semua pemanggil lama harus di-update; hanya `_pickPicture` dan audio/image branch yang bikin `AddedFile`, cek semua site.)
 - [ ] Helper `humanReadableBytes(int)` (KB/MB; satu desimal bila ≥ 10 unit).
 - [ ] Di `_showAdd`, setelah `addAttachment` sukses: bila `file.originalBytes != null && file.compressedBytes != null && file.compressedBytes! < file.originalBytes! * 0.95`, gunakan `l10n.attachmentCompressed(human(file.originalBytes), human(file.compressedBytes))` sebagai isi snackbar (menggantikan `attachmentAddedLabel` untuk picture).
 - [ ] Branch audio/folder tidak berubah (pass null).
 
-## Task 5 — l10n strings + generate
+## Task 5: l10n strings + generate
 
 File: `mobile/lib/l10n/app_en.arb`
 
@@ -86,7 +86,7 @@ File: `mobile/lib/l10n/app_en.arb`
 
 Verify: `flutter analyze` bersih; test yang pakai `AppLocalizations` masih pass.
 
-## Task 6 — Uji + verifikasi
+## Task 6: Uji + verifikasi
 
 - [ ] `flutter analyze` + `flutter test` (rflutter, hapus `~/.rflutter/ws/mobile-*` dulu bila stale).
 - [ ] Hot reload di HP: alur pick photo → liat "Compressing…" row → snackbar "4.2 MB → 310 KB" (gambar ≥ ~2MB); slider settings + dialog backup dibandingkan dengan frame Doop.

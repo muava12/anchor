@@ -1,4 +1,4 @@
-# Design — restore a checked child to its parent on uncheck (P2)
+# Design: restore a checked child to its parent on uncheck (P2)
 
 Status: proposed. Awaiting owner approval.
 
@@ -27,7 +27,7 @@ Current fork behavior when **checking A1**:
 
 When **unchecking A1** afterward:
 - A1 goes to the end of the open list, keeping its current indent (0).
-- Final document: `A, A2, B, B1, B2, C, D, D1, A1` — A1 is a top-level item
+- Final document: `A, A2, B, B1, B2, C, D, D1, A1`. A1 is a top-level item
   at the very bottom, no longer a child of A.
 
 Upstream (`origin/main`) sorts order-only (no re-indent), so A1 stays at the
@@ -37,19 +37,19 @@ breaks the "return home" expectation.
 ## Goal
 
 When a checked checklist child is unchecked, it returns to its original
-parent and position — not to the bottom of the list.
+parent and position, not to the bottom of the list.
 
 ## Non-goals
 
 - No change to cascade toggle (tap = toggle whole block) or frozen-ancestor
   behavior; those stay as in the fork.
 - No change to how checking moves a block to the checked section (still
-  flattened to 0 on check — only uncheck restores).
+  flattened to 0 on check, so only uncheck restores).
 - No new DB column. The memory lives in document attributes, so it syncs
   with the note like `checked`/`list` do.
 - No server or web changes.
 
-## Approach (P2 — remember parent)
+## Approach (P2: remember parent)
 
 Persist, per checklist line, a hidden "home" attribute on its newline
 (alongside `list`/`indent`):
@@ -87,7 +87,7 @@ at it. For lines without an id (legacy), fall back to current behavior.
   `ParsedLine`; helper to build the `anchor-home`/`anchor-id` attribute
   maps.
 - `checklist_lines.dart`: `checklistCheckedSectionPlan` gains restore logic
-  on uncheck — when `prefer` is a fully-checked block being unchecked,
+  on uncheck. When `prefer` is a fully-checked block being unchecked,
   compute insertion index from `anchor-home` instead of appending at the
   open-list tail.
 - `checklist_sorter.dart` / `rich_text_editor.dart`: on toggle, ensure

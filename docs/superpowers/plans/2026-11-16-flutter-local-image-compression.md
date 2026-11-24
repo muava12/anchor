@@ -28,7 +28,7 @@
 
 ## Review Focus
 
-- Gambar HEIC di iOS tidak bisa dikonversi ke JPEG karena tidak ada native channel iOS untuk `anchor/photos` — kompresi lokal harus tetap mencoba encode JPEG via package `image` dan gagal dengan aman bila tidak mungkin.
+- Gambar HEIC di iOS tidak bisa dikonversi ke JPEG karena tidak ada native channel iOS untuk `anchor/photos`: kompresi lokal harus tetap mencoba encode JPEG via package `image` dan gagal dengan aman bila tidak mungkin.
 - Decode gambar besar dapat memenuhi memori; worker harus decode dengan `targetWidth`/`targetHeight` bila tersedia dan recycle resource.
 - Encode WebP tidak tersedia di semua target Flutter; fallback wajib ke JPEG atau original, tidak boleh crash.
 - `AddedFile` typedef di `add_sheet.dart` saat ini `({String path, String mime, String name})`; integrasi harus mempertahankan atau memperluas ini tanpa merusak pemanggil yang ada.

@@ -23,7 +23,7 @@ cd ../anchorx-merge-v0.19
 
 ## Step 2: Cherry-pick commits (in order)
 
-### 2a: b4ae4c4 — Delete account
+### 2a: b4ae4c4 Delete account
 
 ```sh
 git cherry-pick b4ae4c4
@@ -38,7 +38,7 @@ Resolution:
 - Add upstream's `deleteUserDatabaseFiles` function.
 - Add upstream's `_userDatabasePath` helper.
 
-### 2b: 695b69a — Tag filter for new notes
+### 2b: 695b69a Tag filter for new notes
 
 ```sh
 git cherry-pick 695b69a
@@ -52,7 +52,7 @@ Resolution:
   `widget.journal ? journalTagProvider?.id : selectedTagFilterProvider`
 - Keep fork's `codec` parameter (upstream removes it; fork needs it).
 
-### 2c: c8ab5b7 — Web title bar
+### 2c: c8ab5b7 Web title bar
 
 ```sh
 git cherry-pick c8ab5b7
@@ -60,7 +60,7 @@ git cherry-pick c8ab5b7
 
 Expected conflicts: none (web only).
 
-### 2d: b230160 — Sort by created date
+### 2d: b230160 Sort by created date
 
 ```sh
 git cherry-pick b230160
@@ -76,7 +76,7 @@ Expected conflicts:
 - `sync_changes.dart`: add `createdAt` to `SyncNoteChange`.
 - Tests: update migration tests for v13.
 
-### 2e: 16b05b9 — Editor fix
+### 2e: 16b05b9 Editor fix
 
 ```sh
 git cherry-pick 16b05b9

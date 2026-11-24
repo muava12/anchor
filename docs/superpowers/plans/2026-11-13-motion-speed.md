@@ -1,4 +1,4 @@
-# Motion speed setting — implementation plan
+# Motion speed setting: implementation plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -58,7 +58,7 @@ void main() {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/motion_speed_test.dart`
-Expected: FAIL — `Error: Couldn't resolve the package 'anchor' ... motion_speed.dart`
+Expected: FAIL. `Error: Couldn't resolve the package 'anchor' ... motion_speed.dart`
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -148,7 +148,7 @@ import 'package:anchor/core/theme/tokens/anchor_tokens.dart';
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/motion_speed_test.dart`
-Expected: FAIL — the fast and off cases report the unchanged duration.
+Expected: FAIL. The fast and off cases report the unchanged duration.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -269,7 +269,7 @@ import 'package:anchor/features/settings/presentation/motion_speed_controller.da
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/motion_speed_test.dart`
-Expected: FAIL — `motionSpeedFromName` is not defined.
+Expected: FAIL. `motionSpeedFromName` is not defined.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -523,7 +523,7 @@ void main() {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/widgets/settings_motion_test.dart`
-Expected: FAIL — `find.text('Motion')` finds nothing.
+Expected: FAIL. `find.text('Motion')` finds nothing.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -692,7 +692,7 @@ import 'package:anchor/core/widgets/spinner.dart';
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/widgets/app_lock_test.dart`
-Expected: FAIL — a `Spinner` is found, because the button is busy.
+Expected: FAIL. A `Spinner` is found, because the button is busy.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -769,7 +769,7 @@ void main() {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/note_text_size_test.dart`
-Expected: FAIL — `NoteTextSize.extraSmall` is not defined.
+Expected: FAIL. `NoteTextSize.extraSmall` is not defined.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -960,7 +960,7 @@ Append to `mobile/test/widgets/settings_motion_test.dart`, inside `main()`:
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/widgets/settings_motion_test.dart`
-Expected: FAIL — the letters are not on screen yet, or the row overflows.
+Expected: FAIL. The letters are not on screen yet, or the row overflows.
 
 - [ ] **Step 3: Fix what the test shows**
 

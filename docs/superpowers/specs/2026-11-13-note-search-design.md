@@ -1,4 +1,4 @@
-# Search inside a note — design
+# Search inside a note: design
 
 Date: 2026-11-13
 Status: approved for planning

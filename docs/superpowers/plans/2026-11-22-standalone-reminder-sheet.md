@@ -1,4 +1,4 @@
-# Standalone Reminder Sheet — Implementation Plan
+# Standalone Reminder Sheet: Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax.
 
@@ -11,7 +11,7 @@
 **Spec:** `docs/superpowers/specs/2026-11-22-standalone-reminder-sheet-design.md`
 
 ## Global Constraints
-- Work in worktree `fsi/design` (branch `fsi/design`, base `1864c67`). FSI restyle is ~80% done there (font, colors, 5 icons, layout, Kotlin) — build on it, don't redo.
+- Work in worktree `fsi/design` (branch `fsi/design`, base `1864c67`). FSI restyle is ~80% done there (font, colors, 5 icons, layout, Kotlin), so build on it and do not redo it.
 - Commit format: Conventional Commits `type(scope): what`, scope `mobile`. One thing per commit. No `git add -A`.
 - Native reminder strings live in `res/values/strings.xml` (English), matching existing `reminder_action_*`.
 - `flutter analyze` must stay clean (Dart). Kotlin compiles via `rflutter build apk --debug` (box-05). On-device test is the visual gate.
@@ -21,12 +21,12 @@
 - **Snooze then open app:** after a native snooze, the app's next open must keep the snoozed time (not revert it to the stale DB value). → Task 4 test.
 - **Recurring snooze:** snoozing delays only this occurrence; other pre-armed recurrence occurrences stay. → Task 3 (verify no mass-cancel).
 - **One-shot reminder:** the "1 day" chip is hidden; snoozing still works via other options. → Task 2.
-- **Device awake, banner tap:** tapping the notification body still opens the app (contentIntent unchanged) — don't break it. → Task 1 (don't touch contentIntent).
+- **Device awake, banner tap:** tapping the notification body still opens the app (contentIntent unchanged). Do not break it. → Task 1 (don't touch contentIntent).
 - **Empty/unknown recurrence in extras:** the snooze sheet subtitle degrades gracefully ("Snooze" with no recurrence word) when the extra is absent. → Task 2.
 
 ---
 
-## Task 1: Finish FSI restyle — add "Open note" + point "Snooze" at the snooze sheet
+## Task 1: Finish FSI restyle, add "Open note" + point "Snooze" at the snooze sheet
 
 **Files:**
 - Modify: `mobile/android/app/src/main/res/layout/activity_full_screen_reminder.xml`
@@ -36,7 +36,7 @@
 - Modify: `mobile/android/app/src/main/AndroidManifest.xml` (no change needed if `SnoozeReminderActivity` added in Task 2; here just confirm FSI is registered)
 
 **Interfaces:**
-- Produces: `R.id.btn_open_note` (LinearLayout row) and `R.id.btn_snooze` now targeting `SnoozeReminderActivity` (class from Task 2; add a temporary `TODO` target of `SnoozeReminderActivity` by name — it compiles once Task 2 lands; build order: do Task 2's manifest+class stub first if the build fails).
+- Produces: `R.id.btn_open_note` (LinearLayout row) and `R.id.btn_snooze` now targeting `SnoozeReminderActivity` (class from Task 2; add a temporary `TODO` target of `SnoozeReminderActivity` by name; it compiles once Task 2 lands; build order: do Task 2's manifest+class stub first if the build fails).
 
 - [ ] **Step 1: Add the "Open note" action row at the top of the FSI actions block**
 
@@ -44,7 +44,7 @@ In `activity_full_screen_reminder.xml`, insert a new first action row (before `b
 
 - [ ] **Step 2: Add the "Open note" icon + string**
 
-Create `ic_fsi_open_note.xml` — lucide "notebook-text" or "file-text": a 24×24 vector, `strokeColor="@color/fsi_text"`, `strokeWidth="1.5"`, round caps. Use the file-text path: `M4 4h11a3 3 0 0 1 3 3v13a3 3 0 0 0 3-3V7`-style is wrong; use this concrete set:
+Create `ic_fsi_open_note.xml`: lucide "notebook-text" or "file-text", a 24×24 vector, `strokeColor="@color/fsi_text"`, `strokeWidth="1.5"`, round caps. Use the file-text path: `M4 4h11a3 3 0 0 1 3 3v13a3 3 0 0 0 3-3V7`-style is wrong; use this concrete set:
 ```
 M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z
 M14 2v6h6
@@ -69,7 +69,7 @@ git add mobile/android/app/src/main/res mobile/android/app/src/main/kotlin/moek/
 git commit -m "feat(mobile): add Open note to the reminder sheet and route Snooze to a standalone sheet"
 ```
 
-## Task 2: SnoozeReminderActivity — standalone snooze sheet UI (Doop Wn02ojCMhA)
+## Task 2: SnoozeReminderActivity, standalone snooze sheet UI (Doop Wn02ojCMhA)
 
 **Files:**
 - Create: `mobile/android/app/src/main/kotlin/moek/anchor/notex/reminders/SnoozeReminderActivity.kt`
@@ -117,7 +117,7 @@ git commit -m "feat(mobile): add the standalone snooze sheet UI"
 - Modify: `mobile/android/app/src/main/kotlin/moek/anchor/notex/reminders/ReminderNotificationBuilder.kt` (snooze action → `SnoozeReminderActivity`; add `recurrence` extra)
 
 **Interfaces:**
-- Produces: `SnoozeScheduleHelper.snooze(context, noteId, notificationId, title, body, recurrence, targetMillis)` — cancels the current alarm + notification for the occurrence, arms a new alarm at `targetMillis`, writes `{noteId, newAtMillis, recurrence}` to `PendingSnoozeStore`, and shows the toast.
+- Produces: `SnoozeScheduleHelper.snooze(context, noteId, notificationId, title, body, recurrence, targetMillis)`: cancels the current alarm + notification for the occurrence, arms a new alarm at `targetMillis`, writes `{noteId, newAtMillis, recurrence}` to `PendingSnoozeStore`, and shows the toast.
 - Produces: `PendingSnoozeStore.put(context, noteId, newAtMillis, recurrence)` / `PendingSnoozeStore.drain(context): List<PendingSnooze>` (Task 4 consumes via channel).
 - `reminderAlarmStore` entries gain `"recurrence"`.
 
@@ -127,17 +127,17 @@ Time math (mirror Dart `reminder_times.dart`):
 - Tomorrow: next day 09:00 local.
 - Pick a date & time: `DatePickerDialog` then `TimePickerDialog`, prefill now+1h; combine to millis.
 
-- [ ] **Step 1: Add `recurrence` to `ReminderAlarmStore`** — include it in `save`/`load`/`upsert` maps (`optString` default `"none"`).
+- [ ] **Step 1: Add `recurrence` to `ReminderAlarmStore`**: include it in `save`/`load`/`upsert` maps (`optString` default `"none"`).
 
-- [ ] **Step 2: Create `PendingSnoozeStore`** — SharedPreferences `pending_snoozes`; `put` upserts `{noteId,newAtMillis,recurrence}`; `drain` returns + clears all; `data class PendingSnooze(noteId, newAtMillis, recurrence)`.
+- [ ] **Step 2: Create `PendingSnoozeStore`**: SharedPreferences `pending_snoozes`; `put` upserts `{noteId,newAtMillis,recurrence}`; `drain` returns + clears all; `data class PendingSnooze(noteId, newAtMillis, recurrence)`.
 
-- [ ] **Step 3: Create `SnoozeScheduleHelper.snooze(...)`** — use `ReminderAlarmScheduler` (cancel by noteId, then arm at `targetMillis` with the store's title/body/recurrence), `NotificationManagerCompat`-style cancel of `notificationId` to drop the card, `PendingSnoozeStore.put(...)`, `Toast` with `snooze_toast_snoozed` formatted by the target time. Then `activity.finish()`.
+- [ ] **Step 3: Create `SnoozeScheduleHelper.snooze(...)`**: use `ReminderAlarmScheduler` (cancel by noteId, then arm at `targetMillis` with the store's title/body/recurrence), `NotificationManagerCompat`-style cancel of `notificationId` to drop the card, `PendingSnoozeStore.put(...)`, `Toast` with `snooze_toast_snoozed` formatted by the target time. Then `activity.finish()`.
 
-- [ ] **Step 4: Wire the options** in `SnoozeReminderActivity` — each chip/preset computes `targetMillis` (per the time math above) and calls `SnoozeScheduleHelper.snooze(...)`. "Pick a date and time" opens `DatePickerDialog` → `TimePickerDialog` → call.
+- [ ] **Step 4: Wire the options** in `SnoozeReminderActivity`: each chip/preset computes `targetMillis` (per the time math above) and calls `SnoozeScheduleHelper.snooze(...)`. "Pick a date and time" opens `DatePickerDialog` → `TimePickerDialog` → call.
 
-- [ ] **Step 5: Point the notification "Snooze" action at the sheet** — in `ReminderNotificationBuilder`, change the snooze `PendingIntent` from `MainActivity` to `SnoozeReminderActivity` (pass the same extras incl. `recurrence`). Leave the banner `contentIntent` → `MainActivity` (unchanged).
+- [ ] **Step 5: Point the notification "Snooze" action at the sheet**: in `ReminderNotificationBuilder`, change the snooze `PendingIntent` from `MainActivity` to `SnoozeReminderActivity` (pass the same extras incl. `recurrence`). Leave the banner `contentIntent` → `MainActivity` (unchanged).
 
-- [ ] **Step 6: Build** — `rflutter build apk --debug` → BUILD SUCCESSFUL.
+- [ ] **Step 6: Build**: `rflutter build apk --debug` → BUILD SUCCESSFUL.
 
 - [ ] **Step 7: Commit**
 ```bash
@@ -145,10 +145,10 @@ git add mobile/android/app/src/main/kotlin/moek/anchor/notex/reminders mobile/an
 git commit -m "feat(mobile): snooze re-arms the reminder natively and stashes it for the app"
 ```
 
-## Task 4: Dart — pass recurrence to native + drain pending snoozes on open
+## Task 4: Dart, pass recurrence to native + drain pending snoozes on open
 
 **Files:**
-- Modify: `mobile/lib/features/reminders/data/reminder_alarm_channel.dart` (or wherever the native arm/cancel channel calls live — add a `recurrence` field to `armReminder`)
+- Modify: `mobile/lib/features/reminders/data/reminder_alarm_channel.dart` (or wherever the native arm/cancel channel calls live, and add a `recurrence` field to `armReminder`)
 - Modify: `mobile/lib/features/reminders/data/reminder_scheduler.dart` (include recurrence when arming)
 - Create: `mobile/lib/features/reminders/data/pending_snooze_channel.dart` (MethodChannel `drainPendingSnoozes` + apply to DB)
 - Modify: `mobile/lib/features/reminders/presentation/reminder_tap_handler.dart` or `lib/app/bootstrap.dart` (call the drain on cold start, before the scheduler reconciles)
@@ -158,15 +158,15 @@ git commit -m "feat(mobile): snooze re-arms the reminder natively and stashes it
 - Produces: `drainPendingSnoozes({required NotesRepository repo})` → for each native `PendingSnooze`, set the note's `remindAt = newAt` (mark unsynced for the sync engine) and clear the native record. Runs on cold start and on resume-while-foreground.
 - The native side exposes `drainPendingSnoozes()` on an existing reminder MethodChannel (add in Task 3's receiver/channel if needed).
 
-- [ ] **Step 1: Write the failing Dart test** (`test/pending_snooze_test.dart`) — with a fake repo, `drainPendingSnoozes` updates `remindAt` for the snoozed note and returns the count; when no records, it's a no-op. (Channel is mocked.)
+- [ ] **Step 1: Write the failing Dart test** (`test/pending_snooze_test.dart`). With a fake repo, `drainPendingSnoozes` updates `remindAt` for the snoozed note and returns the count; when no records, it's a no-op. (Channel is mocked.)
 
-- [ ] **Step 2: Run to verify it fails** — `rflutter test test/pending_snooze_test.dart` → FAIL (function not defined).
+- [ ] **Step 2: Run to verify it fails**: `rflutter test test/pending_snooze_test.dart` → FAIL (function not defined).
 
 - [ ] **Step 3: Implement `pending_snooze_channel.dart`** + add `recurrence` to the arm channel + call the drain in bootstrap (cold start, before the scheduler pass) and on resume-while-foreground.
 
-- [ ] **Step 4: Run test to verify it passes** — `rflutter test test/pending_snooze_test.dart` → PASS. Also `rflutter test` (reminder suite) stays green.
+- [ ] **Step 4: Run test to verify it passes**: `rflutter test test/pending_snooze_test.dart` → PASS. Also `rflutter test` (reminder suite) stays green.
 
-- [ ] **Step 5: Analyze + build** — `rflutter analyze` clean; `rflutter build apk --debug` SUCCESS.
+- [ ] **Step 5: Analyze + build**: `rflutter analyze` clean; `rflutter build apk --debug` SUCCESS.
 
 - [ ] **Step 6: Commit**
 ```bash
@@ -178,11 +178,11 @@ git commit -m "feat(mobile): apply native snooze to the database and pass recurr
 
 **Files:** (verification only)
 
-- [ ] **Step 1: Full build + on-device test (the gate)** — build a signed arm64 release (re-host non-GH for the user) and verify: locked at due → reminder sheet above lockscreen; all 5 buttons work; Snooze → snooze sheet; pick an option → toast, no app launch; open app → `remindAt` updated; Done/Dismiss settle + drop the card; "Open note" opens the note; one-shot hides the "1 day" chip.
+- [ ] **Step 1: Full build + on-device test (the gate)**: build a signed arm64 release (re-host non-GH for the user) and verify: locked at due → reminder sheet above lockscreen; all 5 buttons work; Snooze → snooze sheet; pick an option → toast, no app launch; open app → `remindAt` updated; Done/Dismiss settle + drop the card; "Open note" opens the note; one-shot hides the "1 day" chip.
 
-- [ ] **Step 2: CI** — push the branch → `main`, watch `mobile-android` go green.
+- [ ] **Step 2: CI**: push the branch → `main`, watch `mobile-android` go green.
 
-- [ ] **Step 3: Tag + release** — tag the next version (v0.28.0, a feature), push, confirm the release build.
+- [ ] **Step 3: Tag + release**: tag the next version (v0.28.0, a feature), push, confirm the release build.
 
 ---
 

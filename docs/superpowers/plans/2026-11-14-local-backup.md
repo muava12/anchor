@@ -163,7 +163,7 @@ void main() {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/backup/backup_writer_test.dart`
-Expected: FAIL — `Target of URI doesn't exist: 'package:anchor/features/backup/...'`
+Expected: FAIL. `Target of URI doesn't exist: 'package:anchor/features/backup/...'`
 
 - [ ] **Step 3: Write the models**
 
@@ -541,7 +541,7 @@ void main() {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/backup/backup_reader_test.dart`
-Expected: FAIL — `Target of URI doesn't exist: 'package:anchor/features/backup/data/backup_reader.dart'`
+Expected: FAIL. `Target of URI doesn't exist: 'package:anchor/features/backup/data/backup_reader.dart'`
 
 - [ ] **Step 3: Write the reader**
 
@@ -690,7 +690,7 @@ void main() {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/backup/backup_cipher_test.dart`
-Expected: FAIL — `Target of URI doesn't exist`
+Expected: FAIL. `Target of URI doesn't exist`
 
 - [ ] **Step 3: Write the cipher**
 
@@ -909,7 +909,7 @@ void main() {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/backup/backup_exporter_test.dart`
-Expected: FAIL — `Target of URI doesn't exist`
+Expected: FAIL. `Target of URI doesn't exist`
 
 - [ ] **Step 3: Write the exporter**
 
@@ -1057,7 +1057,7 @@ git commit -m "feat: export every note, tag and attachment into a backup"
 - Consumes: `BackupReader` (Task 2), `BackupContents` (Task 1), `AppDatabase`, `newId()` from `lib/core/ids.dart`.
 - Produces:
   - `enum RestoreMode { keepIds, newIds }`
-  - `class BackupRestorer { BackupRestorer(this.db, this.attachmentsRoot); Future<int> restore(BackupReader reader, RestoreMode mode); }` — returns the number of notes written.
+  - `class BackupRestorer { BackupRestorer(this.db, this.attachmentsRoot); Future<int> restore(BackupReader reader, RestoreMode mode); }`: returns the number of notes written.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1183,7 +1183,7 @@ void main() {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/backup/backup_restorer_test.dart`
-Expected: FAIL — `Target of URI doesn't exist`
+Expected: FAIL. `Target of URI doesn't exist`
 
 - [ ] **Step 3: Write the mode and the restorer**
 
@@ -1406,7 +1406,7 @@ void main() {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/backup/backup_folder_test.dart`
-Expected: FAIL — `Target of URI doesn't exist`
+Expected: FAIL. `Target of URI doesn't exist`
 
 - [ ] **Step 3: Write the Dart wrapper**
 
@@ -1748,7 +1748,7 @@ void main() {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/backup/backup_settings_controller_test.dart`
-Expected: FAIL — `Target of URI doesn't exist`
+Expected: FAIL. `Target of URI doesn't exist`
 
 - [ ] **Step 3: Add the storage keys**
 
@@ -1970,7 +1970,7 @@ git commit -m "feat: remember the backup folder, the period and the password"
 - Produces:
   - `enum BackupOutcome { done, noFolder, failed }`
   - `class BackupResult { final BackupOutcome outcome; final String? fileName; final String? error; }`
-  - `@Riverpod(keepAlive: true) class BackupController extends _$BackupController { bool build(); Future<BackupResult> run({required bool automatic}); }` — state is `true` while a backup runs.
+  - `@Riverpod(keepAlive: true) class BackupController extends _$BackupController { bool build(); Future<BackupResult> run({required bool automatic}); }`: state is `true` while a backup runs.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -2081,7 +2081,7 @@ void main() {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/backup/backup_controller_test.dart`
-Expected: FAIL — `Target of URI doesn't exist`
+Expected: FAIL. `Target of URI doesn't exist`
 
 - [ ] **Step 3: Write the controller**
 
@@ -2248,7 +2248,7 @@ git commit -m "feat: run a backup as a job that outlives the settings page"
 **Interfaces:**
 - Consumes: `BackupController` (Task 8), `BackupSettings` (Task 7).
 - Produces:
-  - `class AutoBackup { AutoBackup(this.run, this.now); final Future<BackupResult> Function() run; final DateTime Function() now; Future<bool> maybeRun(BackupSettings settings); }` — returns true when it ran.
+  - `class AutoBackup { AutoBackup(this.run, this.now); final Future<BackupResult> Function() run; final DateTime Function() now; Future<bool> maybeRun(BackupSettings settings); }`: returns true when it ran.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -2345,7 +2345,7 @@ void main() {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/backup/auto_backup_test.dart`
-Expected: FAIL — `Target of URI doesn't exist`
+Expected: FAIL. `Target of URI doesn't exist`
 
 - [ ] **Step 3: Write the rule**
 
@@ -2404,7 +2404,7 @@ git commit -m "feat: back up on app open when the period is up"
 **Interfaces:**
 - Consumes: everything above.
 - Produces:
-  - `class BackupSection extends ConsumerWidget` — the whole Settings section.
+  - `class BackupSection extends ConsumerWidget`: the whole Settings section.
   - `Future<RestoreMode?> showRestoreSheet(BuildContext context, {required int notes, required int attachments})`
   - `final scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();` in `lib/main.dart`.
 
@@ -2474,7 +2474,7 @@ void main() {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd mobile && flutter test test/backup/backup_section_test.dart`
-Expected: FAIL — `Target of URI doesn't exist`
+Expected: FAIL. `Target of URI doesn't exist`
 
 - [ ] **Step 3: Add the copy**
 

@@ -1,4 +1,4 @@
-# Journal calendar v2 — activity heat map and richer day cards
+# Journal calendar v2: activity heat map and richer day cards
 
 Status: proposed, 2026-11-17. Owner: Abang Ganteng. Scope: `mobile/` only.
 Builds on the `feat/journal` branch. Doop reference: frame `YesVmaWc4W`.
@@ -6,7 +6,7 @@ Builds on the `feat/journal` branch. Doop reference: frame `YesVmaWc4W`.
 ## Intent
 
 The journal calendar is now a month card with day cards under it. The owner wants
-it to read at a glance — how busy each day was — and to carry a little more of
+it to read at a glance, how busy each day was, and to carry a little more of
 the entry on the card. The Doop design shows a GitHub-style **heat map** on the
 month grid: the more journal entries a day holds, the more strongly that day is
 shaded. It also adds a month footer, a "TODAY" marker on the day header, and a
@@ -21,7 +21,7 @@ and control behaviour come from `AnchorTokens`, `AppTypography`, `TagChip`,
 
 ## What already exists (on `feat/journal`)
 
-- `JournalCalendar`: a month card — serif month, circular prev/next, a 6-week
+- `JournalCalendar`: a month card, serif month, circular prev/next, a 6-week
   grid from the Monday, adjacent-month days muted, a dot on entry days, a
   filled circle on the selected day.
 - `JournalDayCards`: the day header ("EEE, MMM d" + "N entries") and a card per
@@ -91,7 +91,7 @@ provider.
 - **Mood in the card.** The mood emoji appears in the meta row only when a
   mood is set (same rule as the timeline).
 - **Leading icon before the card title.** The design has a small orange marker
-  before the title. Omit it for now — the mood already signals the day's tone;
+  before the title. Omit it for now. The mood already signals the day's tone;
   trivial to add back.
 - **Legend swatches** reuse the three tint alphas above, as small rounded
   squares, labelled "Less" and "More".
@@ -109,7 +109,7 @@ These came up reading the doc against the code; settled so the plan can proceed.
 - **Locale.** This project is English-only, so the new strings ("N entries
   this month", "No entries this month", "Less", "More") are added to
   `lib/l10n/app_en.arb` and hand-patched into `app_localizations.dart` and
-  `app_localizations_en.dart` — no other locales, no gen step.
+  `app_localizations_en.dart`: no other locales, no gen step.
 - **Entry dot removed.** The `ValueKey('journal-entry-dot')` marker is
   dropped; the day tint is now the "has entry" signal. `test/journal_calendar_test.dart`,
   which asserts that key, is updated to assert the tint instead.

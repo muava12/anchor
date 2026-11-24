@@ -1,4 +1,4 @@
-# Anchor — agent notes
+# Anchor agent notes
 
 Anchor is an offline-first, self-hostable note taking app. Three parts, each
 with its own toolchain:
@@ -23,9 +23,9 @@ root; CI fails when the generated files are out of date.
 
 ## Contribution rules (keep terse; full text in upstream)
 
-- **Commits / PRs**: Conventional Commits `type(scope): what` —
-  `type` ∈ feat,fix,perf,docs,refactor,test,chore,ci,build; `scope` ∈ web,mobile,server.
-  One PR does one thing; no mixing fix + refactor + format.
+- **Commits / PRs**: Conventional Commits `type(scope): what`. `type` is one of
+  feat, fix, perf, docs, refactor, test, chore, ci, build. `scope` is one of
+  web, mobile, server. One PR does one thing; no mixing fix + refactor + format.
 - **l10n**: app-facing strings go in `mobile/lib/l10n/app_en.arb` with an
   `@key.description`; never hard-code a string in code. The generated
   `app_localizations.dart` + `_en.dart` are patched by hand (single locale).
@@ -49,7 +49,7 @@ Issues live as markdown files under `.scratch/<feature-slug>/`. See `docs/agents
 
 Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
 
-## Fork, build & release context (for new sessions)
+## Fork, build and release notes (for new sessions)
 
 - **Remotes**: `origin` = `zhfahim/anchor` (upstream), `fork` = `muava12/anchor`
   (our working fork). Branch from `fork/main`; open PRs with
@@ -69,8 +69,8 @@ Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/ag
   mcpproxy `doop:*` tools; frames `nx07-wSkMw` reminder, `Wn02ojCMhA` snooze,
   `7zq4fCi8lr` thumbnail knob; style guide `anchor-shadow-motion`), then code
   against it.
-- **Releases**: branch → PR → merge into `fork/main` → tag `vX.Y.Z` →
-  `release.yml` (signed via the `ANDROID_KEYSTORE_BASE64` keystore,
+- **Releases**: branch, then PR, then merge into `fork/main`, then tag `vX.Y.Z`,
+  which runs `release.yml` (signed via the `ANDROID_KEYSTORE_BASE64` keystore,
   package `moek.anchor.notex`). On-demand test APKs: the `build-test-apk.yml`
   workflow dispatch, hosted on box-05's instabox URL.
 - **Fix-round records** live in `.scratch/<slug>/` (`collect.md` = items +

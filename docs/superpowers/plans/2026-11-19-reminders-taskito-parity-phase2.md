@@ -1,6 +1,6 @@
-# Reminder Phase 2 — Native Android (refined)
+# Reminder Phase 2: Native Android (refined)
 
-> **Status:** ACTIVE — worktree `feature/phase2-reminders`
+> **Status:** ACTIVE, worktree `feature/phase2-reminders`
 > **Design refs:** Doop frames `nx07-wSkMw` (FSI sheet), `Wn02ojCMhA` (snooze picker), `6XFPivzxyQ` (HUN banner)
 
 ## Decisions (from design review + research)
@@ -26,7 +26,7 @@
 
 ## Tasks
 
-### Task 1: BroadcastReceiver — background action handler
+### Task 1: BroadcastReceiver, background action handler
 **Goal:** Receive Done/Dismiss action intents in the background. Write action to SharedPreferences. Show toast for Done.
 **Files:**
 - Create `mobile/android/app/src/main/kotlin/.../ReminderActionReceiver.kt`
@@ -70,7 +70,7 @@
 - [ ] Modify notification_gateway.dart: set fullScreenIntent PendingIntent → FullScreenReminderActivity
 - [ ] Commit
 
-### Task 3: Flutter side — pending action drain
+### Task 3: Flutter side, pending action drain
 **Goal:** On app cold start, check SharedPreferences for pending Done/Dismiss actions. Settle the occurrence.
 **Files:**
 - Modify `mobile/lib/features/reminders/presentation/notification_launch.dart`

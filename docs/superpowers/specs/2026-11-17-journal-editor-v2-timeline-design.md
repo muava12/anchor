@@ -1,4 +1,4 @@
-# Journal v2 — editor, pickers, timeline & 12-mood model (design)
+# Journal v2: editor, pickers, timeline & 12-mood model (design)
 
 Design doc for the **remaining** journal frames on doop page `ymyXw6eqo_`
 ("Journal — list variations"): the **editor v2**, the two **picker sheets**,
@@ -44,7 +44,7 @@ Goals
 
 Non-goals
 - The calendar view itself (other session).
-- The **grid icon** behaviour in the top bar — it is a **placeholder**
+- The **grid icon** behaviour in the top bar. It is a **placeholder**
   (rendered, no action). Its real behaviour ("like the Notes page menus") is a
   later feature.
 - Any **server** change.
@@ -77,7 +77,7 @@ Anti-goals
 1. **Mood = 12 Wangcai faces, replacing the old 4.** "Pakai Wangcai, ganti."
    The 12 keys: `happy, calm, grateful, excited, okay, tired, anxious, sad,
    angry, lonely, stressed, sick`. Old entries that stored `amazing/
-   good/neutral/rough` **fall back to no mood** (no face) — no mapping.
+   good/neutral/rough` **fall back to no mood** (no face), with no mapping.
 2. **Faces are SVG**, downloaded once from svgrepo into the repo as
    `mobile/assets/mood/<key>.svg` (local, offline). Monochrome
    (`fill: currentColor`) → **tinted `accent-strong`** (`#CC5F2D`), the warm
@@ -106,7 +106,7 @@ Anti-goals
    - **Mood face** (Shiba) on the row when the entry has a mood, 1:1.
    - **Day headers**: left group label (TODAY / YESTERDAY / THIS WEEK) +
      right date range.
-   - **Top bar**: "Journal ▾" opens the **drawer** (same as other pages —
+   - **Top bar**: "Journal ▾" opens the **drawer** (same as other pages:
      already the `LargeBarTitle`); the **calendar icon** toggles timeline ↔
      calendar (active-state highlight); the **grid icon** is a
      **placeholder** (no action yet).
@@ -114,21 +114,21 @@ Anti-goals
 ## Approaches (build alternatives considered; what was picked)
 
 **Mood faces**
-- *Local SVG + `flutter_svg`* — **picked.** Offline, tintable, matches
+- *Local SVG + `flutter_svg`*: **picked.** Offline, tintable, matches
   "export as svg". Cost: adds the `flutter_svg` dependency (not currently in
   `pubspec.yaml`) and 12 asset files.
-- Hotlink svgrepo at runtime — rejected (breaks offline-first).
-- Rasterize to PNG — a fallback if `flutter_svg` is undesirable; but the owner
+- Hotlink svgrepo at runtime: rejected (breaks offline-first).
+- Rasterize to PNG: a fallback if `flutter_svg` is undesirable; but the owner
   asked for SVG.
-- Emoji font (12 codepoints) — rejected; the Wangcai set is the Shiba SVG
+- Emoji font (12 codepoints): rejected; the Wangcai set is the Shiba SVG
   series, not a font.
 
 **Picker sheets**
 - *Native Flutter widgets + reuse `AnchorSheet`/`AppButton` + `anchor-
-  shadow-motion`* — **picked.** No new package; the canvas already ships the
+  shadow-motion`*: **picked.** No new package; the canvas already ships the
   sheet/button components. Time wheel = `CupertinoDatePicker` (time mode,
   24h) or `ListWheelScrollView`.
-- `omni_datetime_picker` package — rejected (adds a dependency; the dev-notes
+- `omni_datetime_picker` package: rejected (adds a dependency; the dev-notes
   frame lists it as optional only).
 
 ## Phases (order)
@@ -150,13 +150,13 @@ Anti-goals
 ## Day-card mood chip (the calendar session's skipped piece)
 
 `journal_day_cards.dart` has a `// TODO: mood emoji row is deferred; only the
-tag chip renders for now.` — the tag chip shipped (`e890da7`), the mood chip
+tag chip renders for now.` The tag chip shipped (`e890da7`), the mood chip
 did not. This session adds it: in the day-card meta row, render the entry's
 `MoodFace` (12-set) beside the time + tag chip, matching the design's day-card
 frame (`YesVmaWc4W`). Old 4-mood entries show **no face** (fallback),
 consistently in both the timeline row and this chip.
 
-## Left to the builder (my calls — confirm in review)
+## Left to the builder (my calls: confirm in review)
 
 - **Tint**: `accent-strong` for selected faces; a muted/neutral tone for
   unselected picker tiles.

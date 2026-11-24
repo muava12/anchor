@@ -1,10 +1,10 @@
-# Standalone Reminder Sheet — Design
+# Standalone Reminder Sheet: Design
 
 **Date:** 2026-11-22 · **Status:** draft for approval · **Author:** Pi
 **Ref designs (Doop, `ready_for_dev`):** Reminder sheet `nx07-wSkMw`, Snooze picker `Wn02ojCMhA`
 
 ## Intent / why
-The reminder card must appear **standalone — without loading the app's
+The reminder card must appear **standalone, without loading the app's
 dashboard**. It shows in two cases: (a) the phone is locked at the due time,
 and (b) the heads-up has auto-hidden and the user has not acted. Every button
 works from the sheet. Only **tapping the notification banner** and the **"Open
@@ -46,8 +46,8 @@ opening the app" behavior, now with the Doop visual design.
 ## Approach
 - **Two native activities**, both translucent + `showWhenLocked` +
   `turnScreenOn`, styled to the Doop frames:
-  1. `FullScreenReminderActivity` — restyled + new "Open note" action.
-  2. `SnoozeReminderActivity` (new) — the standalone snooze picker.
+  1. `FullScreenReminderActivity`: restyled + new "Open note" action.
+  2. `SnoozeReminderActivity` (new): the standalone snooze picker.
 - **Intent map (who launches the app):**
   - Tap notification banner → `MainActivity` (app). *unchanged.*
   - "Open note" (reminder sheet) → `MainActivity` with `open_note_id` → the note. *new.*
@@ -65,7 +65,7 @@ opening the app" behavior, now with the Doop visual design.
     scheduler → clears the record.
 - **Recurring snooze semantics (decided):** snooze delays **this
   occurrence only**; the rest of the recurrence series stays on schedule.
-- **v1 snooze options (decided):** full set — quick chips + Later today +
+- **v1 snooze options (decided):** full set, with quick chips + Later today +
   Tomorrow + Pick a date & time (native `DatePickerDialog` +
   `TimePickerDialog`, pre-filled). The "1 day" chip is shown **only for
   recurring** reminders (matches the Flutter snooze rule).

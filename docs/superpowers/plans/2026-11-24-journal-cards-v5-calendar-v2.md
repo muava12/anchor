@@ -33,7 +33,7 @@
 
 ---
 
-## PR1 — list view cards and stats tiles (frames 5b, 5c)
+## PR1: list view cards and stats tiles (frames 5b, 5c)
 
 Branch `feat/journal-cards-v5`.
 
@@ -318,7 +318,7 @@ Keep the existing chevron, compact-bottom-bar and calendar tests unchanged.
 
 ---
 
-## PR2 — calendar grid v2
+## PR2: calendar grid v2
 
 Branch `feat/journal-calendar-v2` from `main` after PR1 merges.
 
@@ -452,7 +452,7 @@ testWidgets('the calendar icon stays while the calendar is on', (tester) async {
 
 ---
 
-## PR3 — visual polish
+## PR3: visual polish
 
 Branch `chore/journal-cards-polish` from `main` after PR2 merges.
 
@@ -478,4 +478,4 @@ Branch `chore/journal-cards-polish` from `main` after PR2 merges.
 - **Untitled header (Task 4, F2):** header is a `minHeight: 28` container (key `journal-untitled-header`) with the row centred, not a fixed 28 `SizedBox` (spec §7: safe at text scale 1.3).
 - **`JournalCalendar` `now` param (Task 8):** optional `DateTime? now` for deterministic today-ring tests (defaults to `DateTime.now()`).
 - **l10n files:** bulk `dart format` on box-05 re-wrapped two unrelated strings in `app_localizations_en.dart`; restored to base formatting so the feat commits carry only the journal keys.
-- **Commit author:** this host's git identity is `openhands <openhands@all-hands.dev>`; AGENTS.md forbids an AI author. Left as-is (identity is host-wide, not branch-wide); the owner picks the author when pushing — name the tool in the PR body instead.
+- **Commit author:** this host's git identity is `openhands <openhands@all-hands.dev>`; AGENTS.md forbids an AI author. Left as-is (identity is host-wide, not branch-wide); the owner picks the author when pushing. Name the tool in the PR body instead.

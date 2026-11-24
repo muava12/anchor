@@ -62,7 +62,7 @@ Ya. Sumber yang ada hanya media, tidak ada Help Center yang menyatakannya:
 > subtasks below will also move. However, rearranging a subtask will
 > automatically make it a full task."
 
-— https://9to5google.com/2018/06/08/google-keep-subtasks/ (2018-06-08)
+Sumber: https://9to5google.com/2018/06/08/google-keep-subtasks/ (2018-06-08)
 
 Konsekuensi penting untuk Anchor:
 
@@ -78,7 +78,7 @@ sebaiknya diuji manual di build Keep terbaru sebelum dijadikan patokan.
 
 Tiga hal berbeda, dan sumber resmi hanya menutup dua di antaranya.
 
-a. Pindah ke bawah — ada kontrol resmi.
+a. Pindah ke bawah: ada kontrol resmi.
 
 - Help Center: "Move checked items to the bottom of a list" adalah setelan
   global di Settings (web: Settings → List behavior; Android: Menu → Settings).
@@ -89,7 +89,7 @@ a. Pindah ke bawah — ada kontrol resmi.
   Jadi default Keep adalah **pindah ke bawah**, dan user bisa memilih **tetap di
   tempat**.
 
-b. Collapse / hide — kontrol resmi hanya terdokumentasi di Wear OS.
+b. Collapse / hide: kontrol resmi hanya terdokumentasi di Wear OS.
 
 - Wear OS: "To hide checked items, tap the Down arrow."
   https://support.google.com/wearos/answer/7664632
@@ -100,7 +100,7 @@ b. Collapse / hide — kontrol resmi hanya terdokumentasi di Wear OS.
   https://webapps.stackexchange.com/questions/44228/hide-completed-list-items-in-google-keep
   Ini tidak resmi. Perlakukan sebagai indikasi, bukan spesifikasi.
 
-c. Tetap di tempat — hanya jika user mematikan setelan (a).
+c. Tetap di tempat: hanya jika user mematikan setelan (a).
 
 Kesimpulan: yang pasti secara resmi = setelan pindah/tidak pindah. Collapse
 checked items = ada di Wear OS (resmi), kemungkinan ada di web/Android
