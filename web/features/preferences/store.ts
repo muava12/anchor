@@ -13,6 +13,8 @@ interface NotesPreferences {
   viewMode: ViewMode;
   sortBy: SortBy;
   sortOrder: SortOrder;
+  /** Keeps journal entries out of the notes board. */
+  hideJournal: boolean;
   openArchivedTagIds: string[];
 }
 
@@ -49,6 +51,7 @@ const defaultNotesPreferences: NotesPreferences = {
   viewMode: "masonry",
   sortBy: "updatedAt",
   sortOrder: "desc",
+  hideJournal: false,
   openArchivedTagIds: [],
 };
 
