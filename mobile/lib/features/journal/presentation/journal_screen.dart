@@ -123,7 +123,16 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
       isTall: true,
       showBack: false,
       controller: _scroll,
-      largeTitle: ListBarTitle(folder: NoteFolder.journal, tag: null, onOpenMenu: _openMenu),
+      largeTitle: ListLargeTitle(
+        folder: NoteFolder.journal,
+        tag: null,
+        onOpenMenu: _openMenu,
+      ),
+      barTitle: ListBarTitle(
+        folder: NoteFolder.journal,
+        tag: null,
+        onOpenMenu: _openMenu,
+      ),
       actions: [
         BarButton(
           icon: _calendar ? LucideIcons.rows3 : LucideIcons.calendarDays,
