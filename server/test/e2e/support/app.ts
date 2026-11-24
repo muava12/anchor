@@ -86,8 +86,8 @@ export class E2EApp {
       WHERE id = ${noteId}`;
   }
 
-  // Shifts a note's revisions a day into the past, keeping their order, so the
-  // next edit by the same author falls outside the autosave collapse window.
+  // Shifts a note's revisions a day into the past and keeps their order. The
+  // next edit by the same author then falls outside the autosave collapse window.
   async ageNoteRevisions(noteId: string): Promise<void> {
     await this.prisma.$executeRaw`
       UPDATE "NoteRevision" SET "createdAt" = "createdAt" - interval '1 day'
