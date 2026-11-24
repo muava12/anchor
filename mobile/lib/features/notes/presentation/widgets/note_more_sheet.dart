@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/widgets/choice_sheet.dart';
 import '../../../../l10n/l10n.dart';
 import '../note_actions.dart';
+import '../note_labels.dart';
 
 Future<NoteAction?> showNoteMoreSheet(
   BuildContext context, {
@@ -14,11 +15,13 @@ Future<NoteAction?> showNoteMoreSheet(
   required int shareCount,
   bool hasChecklist = false,
   bool hasCheckedItems = false,
+  DateTime? createdAt,
 }) {
   final l10n = context.l10n;
   return showChoiceSheet<NoteAction>(
     context,
     semanticLabel: l10n.commonMore,
+    footer: createdAt == null ? null : createdDayLabel(createdAt, l10n),
     choices: [
       SheetChoice(
         value: NoteAction.pin,
