@@ -3,6 +3,7 @@ import 'package:anchor/core/widgets/pressable.dart';
 import 'package:anchor/features/journal/presentation/journal_providers.dart';
 import 'package:anchor/features/journal/presentation/journal_screen.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_calendar.dart';
+import 'package:anchor/features/journal/presentation/widgets/journal_card_shell.dart';
 import 'package:anchor/features/notes/domain/note.dart';
 import 'package:anchor/features/notes/presentation/widgets/card_registry.dart';
 import 'package:anchor/features/tags/domain/tag.dart';
@@ -49,7 +50,40 @@ void main() {
     expect(find.text('Morning pages'), findsOneWidget);
   });
 
-  testWidgets('the top bar shows the journal label with a chevron', (tester) async {
+  testWidgets('list mode shows the section header, day separator and card', (
+    tester,
+  ) async {
+    await pump(tester, [entry('a', 'Morning pages', 'good')]);
+    expect(find.text('ENTRIES'), findsOneWidget);
+    expect(find.text('November 17, 2026 \u00b7 Tue'), findsOneWidget);
+    expect(find.byType(JournalCardShell), findsOneWidget);
+  });
+
+  testWidgets(
+    'search filters cards but the tiles keep the full-history numbers',
+    (tester) async {
+      await pump(tester, [
+        entry('a', 'Morning pages', 'good'),
+        entry('b', 'Night shift', 'good'),
+      ]);
+      expect(find.text('Morning pages'), findsOneWidget);
+      expect(find.text('Night shift'), findsOneWidget);
+
+      await tester.tap(find.byIcon(LucideIcons.search));
+      await tester.pump();
+      await tester.enterText(find.byType(TextField), 'Morning');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Morning pages'), findsOneWidget);
+      expect(find.text('Night shift'), findsNothing);
+      // The stats tiles read the full history, so the today tile survives.
+      expect(find.text('Today'), findsOneWidget);
+    },
+  );
+
+  testWidgets('the top bar shows the journal label with a chevron', (
+    tester,
+  ) async {
     await pump(tester, [entry('a', 'Morning pages', 'good')]);
     expect(find.text('Journal'), findsWidgets);
     // The header is aligned with the list pages: a large collapsible title
@@ -58,7 +92,9 @@ void main() {
     expect(find.byIcon(LucideIcons500.chevronDown), findsNWidgets(2));
   });
 
-  testWidgets('the bottom bar goes compact when the timeline scrolls', (tester) async {
+  testWidgets('the bottom bar goes compact when the timeline scrolls', (
+    tester,
+  ) async {
     final many = List.generate(
       24,
       (i) => Note(
@@ -83,7 +119,9 @@ void main() {
     expect(after, lessThan(before));
   });
 
-  testWidgets('the entry card registers with the morph card registry', (tester) async {
+  testWidgets('the entry card registers with the morph card registry', (
+    tester,
+  ) async {
     await pump(tester, [entry('a', 'Morning pages', 'good')]);
     // Registration is what lets the close morph fly the card back to its
     // home in the journal list and show the list behind it (the Notes path).
@@ -104,16 +142,30 @@ void main() {
     expect(find.byIcon(LucideIcons.rows3), findsNothing);
   });
 
-  testWidgets('tapping the calendar icon twice returns to the timeline', (
+  testWidgets('tapping the calendar icon twice returns to the list', (
     tester,
   ) async {
     await pump(tester, [entry('a', 'Morning pages', 'good')]);
     await tester.tap(find.byIcon(LucideIcons.calendarDays));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.byType(JournalCalendar), findsOneWidget);
-    expect(find.byIcon(LucideIcons.rows3), findsOneWidget);
-    await tester.tap(find.byIcon(LucideIcons.rows3));
-    await tester.pump();
+    await tester.tap(find.byIcon(LucideIcons.calendarDays));
+    await tester.pumpAndSettle();
+    expect(find.byType(JournalCalendar), findsNothing);
+    expect(find.byIcon(LucideIcons.calendarDays), findsOneWidget);
+  });
+
+  testWidgets('the calendar icon stays while the calendar is on', (
+    tester,
+  ) async {
+    await pump(tester, [entry('a', 'Morning pages', 'good')]);
+    await tester.tap(find.byIcon(LucideIcons.calendarDays));
+    await tester.pumpAndSettle();
+    expect(find.byType(JournalCalendar), findsOneWidget);
+    expect(find.byIcon(LucideIcons.calendarDays), findsOneWidget);
+    expect(find.byIcon(LucideIcons.rows3), findsNothing);
+    await tester.tap(find.byIcon(LucideIcons.calendarDays));
+    await tester.pumpAndSettle();
     expect(find.byType(JournalCalendar), findsNothing);
     expect(find.byIcon(LucideIcons.calendarDays), findsOneWidget);
   });
@@ -140,10 +192,7 @@ void main() {
     final router = GoRouter(
       initialLocation: '/journal',
       routes: [
-        GoRoute(
-          path: '/journal',
-          builder: (_, _) => const JournalScreen(),
-        ),
+        GoRoute(path: '/journal', builder: (_, _) => const JournalScreen()),
         GoRoute(
           path: '/journal/edit/:id',
           builder: (_, state) =>
@@ -151,8 +200,7 @@ void main() {
         ),
         GoRoute(
           path: '/note/:id',
-          builder: (_, state) =>
-              Text('note-${state.pathParameters['id']}'),
+          builder: (_, state) => Text('note-${state.pathParameters['id']}'),
         ),
       ],
     );

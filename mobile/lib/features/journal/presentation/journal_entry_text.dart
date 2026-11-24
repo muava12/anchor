@@ -2,10 +2,11 @@ import 'package:intl/intl.dart';
 
 import '../../../core/text/date_formats.dart';
 import '../../../l10n/l10n.dart';
+import '../../notes/data/repository/notes_repository.dart';
 import '../../notes/domain/note.dart';
 import '../../notes/domain/note_blocks.dart';
-import '../../notes/domain/note_dates.dart';
 import '../../notes/presentation/note_labels.dart';
+import '../../tags/domain/tag.dart';
 import '../domain/journal_day.dart';
 import '../domain/journal_meta.dart';
 
@@ -34,52 +35,65 @@ String journalPreviewOf(Note note, String title) {
   return body;
 }
 
+/// The entry's local time: the parsed entry time, or the note's last
+/// update when the entry predates stored times.
+DateTime? journalTimeAt(JournalDayEntry entry) =>
+    entry.meta.entryAt ?? entry.note.updatedAt?.toLocal();
+
 /// The entry's time in the phone's 12- or 24-hour form.
 String journalTimeOf(JournalDayEntry entry) {
-  final at = entry.meta.entryAt ?? entry.note.updatedAt?.toLocal();
+  final at = journalTimeAt(entry);
   return at == null ? '' : clockLabel(at);
 }
 
-/// The day header: "TODAY, 12 AUG 2025" or "MONDAY, 13 AUG 2026". When the
-/// day's entries were made in a timezone that differs from the device now,
-/// a "\u00b7 GMT+07" suffix is added.
-String journalDayHeader(
-  JournalDay day,
-  AppLocalizations l10n, {
-  DateTime? now,
-}) {
-  final d = day.day;
-  final today = now ?? DateTime.now();
-  final word = switch (daysFromToday(d, today)) {
-    0 => l10n.commonToday,
-    -1 => l10n.commonYesterday,
-    _ => DateFormat('EEEE', dateLocale).format(d),
-  };
-  final date = DateFormat('d MMM yyyy', dateLocale).format(d);
-  var header = '$word, $date'.toUpperCase();
-  final tz = _dayTz(day, today);
-  if (tz != null) header = '$header \u00b7 ${gmtLabel(tz)}';
-  return header;
+/// The entry time in the phone's clock form, plus " · GMT+7" when the
+/// entry's timezone is known. Empty when the entry has no time.
+String journalTimeLabel(JournalDayEntry entry) {
+  final at = journalTimeAt(entry);
+  if (at == null) return '';
+  var label = clockLabel(at);
+  final tz = entry.meta.tzOffset;
+  if (tz != null) label = '$label · ${gmtLabel(tz)}';
+  return label;
 }
 
-/// The UTC offset (minutes) to show, when the day's first dated entry was
-/// made in a timezone that differs from [now]'s.
-int? _dayTz(JournalDay day, DateTime now) {
-  final current = now.timeZoneOffset.inMinutes;
-  for (final entry in day.entries) {
-    final tz = entry.meta.tzOffset;
-    if (tz != null && tz != current) return tz;
-  }
-  return null;
+/// The day separator: "November 19, 2026 · Thu".
+String journalDaySeparator(DateTime day) =>
+    '${DateFormat('MMMM d, y', dateLocale).format(day)} · '
+    '${DateFormat('EEE', dateLocale).format(day)}';
+
+/// The entry's whole body, trimmed, without the metadata header.
+String journalLeadOf(Note note) => journalBodyOf(note).trim();
+
+/// A short lead: no newline and at most 90 characters.
+bool isShortLead(String lead) => !lead.contains('\n') && lead.length <= 90;
+
+/// The entry's place from the `location:` header key, trimmed. Null when
+/// absent or blank.
+String? journalLocationOf(JournalMeta meta) {
+  final place = meta.extras['location']?.trim();
+  return place == null || place.isEmpty ? null : place;
 }
 
-/// "GMT+07" (whole hours) or "GMT+05:30" from a UTC offset in minutes.
+/// Every tag of the note except the journal tag, in [note]'s tagIds order.
+List<Tag> journalDisplayTags(Note note, List<Tag> all, String? journalTagId) =>
+    [
+      for (final id in note.tagIds)
+        if (id != journalTagId) ...all.where((tag) => tag.id == id),
+    ];
+
+/// The number of images beyond the four-preview strip. Zero when the note
+/// has fewer than four previews, so a "+N" badge never appears alone.
+int journalMoreImages(Note note) =>
+    note.imagePreviewData.length == maxImagePreviews
+    ? note.attachmentCount - note.imagePreviewData.length
+    : 0;
+
+/// "GMT+7" (whole hours) or "GMT+5:30" from a UTC offset in minutes.
 String gmtLabel(int tzOffsetMinutes) {
   final sign = tzOffsetMinutes < 0 ? '-' : '+';
   final abs = tzOffsetMinutes.abs();
-  final h = (abs ~/ 60).toString().padLeft(2, '0');
+  final h = abs ~/ 60;
   final m = abs % 60;
-  return m == 0
-      ? 'GMT$sign$h'
-      : 'GMT$sign$h:${m.toString().padLeft(2, '0')}';
+  return m == 0 ? 'GMT$sign$h' : 'GMT$sign$h:${m.toString().padLeft(2, '0')}';
 }

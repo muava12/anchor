@@ -2720,23 +2720,47 @@ abstract class AppLocalizations {
   String get journalCalendarLess;
   String get journalCalendarMore;
 
-  /// Caption of the stat card shown when an entry exists on today's month-day in a prior year.
+  /// Title of the throwback stat tile on the journal, over the years-ago sub line.
   ///
   /// In en, this message translates to:
-  /// **'On this day'**
-  String get journalStatOnThisDay;
+  /// **'Throwback'**
+  String get journalThrowback;
 
-  /// Caption of the stat card showing the run of consecutive entry days ending today or yesterday.
+  /// Streak badge on the today tile of the journal: N consecutive entry days.
   ///
   /// In en, this message translates to:
-  /// **'{count}-day streak'**
-  String journalStatStreak(int count);
+  /// **'1 day' or '{count} days'**
+  String journalStatDays(int count);
 
-  /// Caption of the stat card showing the most recent prior year with an entry on today's month-day.
+  /// Sub line of the throwback tile: how many years before today the entry's month-day was written.
   ///
   /// In en, this message translates to:
-  /// **'Throwback · {year}'**
-  String journalStatThrowback(String year);
+  /// **'1 year ago' or '{count} years ago'**
+  String journalStatYearsAgo(int count);
+
+  /// Screen reader label of the location chip on a journal entry card.
+  ///
+  /// In en, this message translates to:
+  /// **'Location: {place}'**
+  String journalLocationLabel(String place);
+
+  /// Badge on the last photo of a journal entry card: how many more pictures the entry has.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count}'**
+  String journalPhotosMore(int count);
+
+  /// Uppercase label of the journal list's entries section, above the day groups.
+  ///
+  /// In en, this message translates to:
+  /// **'Entries'**
+  String get journalEntriesSection;
+
+  /// Screen reader label of the inert options icon beside the entries section label.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry options'**
+  String get journalEntriesOptions;
 
   /// Screen reader label of the account row at the bottom of the menu.
   ///

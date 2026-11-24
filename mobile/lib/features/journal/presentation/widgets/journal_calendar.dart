@@ -19,6 +19,7 @@ class JournalCalendar extends StatelessWidget {
     required this.month,
     required this.entryCounts,
     this.selectedDay,
+    this.now,
     required this.onPickDay,
     required this.onPreviousMonth,
     required this.onNextMonth,
@@ -30,12 +31,18 @@ class JournalCalendar extends StatelessWidget {
   /// Every day's journal entry count, unfiltered by the search query.
   final Map<DateTime, int> entryCounts;
   final DateTime? selectedDay;
+
+  /// What "today" is; the real clock when left out.
+  final DateTime? now;
+
   final ValueChanged<DateTime> onPickDay;
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
 
   static const _weekdays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-  static const _heatAlpha = [0.0, 0.14, 0.30, 0.55];
+
+  /// The heat alphas: none, one entry, two or more.
+  static const _heatAlpha = [0.0, 0.14, 0.28];
 
   Color _tint(int level, AnchorColors colors) =>
       colors.accentStrong.withValues(alpha: _heatAlpha[level]);
@@ -43,27 +50,37 @@ class JournalCalendar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.anchor;
-    final density = context.density;
-    final today = DateTime.now();
+    final today = now ?? DateTime.now();
     final first = DateTime(month.year, month.month, 1);
     // The Monday of the week that holds the 1st, then six full weeks.
     final start = first.subtract(Duration(days: first.weekday - 1));
     DateTime dayAt(int i) => start.add(Duration(days: i));
     final monthEntries = entryCounts.entries
-        .where(
-          (e) => e.key.year == month.year && e.key.month == month.month,
-        )
+        .where((e) => e.key.year == month.year && e.key.month == month.month)
         .fold(0, (sum, e) => sum + e.value);
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(16, density.space8, 16, density.space8),
+      padding: const EdgeInsets.fromLTRB(
+        16,
+        AnchorTokens.space10, // off-scale: design card margin 10
+        16,
+        AnchorTokens.space6, // off-scale: design card margin 6
+      ),
       child: Container(
         decoration: BoxDecoration(
           color: colors.appSurface,
-          borderRadius: BorderRadius.circular(AnchorTokens.radiusCard),
+          borderRadius: BorderRadius.circular(
+            AnchorTokens.radius3xl,
+          ), // off-scale: design card radius 20
           border: Border.all(color: colors.appBorder),
+          boxShadow: colors.shadowRaised,
         ),
-        padding: EdgeInsets.all(density.space16),
+        padding: const EdgeInsets.fromLTRB(
+          AnchorTokens.space14, // off-scale: design card padding 14
+          AnchorTokens.space14, // off-scale: design card padding 14
+          AnchorTokens.space14, // off-scale: design card padding 14
+          AnchorTokens.space12,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -76,12 +93,29 @@ class JournalCalendar extends StatelessWidget {
                 ),
                 Expanded(
                   child: Center(
-                    child: Text(
-                      DateFormat.yMMMM(dateLocale).format(month),
-                      style: AppTypography.serifText(
-                        fontSize: AnchorTokens.typeLargeTitle.fontSize,
-                        fontWeight: FontWeight.w700,
-                        color: colors.appText,
+                    child: Text.rich(
+                      key: const ValueKey('calendar-month'),
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: DateFormat('MMMM', dateLocale).format(month),
+                            style: AnchorTokens.typeHeading.copyWith(
+                              fontFamily: AppTypography.sans,
+                              fontFamilyFallback: AppTypography.sansFallback,
+                              color: colors.appText,
+                            ),
+                          ),
+                          TextSpan(
+                            text: ' ${month.year}',
+                            style: AnchorTokens.typeLabel.copyWith(
+                              fontFamily: AppTypography.sans,
+                              fontFamilyFallback: AppTypography.sansFallback,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0,
+                              color: colors.appMuted,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -93,29 +127,41 @@ class JournalCalendar extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: density.space16),
+            SizedBox(
+              height: AnchorTokens.space10, // off-scale: design nav gap 10
+            ),
             Row(
               children: [
                 for (final label in _weekdays)
                   Expanded(
                     child: Center(
-                      child: Text(
-                        label,
-                        style: AppTypography.label.copyWith(
-                          color: colors.appMuted,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Text(
+                          label,
+                          style: AnchorTokens.typeCaption.copyWith(
+                            fontFamily: AppTypography.sans,
+                            fontFamilyFallback: AppTypography.sansFallback,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing:
+                                0.72, // off-scale: design label tracking
+                            color: colors.appMuted,
+                          ),
                         ),
                       ),
                     ),
                   ),
               ],
             ),
-            SizedBox(height: density.space8),
+            const SizedBox(height: AnchorTokens.space4),
             GridView(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 7,
-                mainAxisExtent: AnchorTokens.sizeRow, // same in Compact: a grid row
+                childAspectRatio: 1,
+                mainAxisSpacing: 4,
+                crossAxisSpacing: 3, // off-scale: design column gap 3
               ),
               children: [
                 for (var i = 0; i < 42; i++)
@@ -124,29 +170,48 @@ class JournalCalendar extends StatelessWidget {
                     month: month,
                     count: entryCounts[dayAt(i)] ?? 0,
                     isSelected:
-                        selectedDay != null && isSameDay(selectedDay!, dayAt(i)),
+                        selectedDay != null &&
+                        isSameDay(selectedDay!, dayAt(i)),
                     isToday: isSameDay(today, dayAt(i)),
                     tintOf: (level) => _tint(level, colors),
                     onPick: onPickDay,
                   ),
               ],
             ),
-            SizedBox(height: density.space12),
-            Container(height: 1, color: colors.appBorder),
-            SizedBox(height: density.space8),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    context.l10n.journalMonthEntries(monthEntries),
-                    style: AppTypography.footnote.copyWith(
-                      color: colors.appMuted,
+            Padding(
+              padding: const EdgeInsets.only(
+                top: AnchorTokens.space12,
+                // off-scale: design legend padding 12
+              ),
+              child: Column(
+                children: [
+                  Container(height: 1, color: colors.appBorder),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: AnchorTokens
+                          .space10, // off-scale: design legend padding 10
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            context.l10n.journalMonthEntries(monthEntries),
+                            style: AppTypography.caption.copyWith(
+                              color: colors.appMuted,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _HeatLegend(
+                          colors: colors,
+                          less: context.l10n.journalCalendarLess,
+                          more: context.l10n.journalCalendarMore,
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                _HeatLegend(colors: colors, less: context.l10n.journalCalendarLess, more: context.l10n.journalCalendarMore),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -170,18 +235,18 @@ class _NavButton extends StatelessWidget {
       onTap: onTap,
       semanticLabel: id,
       child: Container(
-        width: AnchorTokens.sizeTargetPhone,
-        height: AnchorTokens.sizeTargetPhone,
+        width: AnchorTokens.sizeControlSmall,
+        height: AnchorTokens.sizeControlSmall,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: colors.appPage,
+          color: colors.appText.withValues(alpha: 0.07),
         ),
         child: Center(
           child: Icon(
             key: ValueKey('calendar-$id'),
             icon,
             size: AnchorTokens.sizeIconMedium,
-            color: colors.appMuted,
+            color: colors.appText,
           ),
         ),
       ),
@@ -189,7 +254,7 @@ class _NavButton extends StatelessWidget {
   }
 }
 
-/// The light → dark swatch with its "Less" / "More" ends.
+/// The heat scale: an empty swatch, the two levels, with "Less" / "More".
 class _HeatLegend extends StatelessWidget {
   const _HeatLegend({
     required this.colors,
@@ -203,26 +268,38 @@ class _HeatLegend extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final alpha = [0.14, 0.30, 0.55];
+    // Swatch 0 is the "no entries" surface: a faint text tint.
+    final swatches = [
+      colors.appText.withValues(alpha: 0.08),
+      colors.accentStrong.withValues(alpha: 0.14),
+      colors.accentStrong.withValues(alpha: 0.28),
+    ];
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(less, style: AppTypography.footnote.copyWith(color: colors.appMuted)),
+        Text(
+          less,
+          style: AppTypography.caption.copyWith(color: colors.appMuted),
+        ),
         const SizedBox(width: 4),
-        for (final a in alpha)
+        for (var i = 0; i < swatches.length; i++)
           Container(
+            key: ValueKey('journal-heat-$i'),
             width: 12,
             height: 12,
             margin: const EdgeInsets.symmetric(
               horizontal: AnchorTokens.space2,
             ), // off-scale: heat swatch gap
             decoration: BoxDecoration(
-              color: colors.accentStrong.withValues(alpha: a),
+              color: swatches[i],
               borderRadius: BorderRadius.circular(4), // off-scale: heat swatch
             ),
           ),
         const SizedBox(width: 4),
-        Text(more, style: AppTypography.footnote.copyWith(color: colors.appMuted)),
+        Text(
+          more,
+          style: AppTypography.caption.copyWith(color: colors.appMuted),
+        ),
       ],
     );
   }
@@ -260,39 +337,58 @@ class _DayCell extends StatelessWidget {
     );
     final level = heatLevelOf(_inMonth ? count : 0);
     final background = isSelected ? colors.accentStrong : tintOf(level);
+    final ringToday = isToday && !isSelected;
     final cell = Container(
-      height: AnchorTokens.sizeControlMedium,
-      margin: const EdgeInsets.symmetric(
-        horizontal: AnchorTokens.space2,
-      ), // off-scale: heat cell gap
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(AnchorTokens.radiusTile),
-        border: isToday && !isSelected && level == 0
+        borderRadius: BorderRadius.circular(
+          AnchorTokens.radiusXl,
+        ), // off-scale: design cell radius 14
+        border: ringToday
             ? Border.all(color: colors.accentStrong, width: 1.5)
             : null,
+        boxShadow: isSelected ? colors.shadowControl : null,
       ),
       child: Center(
         child: Text(
           '$number',
-          style: AppTypography.row.copyWith(
-            color: isSelected
-                ? colors.appOnInverse
-                : _inMonth
-                ? colors.appText
-                : colors.appMuted,
-          ),
+          style: AppTypography.secondary
+              .copyWith(
+                fontWeight: isSelected
+                    ? FontWeight.w700
+                    : level == 2
+                    ? FontWeight.w600
+                    : FontWeight.w400,
+                color: isSelected
+                    ? colors.appOnInverse
+                    : _inMonth
+                    ? colors.appText
+                    : colors.appMuted,
+              )
+              .tabular,
         ),
       ),
     );
 
     // A day from the month beside this one is shown, but not picked here.
-    if (!_inMonth) return IgnorePointer(key: key, child: cell);
-    return GestureDetector(
-      key: key,
-      behavior: HitTestBehavior.opaque,
-      onTap: () => onPick(date),
-      child: cell,
-    );
+    Widget cellWidget = IgnorePointer(key: key, child: cell);
+    if (_inMonth) {
+      cellWidget = GestureDetector(
+        key: key,
+        behavior: HitTestBehavior.opaque,
+        onTap: () => onPick(date),
+        child: cell,
+      );
+    }
+    if (!isSelected) {
+      cellWidget = Opacity(opacity: _inMonth ? 1 : 0.4, child: cellWidget);
+    }
+    if (ringToday) {
+      cellWidget = KeyedSubtree(
+        key: const ValueKey('calendar-today-ring'),
+        child: cellWidget,
+      );
+    }
+    return cellWidget;
   }
 }

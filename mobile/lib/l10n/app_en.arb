@@ -2274,9 +2274,13 @@
   "journalMonthEntries": "{count, plural, =1{1 entry this month} other{{count} entries this month}}",
   "journalCalendarLess": "Less",
   "journalCalendarMore": "More",
-  "journalStatOnThisDay": "On this day",
-  "journalStatStreak": "{count}-day streak",
-  "journalStatThrowback": "Throwback · {year}",
+  "journalThrowback": "Throwback",
+  "journalStatDays": "{count, plural, =1{1 day} other{{count} days}}",
+  "journalStatYearsAgo": "{count, plural, =1{1 year ago} other{{count} years ago}}",
+  "journalLocationLabel": "Location: {place}",
+  "journalPhotosMore": "+{count}",
+  "journalEntriesSection": "Entries",
+  "journalEntriesOptions": "Entry options",
   "@navJournal": {
     "description": "Noun: the side menu item and list title for the journal."
   },
@@ -2388,26 +2392,46 @@
   "@journalCalendarMore": {
     "description": "Right end of the calendar heat-map legend (more entries)."
   },
-  "@journalStatOnThisDay": {
-    "description": "Caption of the stat card shown when an entry exists on today's month-day in a prior year."
+  "@journalThrowback": {
+    "description": "Title of the throwback stat tile on the journal, over the years-ago sub line."
   },
-  "@journalStatStreak": {
-    "description": "Caption of the stat card showing the run of consecutive entry days ending today or yesterday.",
+  "@journalStatDays": {
+    "description": "Streak badge on the today tile of the journal: N consecutive entry days.",
     "placeholders": {
       "count": {
-        "type": "int",
-        "example": "5"
+        "type": "int"
       }
     }
   },
-  "@journalStatThrowback": {
-    "description": "Caption of the stat card showing the most recent prior year with an entry on today's month-day.",
+  "@journalStatYearsAgo": {
+    "description": "Sub line of the throwback tile: how many years before today the entry's month-day was written.",
     "placeholders": {
-      "year": {
-        "type": "String",
-        "example": "2024"
+      "count": {
+        "type": "int"
       }
     }
+  },
+  "@journalLocationLabel": {
+    "description": "Screen reader label of the location chip on a journal entry card.",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "@journalPhotosMore": {
+    "description": "Badge on the last photo of a journal entry card: how many more pictures the entry has.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@journalEntriesSection": {
+    "description": "Uppercase label of the journal list's entries section, above the day groups."
+  },
+  "@journalEntriesOptions": {
+    "description": "Screen reader label of the inert options icon beside the entries section label."
   },
   "@navTrash": {
     "description": "Noun: the side menu item and list title for deleted notes."

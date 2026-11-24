@@ -1,9 +1,13 @@
 import 'package:anchor/core/theme/app_theme.dart';
 import 'package:anchor/features/journal/domain/journal_day.dart';
 import 'package:anchor/features/journal/domain/journal_meta.dart';
+import 'package:anchor/features/journal/presentation/widgets/journal_card_shell.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_day_cards.dart';
+import 'package:anchor/features/journal/presentation/widgets/journal_thumb_stack.dart';
 import 'package:anchor/features/journal/presentation/widgets/mood_face.dart';
+import 'package:anchor/features/notes/data/repository/attachment_file_provider.dart';
 import 'package:anchor/features/notes/domain/note.dart';
+import 'package:anchor/features/notes/presentation/widgets/card_registry.dart';
 import 'package:anchor/features/notes/presentation/widgets/note_chips.dart';
 import 'package:anchor/features/tags/domain/tag.dart';
 import 'package:anchor/features/tags/presentation/tags_controller.dart';
@@ -11,70 +15,221 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+const journalTag = Tag(id: 'j1', name: 'journal');
+const tagA = Tag(id: 't1', name: 'morning');
+const tagB = Tag(id: 't2', name: 'evening');
+
+Note _note({
+  required String id,
+  String title = '',
+  String body = 'plain',
+  List<String> tagIds = const [],
+  List<NoteImagePreview> previews = const [],
+}) => Note(
+  id: id,
+  title: title,
+  content: '{"ops":[{"insert":"$body\\n"}]}',
+  tagIds: tagIds,
+  imagePreviewData: previews,
+);
+
+JournalDayEntry _entry({
+  required String id,
+  DateTime? at,
+  String title = '',
+  String body = 'plain',
+  List<String> tagIds = const [],
+  JournalMood? mood,
+  List<NoteImagePreview> previews = const [],
+}) => JournalDayEntry(
+  note: _note(
+    id: id,
+    title: title,
+    body: body,
+    tagIds: tagIds,
+    previews: previews,
+  ),
+  meta: JournalMeta(mood: mood, entryAt: at),
+);
+
+List<NoteImagePreview> _pics(int count) => [
+  for (var i = 0; i < count; i++)
+    NoteImagePreview(attachmentId: 'a$i', noteId: 'id', filename: '$i.jpg'),
+];
+
+void _noOpen(Note note) {}
+
+Widget _wrap({
+  required List<JournalDay> days,
+  required List<Tag> tags,
+  String journalTagId = 'j1',
+  void Function(Note) onOpen = _noOpen,
+}) {
+  return ProviderScope(
+    overrides: [
+      tagsControllerProvider.overrideWith(() => _Tags(tags)),
+      attachmentFileProvider.overrideWith((ref, key) => null),
+    ],
+    child: MaterialApp(
+      theme: AppTheme.light(),
+      home: Scaffold(
+        body: CustomScrollView(
+          slivers: [
+            JournalDayCards(
+              days: days,
+              journalTagId: journalTagId,
+              onOpen: onOpen,
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+JournalDay twoEntriesOn(DateTime day) => JournalDay(
+  day: day,
+  entries: [
+    _entry(id: 'late', at: DateTime(day.year, day.month, day.day, 17, 40)),
+    _entry(id: 'early', at: DateTime(day.year, day.month, day.day, 8, 30)),
+  ],
+);
+
+double opacityOf(WidgetTester tester, String noteId) {
+  final boundary = find.byKey(CardRegistry.keyFor(noteId));
+  final opacity = tester.widget<Opacity>(
+    find.ancestor(of: boundary, matching: find.byType(Opacity)).first,
+  );
+  return opacity.opacity;
+}
+
 void main() {
-  testWidgets('shows the day header, its entry count, and a card per entry', (
+  testWidgets('header and one shell with a divider between two entries', (
     tester,
   ) async {
-    final entryAt = DateTime(2026, 11, 17, 8, 12);
-    final note = Note(
-      id: 'n1',
-      title: 'Morning pages',
-      content: '{"ops":[{"insert":"Coffee on the balcony.\\n"}]}',
-    );
-    final entry = JournalDayEntry(
-      note: note,
-      meta: JournalMeta(entryAt: entryAt),
-    );
-    Note? opened;
-
     await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(
-          theme: AppTheme.light(),
-          home: Scaffold(
-            body: CustomScrollView(
-              slivers: [
-                JournalDayCards(
-                  days: [
-                    JournalDay(
-                      day: DateTime(2026, 11, 17),
-                      entries: [entry],
-                    ),
-                  ],
-                  journalTagId: null,
-                  onOpen: (n) => opened = n,
-                ),
-              ],
-            ),
-          ),
+      _wrap(days: [twoEntriesOn(DateTime(2026, 11, 17))], tags: []),
+    );
+    await tester.pump();
+
+    expect(find.text('TUE, 17 NOV'), findsOneWidget);
+    expect(find.text('2 entries'), findsOneWidget);
+    expect(find.byType(JournalCardShell), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('journal-card-divider-1')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('stack only for entries with pictures', (tester) async {
+    final day = JournalDay(
+      day: DateTime(2026, 11, 17),
+      entries: [
+        _entry(
+          id: 'with-pics',
+          at: DateTime(2026, 11, 17, 9, 0),
+          previews: _pics(2),
         ),
+        _entry(id: 'no-pics', at: DateTime(2026, 11, 17, 8, 0)),
+      ],
+    );
+    await tester.pumpWidget(_wrap(days: [day], tags: []));
+    await tester.pump();
+
+    expect(find.byType(JournalThumbStack), findsOneWidget);
+  });
+
+  testWidgets('untitled entry shows its lead and no title line', (
+    tester,
+  ) async {
+    final day = JournalDay(
+      day: DateTime(2026, 11, 17),
+      entries: [
+        _entry(
+          id: 'untitled',
+          at: DateTime(2026, 11, 17, 8, 0),
+          body: 'Finally finished the book.',
+        ),
+      ],
+    );
+    await tester.pumpWidget(_wrap(days: [day], tags: []));
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('journal-lead')), findsOneWidget);
+    expect(find.text('Finally finished the book.'), findsOneWidget);
+    final lead = tester.widget<Text>(
+      find.byKey(const ValueKey('journal-lead')),
+    );
+    expect(lead.style!.fontWeight, isNot(FontWeight.w700));
+  });
+
+  testWidgets('meta lists time, mood and every tag', (tester) async {
+    final day = JournalDay(
+      day: DateTime(2026, 11, 17),
+      entries: [
+        _entry(
+          id: 'meta',
+          at: DateTime(2026, 11, 17, 8, 12),
+          title: 'Morning pages',
+          mood: JournalMood.calm,
+          tagIds: ['j1', 't1', 't2'],
+        ),
+      ],
+    );
+    await tester.pumpWidget(_wrap(days: [day], tags: [journalTag, tagA, tagB]));
+    await tester.pump();
+
+    expect(find.byType(TagChip), findsNWidgets(2));
+    expect(find.byType(MoodFace), findsOneWidget);
+    // The time carries no GMT suffix on the calendar card.
+    expect(find.textContaining('GMT'), findsNothing);
+  });
+
+  testWidgets('every entry keeps its morph registration', (tester) async {
+    await tester.pumpWidget(
+      _wrap(days: [twoEntriesOn(DateTime(2026, 11, 17))], tags: []),
+    );
+    await tester.pump();
+
+    expect(CardRegistry.keyFor('early').currentContext, isNotNull);
+    expect(CardRegistry.keyFor('late').currentContext, isNotNull);
+  });
+
+  testWidgets('hiding one entry hides only that entry', (tester) async {
+    await tester.pumpWidget(
+      _wrap(days: [twoEntriesOn(DateTime(2026, 11, 17))], tags: []),
+    );
+    await tester.pump();
+
+    CardRegistry.hide('early');
+    await tester.pump();
+    expect(opacityOf(tester, 'early'), 0);
+    expect(opacityOf(tester, 'late'), 1);
+    CardRegistry.show('early');
+  });
+
+  testWidgets('tapping an entry opens that note', (tester) async {
+    Note? opened;
+    await tester.pumpWidget(
+      _wrap(
+        days: [twoEntriesOn(DateTime(2026, 11, 17))],
+        tags: [],
+        onOpen: (note) => opened = note,
       ),
     );
     await tester.pump();
 
-    expect(find.text('TUE, NOV 17'), findsOneWidget);
-    expect(find.text('1 entry'), findsOneWidget);
-    expect(find.text('Morning pages'), findsOneWidget);
-    expect(find.text('Coffee on the balcony.'), findsOneWidget);
-
-    await tester.tap(find.text('Morning pages'));
+    await tester.tap(
+      find.byKey(CardRegistry.keyFor('early')),
+      warnIfMissed: false,
+    );
     await tester.pump();
-    expect(opened, note);
+    expect(opened, isNotNull);
+    expect(opened!.id, 'early');
   });
 
   testWidgets('an empty day draws no header', (tester) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(
-          theme: AppTheme.light(),
-          home: Scaffold(
-            body: CustomScrollView(
-              slivers: [JournalDayCards(days: const [], journalTagId: null, onOpen: (_) {})],
-            ),
-          ),
-        ),
-      ),
-    );
+    await tester.pumpWidget(_wrap(days: const [], tags: []));
     await tester.pump();
 
     expect(find.textContaining('NOV'), findsNothing);
@@ -84,382 +239,56 @@ void main() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
-    const entry = JournalDayEntry(
-      note: Note(id: 'n1', title: 'T', content: 'plain'),
-      meta: JournalMeta(),
-    );
 
     await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(
-          theme: AppTheme.light(),
-          home: Scaffold(
-            body: CustomScrollView(
-              slivers: [
-                JournalDayCards(
-                  days: [JournalDay(day: today, entries: [entry])],
-                  journalTagId: null,
-                  onOpen: (_) {},
-                ),
-              ],
-            ),
+      _wrap(
+        days: [
+          JournalDay(
+            day: today,
+            entries: [
+              _entry(
+                id: 't',
+                at: DateTime(today.year, today.month, today.day, 8, 0),
+              ),
+            ],
           ),
-        ),
+        ],
+        tags: [],
       ),
     );
     await tester.pump();
     expect(find.text('TODAY'), findsOneWidget);
 
     await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(
-          theme: AppTheme.light(),
-          home: Scaffold(
-            body: CustomScrollView(
-              slivers: [
-                JournalDayCards(
-                  days: [JournalDay(day: yesterday, entries: const [])],
-                  journalTagId: null,
-                  onOpen: (_) {},
-                ),
-              ],
-            ),
-          ),
-        ),
+      _wrap(
+        days: [JournalDay(day: yesterday, entries: const [])],
+        tags: [],
       ),
     );
     await tester.pump();
     expect(find.text('TODAY'), findsNothing);
   });
 
-  testWidgets('shows a chip for the first tag that is not the journal tag', (
+  testWidgets('an entry without a mood or tags shows only its time', (
     tester,
   ) async {
-    const journalTag = Tag(id: 'j1', name: 'journal');
-    const morning = Tag(id: 't1', name: 'morning');
-    final note = Note(
-      id: 'n1',
-      title: 'Morning pages',
-      content: 'plain',
-      tagIds: const ['j1', 't1'],
-    );
-
-    await tester.pumpWidget(
-      _wrap(
-        entry: JournalDayEntry(
-          note: note,
-          meta: JournalMeta(entryAt: DateTime(2026, 11, 17, 8, 12)),
+    final day = JournalDay(
+      day: DateTime(2026, 11, 17),
+      entries: [
+        _entry(
+          id: 'plain',
+          at: DateTime(2026, 11, 17, 8, 12),
+          title: 'Plain day',
+          tagIds: ['j1'],
         ),
-        tags: const [journalTag, morning],
-      ),
+      ],
     );
-    await tester.pumpAndSettle();
-
-    expect(find.text('morning'), findsOneWidget);
-    expect(find.text('journal'), findsNothing);
-  });
-
-  testWidgets('shows no chip when the only tag is the journal tag', (
-    tester,
-  ) async {
-    const journalTag = Tag(id: 'j1', name: 'journal');
-    final note = Note(
-      id: 'n1',
-      title: 'Morning pages',
-      content: 'plain',
-      tagIds: const ['j1'],
-    );
-
-    await tester.pumpWidget(
-      _wrap(
-        entry: JournalDayEntry(
-          note: note,
-          meta: JournalMeta(entryAt: DateTime(2026, 11, 17, 8, 12)),
-        ),
-        tags: const [journalTag],
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.byType(TagChip), findsNothing);
-  });
-
-  testWidgets('shows the mood face between the time and the tag chip', (
-    tester,
-  ) async {
-    const journalTag = Tag(id: 'j1', name: 'journal');
-    const morning = Tag(id: 't1', name: 'morning');
-    final content = composeJournalContent(
-      JournalMeta(
-        mood: JournalMood.calm,
-        entryAt: _entryAt,
-      ),
-      'plain',
-    );
-    final note = Note(
-      id: 'n1',
-      title: 'Slow morning',
-      content: content!,
-      tagIds: const ['j1', 't1'],
-    );
-
-    await tester.pumpWidget(
-      _wrap(
-        entry: JournalDayEntry(note: note, meta: parseJournalContent(content).meta),
-        tags: const [journalTag, morning],
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    final face = tester.widget<MoodFace>(find.byType(MoodFace));
-    expect(face.mood, JournalMood.calm);
-    expect(face.size, 20);
-    expect(find.byType(TagChip), findsOneWidget);
-
-    // The face sits between the time text and the tag chip.
-    final row = tester.widget<Row>(
-      find.ancestor(of: find.byType(MoodFace), matching: find.byType(Row)),
-    );
-    expect(row.children.map((c) => c.runtimeType).toList(), [
-      Text,
-      SizedBox,
-      MoodFace,
-      SizedBox,
-      Flexible,
-    ]);
-    final timeIndex = tester.getTopLeft(find.byType(Text).first).dx;
-    final faceIndex = tester.getTopLeft(find.byType(MoodFace)).dx;
-    final chipIndex = tester.getTopLeft(find.byType(TagChip)).dx;
-    expect(timeIndex < faceIndex, isTrue, reason: 'time before face');
-    expect(faceIndex < chipIndex, isTrue, reason: 'face before tag chip');
-  });
-
-  testWidgets('a long tag name ellipsizes instead of overflowing the row', (
-    tester,
-  ) async {
-    // A narrow phone: the meta row has to give way somewhere.
-    tester.view.physicalSize = const Size(320, 640);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.reset);
-
-    const journalTag = Tag(id: 'j1', name: 'journal');
-    const longTag = Tag(
-      id: 't1',
-      name: 'a-very-long-tag-name-that-must-not-overflow-the-row',
-    );
-    final note = Note(
-      id: 'n1',
-      title: 'Slow morning',
-      content: 'body line',
-      tagIds: const ['j1', 't1'],
-    );
-
-    await tester.pumpWidget(
-      _wrap(
-        entry: JournalDayEntry(
-          note: note,
-          meta: JournalMeta(
-            mood: JournalMood.calm,
-            entryAt: _entryAt,
-          ),
-        ),
-        tags: const [journalTag, longTag],
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    // No overflow error (Flutter would report a painted overflow stripe).
-    expect(tester.takeException(), isNull);
-
-    // The chip stays inside the meta row's right edge.
-    final chip = tester.getRect(find.byType(TagChip));
-    final row = tester.getRect(
-      find.ancestor(of: find.byType(TagChip), matching: find.byType(Row)),
-    );
-    expect(chip.right, lessThanOrEqualTo(row.right + 0.01));
-    expect(chip.left, greaterThanOrEqualTo(row.left));
-  });
-
-  testWidgets('an old four-mood entry shows no face but keeps the tag chip', (
-    tester,
-  ) async {
-    const journalTag = Tag(id: 'j1', name: 'journal');
-    const morning = Tag(id: 't1', name: 'morning');
-    // "amazing" was a 4-mood value; it now parses to null.
-    final content = composeJournalContent(
-      JournalMeta(
-        mood: null,
-        entryAt: _entryAt,
-        extras: const {'mood': 'amazing'},
-      ),
-      'plain',
-    )!;
-    final note = Note(
-      id: 'n1',
-      title: 'Old entry',
-      content: content,
-      tagIds: const ['j1', 't1'],
-    );
-
-    expect(parseJournalContent(content).meta.mood, isNull);
-
-    await tester.pumpWidget(
-      _wrap(
-        entry: JournalDayEntry(note: note, meta: parseJournalContent(content).meta),
-        tags: const [journalTag, morning],
-      ),
-    );
-    await tester.pumpAndSettle();
+    await tester.pumpWidget(_wrap(days: [day], tags: [journalTag]));
+    await tester.pump();
 
     expect(find.byType(MoodFace), findsNothing);
-    expect(find.byType(TagChip), findsOneWidget);
-    expect(find.text('morning'), findsOneWidget);
+    expect(find.byType(TagChip), findsNothing);
   });
-  testWidgets('two entries show a hairline between them, one entry shows none', (
-    tester,
-  ) async {
-    final entryA = JournalDayEntry(
-      note: Note(
-        id: 'a',
-        title: 'Entry A',
-        content: '{"ops":[{"insert":"Body A."}]}',
-      ),
-      meta: JournalMeta(entryAt: DateTime(2026, 11, 17, 8, 12)),
-    );
-    final entryB = JournalDayEntry(
-      note: Note(
-        id: 'b',
-        title: 'Entry B',
-        content: '{"ops":[{"insert":"Body B."}]}',
-      ),
-      meta: JournalMeta(entryAt: DateTime(2026, 11, 17, 9, 0)),
-    );
-
-    // Two entries: one hairline (a 1px Container with color appBorder).
-    await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(
-          theme: AppTheme.light(),
-          home: Scaffold(
-            body: CustomScrollView(
-              slivers: [
-                JournalDayCards(
-                  days: [
-                    JournalDay(
-                      day: DateTime(2026, 11, 17),
-                      entries: [entryA, entryB],
-                    ),
-                  ],
-                  journalTagId: null,
-                  onOpen: (_) {},
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-    await tester.pump();
-
-    final hairline = find.byKey(const ValueKey('journal-day-hairline'));
-    expect(hairline, findsOneWidget, reason: 'one hairline between two entries');
-
-    // One entry: zero hairlines.
-    await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(
-          theme: AppTheme.light(),
-          home: Scaffold(
-            body: CustomScrollView(
-              slivers: [
-                JournalDayCards(
-                  days: [
-                    JournalDay(day: DateTime(2026, 11, 17), entries: [entryA]),
-                  ],
-                  journalTagId: null,
-                  onOpen: (_) {},
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-    await tester.pump();
-
-    final singleHairline = find.byKey(const ValueKey('journal-day-hairline'));
-    expect(singleHairline, findsNothing, reason: 'no hairline for a single entry');
-  });
-
-  testWidgets('the entry has no card decoration (flat)', (tester) async {
-    final entry = JournalDayEntry(
-      note: Note(
-        id: 'n1',
-        title: 'Morning pages',
-        content: '{"ops":[{"insert":"Body."}]}',
-      ),
-      meta: JournalMeta(entryAt: DateTime(2026, 11, 17, 8, 12)),
-    );
-
-    await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(
-          theme: AppTheme.light(),
-          home: Scaffold(
-            body: CustomScrollView(
-              slivers: [
-                JournalDayCards(
-                  days: [
-                    JournalDay(day: DateTime(2026, 11, 17), entries: [entry]),
-                  ],
-                  journalTagId: null,
-                  onOpen: (_) {},
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-    await tester.pump();
-
-    // The entry's tap target (Pressable) must NOT wrap a Container with a
-    // BoxDecoration (the old card style). The flat entry is a bare Column.
-    final pressable = find.byWidgetPredicate(
-      (w) => w.runtimeType.toString() == 'Pressable',
-      description: 'Pressable (entry tap target)',
-    );
-    expect(pressable, findsOneWidget);
-    final pressableWidget = tester.widget(pressable);
-    final child = (pressableWidget as dynamic).child as Widget;
-    expect(
-      child is Container,
-      isFalse,
-      reason: 'the flat entry is not a Container (no card decoration)',
-    );
-  });
-}
-
-final _entryAt = DateTime(2026, 11, 17, 8, 12);
-
-Widget _wrap({required JournalDayEntry entry, required List<Tag> tags}) {
-  return ProviderScope(
-    overrides: [tagsControllerProvider.overrideWith(() => _Tags(tags))],
-    child: MaterialApp(
-      theme: AppTheme.light(),
-      home: Scaffold(
-        body: CustomScrollView(
-          slivers: [
-            JournalDayCards(
-              days: [JournalDay(day: DateTime(2026, 11, 17), entries: [entry])],
-              journalTagId: 'j1',
-              onOpen: (_) {},
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
 }
 
 class _Tags extends TagsController {

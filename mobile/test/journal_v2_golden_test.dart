@@ -11,9 +11,9 @@ import 'package:anchor/core/theme/app_theme.dart';
 import 'package:anchor/features/journal/domain/journal_day.dart';
 import 'package:anchor/features/journal/domain/journal_meta.dart';
 import 'package:anchor/features/journal/presentation/journal_providers.dart';
+import 'package:anchor/features/journal/presentation/widgets/journal_cards_list.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_day_cards.dart';
 import 'package:anchor/features/journal/presentation/widgets/journal_stats_row.dart';
-import 'package:anchor/features/journal/presentation/widgets/journal_timeline.dart';
 import 'package:anchor/features/notes/domain/note.dart';
 import 'package:anchor/features/tags/domain/tag.dart';
 import 'package:anchor/features/tags/presentation/tags_controller.dart';
@@ -57,8 +57,12 @@ const _journalTag = Tag(id: 'journal', name: 'journal');
 const _travelTag = Tag(id: 't1', name: 'travel');
 final _tags = [_journalTag, _travelTag];
 
-/// Pumps [sliver] in a phone-sized, light-theme scroll view.
-Future<void> _pumpPhone(WidgetTester tester, Widget sliver) async {
+/// Pumps [sliver] in a phone-sized scroll view, light or dark.
+Future<void> _pumpPhone(
+  WidgetTester tester,
+  Widget sliver, {
+  bool dark = false,
+}) async {
   tester.view.physicalSize = const Size(390, 844);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
@@ -69,7 +73,7 @@ Future<void> _pumpPhone(WidgetTester tester, Widget sliver) async {
         journalTagProvider.overrideWithValue(_journalTag),
       ],
       child: MaterialApp(
-        theme: AppTheme.light(),
+        theme: dark ? AppTheme.dark() : AppTheme.light(),
         home: Scaffold(body: CustomScrollView(slivers: [sliver])),
       ),
     ),
@@ -77,10 +81,17 @@ Future<void> _pumpPhone(WidgetTester tester, Widget sliver) async {
   await tester.pumpAndSettle();
 }
 
-/// A journal entry with an optional mood and tag list.
-JournalDayEntry _entry({JournalMood? mood, List<String> tagIds = const []}) {
-  final at = DateTime(2026, 11, 17, 9, 41);
-  final content = composeJournalContent(JournalMeta(mood: mood, entryAt: at), 'body line')!;
+/// A journal entry with an optional mood, tag list and time.
+JournalDayEntry _entry({
+  JournalMood? mood,
+  List<String> tagIds = const [],
+  DateTime? at,
+}) {
+  final time = at ?? DateTime(2026, 11, 17, 9, 41);
+  final content = composeJournalContent(
+    JournalMeta(mood: mood, entryAt: time),
+    'body line',
+  )!;
   return JournalDayEntry(
     note: Note(
       id: 'n1',
@@ -88,31 +99,12 @@ JournalDayEntry _entry({JournalMood? mood, List<String> tagIds = const []}) {
       content: content,
       tagIds: tagIds,
     ),
-    meta: JournalMeta(mood: mood, entryAt: at),
+    meta: JournalMeta(mood: mood, entryAt: time),
   );
 }
 
 void main() {
   setUpAll(_loadAppFonts);
-
-  testWidgets('journal timeline: mood + tag meta row', (tester) async {
-    await _pumpPhone(
-      tester,
-      JournalTimeline(
-        days: [
-          JournalDay(
-            day: DateTime(2026, 11, 17),
-            entries: [_entry(mood: JournalMood.calm, tagIds: ['journal', 't1'])],
-          ),
-        ],
-        onOpen: (_) {},
-      ),
-    );
-    await expectLater(
-      find.byType(JournalTimeline),
-      matchesGoldenFile('goldens/journal_timeline.png'),
-    );
-  });
 
   testWidgets('journal day cards: mood chip + tag', (tester) async {
     await _pumpPhone(
@@ -121,7 +113,9 @@ void main() {
         days: [
           JournalDay(
             day: DateTime(2026, 11, 17),
-            entries: [_entry(mood: JournalMood.calm, tagIds: ['journal', 't1'])],
+            entries: [
+              _entry(mood: JournalMood.calm, tagIds: ['journal', 't1']),
+            ],
           ),
         ],
         journalTagId: 'journal',
@@ -131,6 +125,44 @@ void main() {
     await expectLater(
       find.byType(JournalDayCards),
       matchesGoldenFile('goldens/journal_day_cards.png'),
+    );
+  });
+
+  testWidgets('journal cards list', (tester) async {
+    await _pumpPhone(
+      tester,
+      JournalCardsList(
+        days: [
+          JournalDay(
+            day: DateTime(2026, 11, 19),
+            // Newest first, as groupJournalDays stores the day's entries.
+            entries: [
+              JournalDayEntry(
+                note: Note(
+                  id: 'n2',
+                  title: '',
+                  content: composeJournalContent(
+                    JournalMeta(entryAt: DateTime(2026, 11, 19, 20, 15)),
+                    'Slow start. Coffee, toast, and the radio next door.',
+                  ),
+                ),
+                meta: JournalMeta(entryAt: DateTime(2026, 11, 19, 20, 15)),
+              ),
+              _entry(
+                mood: JournalMood.calm,
+                tagIds: ['journal', 't1'],
+                at: DateTime(2026, 11, 19, 8, 12),
+              ),
+            ],
+          ),
+        ],
+        journalTagId: 'journal',
+        onOpen: (_) {},
+      ),
+    );
+    await expectLater(
+      find.byType(JournalCardsList),
+      matchesGoldenFile('goldens/journal_cards_list.png'),
     );
   });
 
@@ -145,9 +177,18 @@ void main() {
         child: JournalStatsRow(
           days: [
             JournalDay(day: today, entries: [_entry()]),
-            JournalDay(day: DateTime(today.year, today.month, today.day - 1), entries: [_entry()]),
-            JournalDay(day: DateTime(today.year, today.month, today.day - 2), entries: [_entry()]),
-            JournalDay(day: DateTime(today.year - 1, today.month, today.day), entries: [_entry()]),
+            JournalDay(
+              day: DateTime(today.year, today.month, today.day - 1),
+              entries: [_entry()],
+            ),
+            JournalDay(
+              day: DateTime(today.year, today.month, today.day - 2),
+              entries: [_entry()],
+            ),
+            JournalDay(
+              day: DateTime(today.year - 1, today.month, today.day),
+              entries: [_entry()],
+            ),
           ],
         ),
       ),
@@ -155,6 +196,100 @@ void main() {
     await expectLater(
       find.byType(JournalStatsRow),
       matchesGoldenFile('goldens/journal_stats_row.png'),
+    );
+  });
+
+  testWidgets('journal day cards (dark): mood chip + tag', (tester) async {
+    await _pumpPhone(
+      tester,
+      JournalDayCards(
+        days: [
+          JournalDay(
+            day: DateTime(2026, 11, 17),
+            entries: [
+              _entry(mood: JournalMood.calm, tagIds: ['journal', 't1']),
+            ],
+          ),
+        ],
+        journalTagId: 'journal',
+        onOpen: (_) {},
+      ),
+      dark: true,
+    );
+    await expectLater(
+      find.byType(JournalDayCards),
+      matchesGoldenFile('goldens/journal_day_cards_dark.png'),
+    );
+  });
+
+  testWidgets('journal cards list (dark)', (tester) async {
+    await _pumpPhone(
+      tester,
+      JournalCardsList(
+        days: [
+          JournalDay(
+            day: DateTime(2026, 11, 19),
+            // Newest first, as groupJournalDays stores the day's entries.
+            entries: [
+              JournalDayEntry(
+                note: Note(
+                  id: 'n2',
+                  title: '',
+                  content: composeJournalContent(
+                    JournalMeta(entryAt: DateTime(2026, 11, 19, 20, 15)),
+                    'Slow start. Coffee, toast, and the radio next door.',
+                  ),
+                ),
+                meta: JournalMeta(entryAt: DateTime(2026, 11, 19, 20, 15)),
+              ),
+              _entry(
+                mood: JournalMood.calm,
+                tagIds: ['journal', 't1'],
+                at: DateTime(2026, 11, 19, 8, 12),
+              ),
+            ],
+          ),
+        ],
+        journalTagId: 'journal',
+        onOpen: (_) {},
+      ),
+      dark: true,
+    );
+    await expectLater(
+      find.byType(JournalCardsList),
+      matchesGoldenFile('goldens/journal_cards_list_dark.png'),
+    );
+  });
+
+  testWidgets('journal stats row (dark)', (tester) async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    await _pumpPhone(
+      tester,
+      SliverToBoxAdapter(
+        child: JournalStatsRow(
+          days: [
+            JournalDay(day: today, entries: [_entry()]),
+            JournalDay(
+              day: DateTime(today.year, today.month, today.day - 1),
+              entries: [_entry()],
+            ),
+            JournalDay(
+              day: DateTime(today.year, today.month, today.day - 2),
+              entries: [_entry()],
+            ),
+            JournalDay(
+              day: DateTime(today.year - 1, today.month, today.day),
+              entries: [_entry()],
+            ),
+          ],
+        ),
+      ),
+      dark: true,
+    );
+    await expectLater(
+      find.byType(JournalStatsRow),
+      matchesGoldenFile('goldens/journal_stats_row_dark.png'),
     );
   });
 }
