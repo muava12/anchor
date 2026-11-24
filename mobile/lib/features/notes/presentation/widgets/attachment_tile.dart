@@ -18,6 +18,18 @@ class AttachmentTile extends StatelessWidget {
 
   static const double height = 96; // off-scale: a picture tile
 
+  /// The 24 dp remove circle. Tests read its rect to pin the corner offset.
+  static const Key removeKnobKey = ValueKey('attachment-remove-knob');
+
+  /// How far the remove circle hangs past the tile's top and right edge.
+  /// The touch target is 44 dp and is centred on the circle, so the
+  /// positioned box is offset by `44 / 2 - 24 / 2 + 8` = 18 dp.
+  static const double removeKnobOutset = 8; // off-scale: knob overhang
+  static const double _removeTarget = 44;
+  static const double removeCircle = 24;
+  static const double _removeOffset =
+      _removeTarget / 2 - removeCircle / 2 + removeKnobOutset;
+
   final double width;
   final NoteAppearance appearance;
   final String deleteLabel;
@@ -30,12 +42,13 @@ class AttachmentTile extends StatelessWidget {
       width: width,
       height: height,
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           Positioned.fill(child: child),
           if (onDelete != null)
             Positioned(
-              top: -5, // off-scale: the remove knob hangs past the corner
-              right: -4,
+              top: -_removeOffset,
+              right: -_removeOffset,
               child: _RemoveButton(
                 label: deleteLabel,
                 appearance: appearance,
@@ -68,8 +81,9 @@ class _RemoveButton extends StatelessWidget {
       semanticLabel: label,
       minSize: const Size.square(AnchorTokens.sizeControlMedium),
       child: Container(
-        width: 24,
-        height: 24,
+        key: AttachmentTile.removeKnobKey,
+        width: AttachmentTile.removeCircle,
+        height: AttachmentTile.removeCircle,
         decoration: BoxDecoration(
           color: appearance.colors.surface.withValues(alpha: 0.92),
           shape: BoxShape.circle,
