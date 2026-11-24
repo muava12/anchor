@@ -30,19 +30,35 @@ void main() {
   testWidgets('the remove button pokes past the tile corner', (tester) async {
     await pump(tester);
 
-    final tileTopLeft = tester.getTopLeft(find.byType(AttachmentTile));
-    final buttonTopLeft = tester.getTopLeft(find.bySemanticsLabel('Remove'));
-    // The button hangs half outside the top-right corner (Doop frame 7zq4fCi8lr:
-    // top -5, right -4), so it overlaps the tile's rounded corner instead of
-    // crowding the thumbnail.
-    expect(buttonTopLeft.dy - tileTopLeft.dy, -5.0);
-    final button = tester.getTopLeft(find.bySemanticsLabel('Remove'));
-    final buttonRight = button.dx + tester.getSize(find.bySemanticsLabel('Remove')).width;
+    final tile = tester.getRect(find.byType(AttachmentTile));
+    final knob = tester.getRect(find.byKey(AttachmentTile.removeKnobKey));
+
+    // The 24 dp circle hangs 8 dp past the top and the right edge, so the
+    // corner of the picture shows through the ring of the button. The touch
+    // target is 44 dp and is centred on the circle, so its offset is 18 dp.
+    expect(knob.size, const Size(24, 24));
+    expect(knob.top, tile.top - 8);
+    expect(knob.right, tile.right + 8);
+  });
+
+  testWidgets('the knob is not clipped by the tile', (tester) async {
+    await pump(tester);
+
+    final stack = tester.widget<Stack>(
+      find.descendant(
+        of: find.byType(AttachmentTile),
+        matching: find.byType(Stack),
+      ),
+    );
+    expect(stack.clipBehavior, Clip.none);
+  });
+
+  testWidgets('the remove button keeps a 44 dp touch target', (tester) async {
+    await pump(tester);
+
     expect(
-      buttonRight -
-          (tester.getTopLeft(find.byType(AttachmentTile)).dx +
-              tester.getSize(find.byType(AttachmentTile)).width),
-      4.0,
+      tester.getSize(find.bySemanticsLabel('Remove')),
+      const Size(44, 44),
     );
   });
 }
