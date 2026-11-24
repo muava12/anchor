@@ -31,7 +31,20 @@ enum Spring {
   /// The design duration, shortened or removed by the motion setting.
   Duration get duration => _duration * MotionSpeed.current.scale;
 
+  /// The design duration, whatever the motion setting says.
+  ///
+  /// For the few animations that must keep their Normal feel, such as the notes
+  /// bottom bar shrinking into a search button. A setting of Off still means no
+  /// time at all; use [BuildContext.motionNormal] for that.
+  Duration get durationNormal => _duration;
+
   Curve get curve => _SpringCurve(simulation(0, 1));
+
+  /// The design curve, whatever the motion setting says.
+  ///
+  /// [curve] is built from the shortened [duration], so at Fast it is stiffer
+  /// than at Normal. This one always uses the design duration.
+  Curve get curveNormal => _SpringCurve(simulationNormal(0, 1));
 
   /// Starts at [velocity] (units per second) and lands exactly on [to] once
   /// it is within [precision] of it.
@@ -40,10 +53,38 @@ enum Spring {
     double to, {
     double velocity = 0,
     double precision = 0.0005,
+  }) => _spring(
+    duration,
+    from,
+    to,
+    velocity: velocity,
+    precision: precision,
+  );
+
+  /// [simulation] with the design duration, ignoring the motion setting.
+  Simulation simulationNormal(
+    double from,
+    double to, {
+    double velocity = 0,
+    double precision = 0.0005,
+  }) => _spring(
+    durationNormal,
+    from,
+    to,
+    velocity: velocity,
+    precision: precision,
+  );
+
+  Simulation _spring(
+    Duration springDuration,
+    double from,
+    double to, {
+    required double velocity,
+    required double precision,
   }) => _SettlingSpring(
     SpringSimulation(
       SpringDescription.withDurationAndBounce(
-        duration: duration,
+        duration: springDuration,
         bounce: _bounce,
       ),
       from,
@@ -145,4 +186,12 @@ extension ReducedMotion on BuildContext {
   /// [duration], shortened by the motion setting, or no time at all.
   Duration motion(Duration duration) =>
       isMotionReduced ? Duration.zero : duration * MotionSpeed.current.scale;
+
+  /// A spring's design duration and curve, kept at Normal even when the motion
+  /// setting is Fast.
+  ///
+  /// Off still means no time at all, and so does a system that asks for reduced
+  /// motion: an override for the fast setting must not defeat accessibility.
+  Duration motionNormal(Duration duration) =>
+      isMotionReduced ? Duration.zero : duration;
 }
