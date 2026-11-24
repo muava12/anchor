@@ -23,24 +23,24 @@ Anchor focuses on speed, privacy, simplicity, and reliability across mobile and 
 
 ## Features
 
-- **Rich Text Editor** - Create and edit notes with powerful formatting (bold, italic, underline, highlights, headings, lists, checkboxes), or type / to pick a format
-- **Offline First** - All edits work offline with local database
-- **Note Sharing** - Share notes with other users (viewer or editor)
-- **Note History** - Read earlier versions of a note and put one back
-- **Tags System** - Organize notes with custom tags and colors
-- **Attachments** - Attach images and audio to notes
-- **Note Backgrounds** - Customize notes with solid colors and patterns
-- **Pin Notes** - Pin important notes for quick access
-- **Archive Notes** - Archive notes for later reference
-- **Reminders** - Set a time on any note and get a notification on your phone, once or repeating
-- **Search** - Search notes locally by title or content, archived notes included
-- **Share to Anchor** - Save text, links and pictures from other apps on your phone
-- **Trash** - Soft delete notes with recovery period
-- **Automatic Sync** - Sync changes across devices when online
-- **Import & Export** - Back up your full library, move notes in and out as plain Markdown, or bring them over from Google Keep
-- **Home Screen Widget** - Quick access to your notes from the Android home screen
-- **Admin Panel** - User management, registration control, and system statistics
-- **OIDC Authentication** - Sign in with OpenID Connect providers (Pocket ID, Authelia, Keycloak, etc.)
+- **Rich Text Editor**: Create and edit notes with powerful formatting (bold, italic, underline, highlights, headings, lists, checkboxes), or type / to pick a format
+- **Offline First**: All edits work offline with local database
+- **Note Sharing**: Share notes with other users (viewer or editor)
+- **Note History**: Read earlier versions of a note and put one back
+- **Tags System**: Organize notes with custom tags and colors
+- **Attachments**: Attach images and audio to notes
+- **Note Backgrounds**: Customize notes with solid colors and patterns
+- **Pin Notes**: Pin important notes for quick access
+- **Archive Notes**: Archive notes for later reference
+- **Reminders**: Set a time on any note and get a notification on your phone, once or repeating
+- **Search**: Search notes locally by title or content, archived notes included
+- **Share to Anchor**: Save text, links and pictures from other apps on your phone
+- **Trash**: Soft delete notes with recovery period
+- **Automatic Sync**: Sync changes across devices when online
+- **Import & Export**: Back up your full library, move notes in and out as plain Markdown, or bring them over from Google Keep
+- **Home Screen Widget**: Quick access to your notes from the Android home screen
+- **Admin Panel**: User management, registration control, and system statistics
+- **OIDC Authentication**: Sign in with OpenID Connect providers (Pocket ID, Authelia, Keycloak, etc.)
 
 ## Screenshots
 
@@ -164,7 +164,7 @@ The mobile app works with your Anchor server. Set up the server first, then sign
 Each GitHub release has these APK files:
 
 - **Universal APK** (`anchor-{version}.apk`) - Recommended for most users, works on all devices
-- **Architecture-specific APKs** - Smaller file sizes for specific CPU architectures
+- **Architecture-specific APKs**: Smaller file sizes for specific CPU architectures
 
 ### iPhone and iPad
 
