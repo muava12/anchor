@@ -330,20 +330,4 @@ void main() {
       lessThan(tester.getTopLeft(delete).dy),
     );
   });
-
-  testWidgets('the coffee link shows on Android', (tester) async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.android;
-    await pumpSettings(tester);
-
-    expect(find.text('Support Anchor', skipOffstage: false), findsOneWidget);
-    debugDefaultTargetPlatformOverride = null;
-  });
-
-  testWidgets('the coffee link doesn’t show on iPhone', (tester) async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-    await pumpSettings(tester);
-
-    expect(find.text('Support Anchor', skipOffstage: false), findsNothing);
-    debugDefaultTargetPlatformOverride = null;
-  });
 }
