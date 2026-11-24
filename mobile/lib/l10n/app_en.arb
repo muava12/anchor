@@ -2098,6 +2098,16 @@
   "@editedJustNow": {
     "description": "When the current version last changed, in version history."
   },
+  "noteCreatedOn": "Created {date}",
+  "@noteCreatedOn": {
+    "description": "When the note was created, at the bottom of its more sheet.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Mar 4"
+      }
+    }
+  },
   "editedMinutesAgo": "{count, plural, =1{Edited 1 min ago} other{Edited {count} min ago}}",
   "@editedMinutesAgo": {
     "description": "When the current version last changed, in version history.",

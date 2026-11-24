@@ -1527,6 +1527,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String noteCreatedOn(String date) {
+    return 'Created $date';
+  }
+
+  @override
   String get editedJustNow => 'Edited just now';
 
   @override

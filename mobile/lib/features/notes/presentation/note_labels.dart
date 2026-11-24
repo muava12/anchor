@@ -130,6 +130,12 @@ String editedDayLabel(DateTime at, AppLocalizations l10n, {DateTime? now}) {
   );
 }
 
+String createdDayLabel(DateTime at, AppLocalizations l10n, {DateTime? now}) {
+  final local = at.toLocal();
+  final today = now ?? DateTime.now();
+  return l10n.noteCreatedOn(_shortDate(local, today));
+}
+
 String editedTimeLabel(DateTime at, AppLocalizations l10n, {DateTime? now}) {
   final local = at.toLocal();
   final today = now ?? DateTime.now();
