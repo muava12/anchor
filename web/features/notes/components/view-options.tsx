@@ -17,6 +17,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { SegmentedControl } from "@/components/ui/segmented-control";
+import { Switch } from "@/components/ui/switch";
 import type { SortBy, SortOrder, ViewMode } from "@/features/preferences";
 import { useRovingFocus } from "@/lib/hooks/use-roving-focus";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,10 @@ interface ViewOptionsProps {
   sortOrder: SortOrder;
   onLayout: (layout: ViewMode) => void;
   onSort: (sortBy: SortBy, sortOrder: SortOrder) => void;
+  hideJournal: boolean;
+  /** False in a tag view, where there is nothing for the switch to hide. */
+  canHideJournal: boolean;
+  onHideJournal: (hideJournal: boolean) => void;
 }
 
 const ORDER_OPTIONS: Record<SortBy, [SortOrder, string][]> = {
@@ -52,6 +57,9 @@ export function ViewOptions({
   sortOrder,
   onLayout,
   onSort,
+  hideJournal,
+  canHideJournal,
+  onHideJournal,
 }: ViewOptionsProps) {
   return (
     <Popover>
@@ -103,6 +111,26 @@ export function ViewOptions({
             label,
           }))}
         />
+        {canHideJournal ? (
+          <div className="border-border border-t pt-3">
+            <label
+              htmlFor="hide-journal"
+              className="flex items-center justify-between gap-3 text-ui text-foreground"
+            >
+              <span>
+                Hide journal
+                <span className="block text-caption text-muted-foreground">
+                  Journal entries stay out of the notes list
+                </span>
+              </span>
+              <Switch
+                id="hide-journal"
+                checked={hideJournal}
+                onCheckedChange={onHideJournal}
+              />
+            </label>
+          </div>
+        ) : null}
       </PopoverContent>
     </Popover>
   );

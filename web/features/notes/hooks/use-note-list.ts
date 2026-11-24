@@ -9,6 +9,7 @@ import {
   type ViewMode,
 } from "@/features/preferences";
 import { useFlip } from "@/lib/use-flip";
+import { notesForBoard } from "../journal-filter";
 import { deltaToFullPlainText } from "../quill";
 import { compareNotes } from "../sort";
 import type { Note } from "../types";
@@ -46,8 +47,11 @@ export function useNoteList(
   {
     pinnedFirst = false,
     archived,
+    journalTagId = null,
   }: {
     pinnedFirst?: boolean;
+    /** Null in a tag view, so the journal switch has nothing to hide. */
+    journalTagId?: string | null;
     archived?: {
       notes: Note[];
       isSearchOnly: boolean;
@@ -57,7 +61,9 @@ export function useNoteList(
     };
   } = {},
 ) {
-  const { viewMode, sortBy, sortOrder } = usePreferencesStore((s) => s.notes);
+  const { viewMode, sortBy, sortOrder, hideJournal } = usePreferencesStore(
+    (s) => s.notes,
+  );
   const setNotesPreference = usePreferencesStore((s) => s.setNotesPreference);
   const boardRef = React.useRef<HTMLDivElement>(null);
   const searchRef = React.useRef<HTMLInputElement>(null);
@@ -72,11 +78,17 @@ export function useNoteList(
   const lastPick = React.useRef<string | null>(null);
 
   const term = searchedQuery.trim().toLowerCase();
-  const visible = React.useMemo(
-    () => findAndSort(notes, term, sortBy, sortOrder),
-    [notes, term, sortBy, sortOrder],
-  );
   const isSearching = term !== "";
+  const visible = React.useMemo(
+    () =>
+      findAndSort(
+        notesForBoard(notes, { hideJournal, journalTagId, isSearching }),
+        term,
+        sortBy,
+        sortOrder,
+      ),
+    [notes, term, sortBy, sortOrder, hideJournal, journalTagId, isSearching],
+  );
   const hasArchived = !!archived && (isSearching || !archived.isSearchOnly);
   const archivedNotes = (hasArchived && archived?.notes) || NO_NOTES;
   const archivedVisible = React.useMemo(
@@ -206,6 +218,12 @@ export function useNoteList(
     },
     sortBy,
     sortOrder,
+    hideJournal,
+    canHideJournal: journalTagId !== null,
+    setHideJournal: (value: boolean) => {
+      flip.prepare();
+      setNotesPreference("hideJournal", value);
+    },
     setSort: (by: SortBy, order: SortOrder) => {
       flip.prepare();
       setNotesPreference("sortBy", by);

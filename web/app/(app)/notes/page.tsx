@@ -48,6 +48,7 @@ import { ShareDialog } from "@/features/notes/components/share-dialog";
 import { useArchivedNotes } from "@/features/notes/hooks/use-archived-notes";
 import { useNoteList } from "@/features/notes/hooks/use-note-list";
 import { useRefreshNotes } from "@/features/notes/hooks/use-refresh-notes";
+import { findJournalTagId } from "@/features/notes/journal-filter";
 import { deletedNotesText, deleteNotesWarning } from "@/features/notes/trash";
 import type { Note } from "@/features/notes/types";
 import { tagColorStyle, useTagMap } from "@/features/tags";
@@ -119,9 +120,15 @@ function NotesView({ tagId }: { tagId: string | null }) {
   const loadFailed = isError && !data;
 
   const archived = useArchivedNotes(tagId, notes);
+  // A tag view passes null, so the journal switch has nothing to hide there.
+  const journalTagId = React.useMemo(
+    () => (tagId ? null : findJournalTagId(tagMap.values())),
+    [tagId, tagMap],
+  );
   const list = useNoteList(notes, {
     pinnedFirst: true,
     archived: archived.listOptions,
+    journalTagId,
   });
   const { visible, pinned, others, chosen } = list;
   const isArchiveLoading = list.hasArchived && archived.query.isLoading;
