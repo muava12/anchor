@@ -33,6 +33,25 @@ Future<void> showJournalMoodSheet(
   );
 }
 
+/// The grid order the mood sheet draws, from Doop frame `YB7mEERCyQ`.
+///
+/// The enum keeps its own order because stored moods and other screens read
+/// it; only the picker follows the design.
+const List<JournalMood> journalMoodPickerOrder = [
+  JournalMood.happy,
+  JournalMood.okay,
+  JournalMood.grateful,
+  JournalMood.excited,
+  JournalMood.calm,
+  JournalMood.tired,
+  JournalMood.anxious,
+  JournalMood.sad,
+  JournalMood.angry,
+  JournalMood.lonely,
+  JournalMood.stressed,
+  JournalMood.sick,
+];
+
 /// The localized label of a mood.
 String moodLabel(JournalMood mood, AppLocalizations l10n) => switch (mood) {
   JournalMood.happy => l10n.journalMoodHappy,
@@ -97,22 +116,31 @@ class _JournalMoodSheetState extends State<_JournalMoodSheet> {
         ),
         Flexible(
           child: SingleChildScrollView(
-            child: GridView.count(
+            child: GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 4,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              mainAxisSpacing: AnchorTokens.space12,
-              crossAxisSpacing: AnchorTokens.space12,
-              childAspectRatio: 0.95,
-              children: [
-                for (final mood in JournalMood.values)
-                  _MoodTile(
-                    mood: mood,
-                    isSelected: mood == _picked,
-                    onTap: () => _pick(mood),
-                  ),
-              ],
+              padding: const EdgeInsets.fromLTRB(
+                16,
+                AnchorTokens.space6, // off-scale: design grid top gap 6
+                16,
+                0,
+              ),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                mainAxisExtent: 78,
+                mainAxisSpacing: AnchorTokens.space10, // off-scale: design gap
+                crossAxisSpacing:
+                    AnchorTokens.space10, // off-scale: design gap
+              ),
+              itemCount: journalMoodPickerOrder.length,
+              itemBuilder: (context, index) {
+                final mood = journalMoodPickerOrder[index];
+                return _MoodTile(
+                  mood: mood,
+                  isSelected: mood == _picked,
+                  onTap: () => _pick(mood),
+                );
+              },
             ),
           ),
         ),
@@ -161,11 +189,10 @@ class _MoodTile extends StatelessWidget {
         borderRadius: radius,
         child: AnimatedContainer(
           duration: context.motion(AnchorTokens.motionDurationHover),
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected
-                ? colors.accentStrong.withValues(alpha: 0.1)
-                : colors.appSurface,
+            // The design keeps the page colour whether or not the tile is
+            // chosen; the ring and the check mark say what is selected.
+            color: colors.appPage,
             borderRadius: radius,
             border: Border.all(color: colors.appBorder),
           ),
@@ -177,13 +204,13 @@ class _MoodTile extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     MoodFace(mood: mood, size: 36), // off-scale: 36px face per the sheet design
-                    const SizedBox(height: AnchorTokens.space4),
+                    const SizedBox(height: 5), // off-scale: design face gap 5
                     Text(
                       label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTypography.caption.copyWith(
-                        color: isSelected ? colors.accentStrong : colors.appMuted,
+                        color: isSelected ? colors.appText : colors.appMuted,
                         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                       ),
                     ),
@@ -192,8 +219,8 @@ class _MoodTile extends StatelessWidget {
               ),
               if (isSelected)
                 Positioned(
-                  top: -8,
-                  right: -8,
+                  top: -6, // off-scale: design badge overhang
+                  right: -6, // off-scale: design badge overhang
                   child: Container(
                     width: AnchorTokens.sizeIconMedium,
                     height: AnchorTokens.sizeIconMedium,

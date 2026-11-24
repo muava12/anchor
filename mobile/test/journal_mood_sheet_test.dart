@@ -193,4 +193,63 @@ void main() {
       expect((border! as Border).top.color, colors.appBorder);
     }
   });
+
+  testWidgets('the grid follows the approved design order', (tester) async {
+    await openSheet(tester);
+
+    // Doop frame YB7mEERCyQ, approved for dev: Happy, Ok, Grateful, Excited,
+    // Calm, Tired, Anxious, Sad, Angry, Lonely, Stressed, Sick.
+    final happy = tester.getTopLeft(find.text('Happy'));
+    final okay = tester.getTopLeft(find.text('Okay'));
+    final grateful = tester.getTopLeft(find.text('Grateful'));
+    final calm = tester.getTopLeft(find.text('Calm'));
+
+    expect(okay.dy, happy.dy, reason: 'Ok sits on the first row');
+    expect(okay.dx, greaterThan(happy.dx));
+    expect(grateful.dx, greaterThan(okay.dx));
+    expect(calm.dy, greaterThan(okay.dy), reason: 'Calm starts the second row');
+  });
+
+  testWidgets('a tile is 78 dp tall and sits on the page surface', (
+    tester,
+  ) async {
+    await openSheet(tester);
+
+    final tile = tester.widget<AnimatedContainer>(
+      find
+          .ancestor(
+            of: find.text('Happy'),
+            matching: find.byType(AnimatedContainer),
+          )
+          .first,
+    );
+    final box = tester.getRect(
+      find
+          .ancestor(
+            of: find.text('Happy'),
+            matching: find.byType(AnimatedContainer),
+          )
+          .first,
+    );
+    expect(box.height, 78);
+    final decoration = tile.decoration! as BoxDecoration;
+    expect(decoration.color, const Color(0xFFF0F4F8));
+  });
+
+  testWidgets('the selected tile has no accent fill', (tester) async {
+    await openSheet(tester, selected: JournalMood.happy);
+
+    final tile = tester.widget<AnimatedContainer>(
+      find
+          .ancestor(
+            of: find.text('Happy'),
+            matching: find.byType(AnimatedContainer),
+          )
+          .first,
+    );
+    final decoration = tile.decoration! as BoxDecoration;
+    // The design marks the choice with a ring and a check, not a tint.
+    expect(decoration.color, const Color(0xFFF0F4F8));
+    expect(shownRings(tester, label: 'Happy'), 1);
+  });
 }
