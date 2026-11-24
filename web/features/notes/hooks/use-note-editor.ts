@@ -216,7 +216,7 @@ export function useNoteEditor({
     [queue],
   );
 
-  // Moves what is on screen onto a newer server copy, keeping unsaved edits.
+  // Moves what is on screen onto a newer server copy and keeps unsaved edits.
   const rebaseOnto = useCallback(
     (serverNote: Note) => {
       const incoming = noteToDraft(serverNote);
