@@ -54,7 +54,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add mobile/test/goldens/
+          git add test/goldens/
           if git diff --staged --quiet; then
             echo "No golden changes; nothing to commit."
           else
