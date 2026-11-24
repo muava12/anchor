@@ -206,6 +206,7 @@ class _DayEntryRow extends StatelessWidget {
       if (time.isNotEmpty)
         Text(
           time,
+          key: const ValueKey('journal-day-entry-time'),
           style: AppTypography.caption.copyWith(color: colors.appMuted).tabular,
         ),
       if (mood != null)
@@ -276,6 +277,10 @@ class _DayEntryRow extends StatelessWidget {
                           AnchorTokens.space6, // off-scale: design meta gap 6
                       runSpacing:
                           AnchorTokens.space6, // off-scale: design meta gap 6
+                      // The row is as tall as the tag chip, so a default start
+                      // alignment leaves the time and the dots up to 16 dp
+                      // higher than the chip's own centre.
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: metaChildren,
                     ),
                   ),

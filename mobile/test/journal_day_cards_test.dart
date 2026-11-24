@@ -289,6 +289,42 @@ void main() {
     expect(find.byType(MoodFace), findsNothing);
     expect(find.byType(TagChip), findsNothing);
   });
+  testWidgets('the meta parts share one centre line', (tester) async {
+    final day = JournalDay(
+      day: DateTime(2026, 11, 17),
+      entries: [
+        _entry(
+          id: 'meta',
+          at: DateTime(2026, 11, 17, 2, 10),
+          title: 'Meta row',
+          tagIds: ['j1', 't1'],
+          mood: JournalMood.happy,
+        ),
+      ],
+    );
+    await tester.pumpWidget(_wrap(days: [day], tags: [journalTag, tagA]));
+    await tester.pump();
+
+    final time = tester.getRect(
+      find.byKey(const ValueKey('journal-day-entry-time')),
+    );
+    final mood = tester.getRect(find.byType(MoodFace));
+    final chip = tester.getRect(find.byType(TagChip));
+
+    double centre(Rect r) => r.top + r.height / 2;
+    final centres = [centre(time), centre(mood), centre(chip)];
+    // The row is as tall as the chip, so any part that starts at the top of the
+    // Wrap sits up to 16 dp higher than the chip's own centre.
+    final spread =
+        centres.reduce((a, b) => a > b ? a : b) -
+        centres.reduce((a, b) => a < b ? a : b);
+    expect(
+      spread,
+      lessThan(1),
+      reason: 'time, mood and chip must share a centre line: $centres',
+    );
+  });
+
 }
 
 class _Tags extends TagsController {
