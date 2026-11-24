@@ -38,6 +38,9 @@ class JournalPhotoStrip extends ConsumerWidget {
       ),
       child: GridView.count(
         crossAxisCount: maxImagePreviews,
+        // A scroll view with no padding of its own adds the screen's safe-area
+        // inset as blank rows, which doubles the gap under the pictures.
+        padding: EdgeInsets.zero,
         mainAxisExtent: 68, // off-scale: design strip cell height 68
         crossAxisSpacing: AnchorTokens.space6, // off-scale: design strip gap 6
         mainAxisSpacing: AnchorTokens.space6, // off-scale: design strip gap 6
