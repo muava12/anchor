@@ -1,0 +1,30 @@
+# Publishes the multi-arch image to GitHub Container Registry.
+#
+# A release tag (vX.Y.Z) publishes three tags: the version, the major and
+# minor, and latest. A manual run publishes a sha tag only, so testing the
+# workflow never moves latest.
+#
+# The build itself lives in docker-build.yml, which already builds amd64 and
+# arm64, pushes each by digest, and merges them into one manifest list when
+# push is true.
+name: Docker Publish
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    uses: ./.github/workflows/docker-build.yml
+    with:
+      push: true
+      tags: |
+        type=semver,pattern={{version}}
+        type=semver,pattern={{major}}.{{minor}}
+        type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+        type=sha,prefix=sha-

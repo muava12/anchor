@@ -62,6 +62,17 @@ Anchor focuses on speed, privacy, simplicity, and reliability across mobile and 
 
 ### Option 1: Using Pre-built Image (Recommended)
 
+This fork publishes its own image to GitHub Container Registry. A release tag
+publishes the version, the major and minor, and `latest`; a manual run publishes
+a `sha` tag only.
+
+```bash
+docker pull ghcr.io/muava12/anchor:latest
+```
+
+The compose file below uses the upstream image name; change the `image:` line to
+`ghcr.io/muava12/anchor:latest` to run this fork.
+
 1. **Create a `docker-compose.yml` file:**
 
    ```yaml
