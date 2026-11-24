@@ -1,8 +1,8 @@
+import 'package:anchor/features/settings/presentation/settings_screen.dart';
+import 'package:anchor/l10n/app_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:anchor/features/settings/presentation/settings_screen.dart';
-import 'package:anchor/l10n/app_localizations.dart';
 
 void main() {
   testWidgets('debug coffee link', (tester) async {
@@ -21,11 +21,11 @@ void main() {
     
     // Check for any text
     final allText = tester.widgetList<Text>(find.byType(Text)).map((t) => t.data).toList();
-    print('All text found: $allText');
+    debugPrint('All text found: $allText');
     
     // Check for specific texts
-    print('Support Anchor found: ${find.text('Support Anchor').evaluate().length}');
-    print('Settings Help found: ${find.text('Settings').evaluate().length}');
+    debugPrint('Support Anchor found: ${find.text('Support Anchor').evaluate().length}');
+    debugPrint('Settings Help found: ${find.text('Settings').evaluate().length}');
     
     debugDefaultTargetPlatformOverride = null;
   });

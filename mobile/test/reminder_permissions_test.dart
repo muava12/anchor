@@ -18,6 +18,13 @@ class FakeGateway implements NotificationGateway {
 
   int requests = 0;
   int exactScreensOpened = 0;
+  int overlayScreensOpened = 0;
+  int fsiRequests = 0;
+
+  /// The Android SDK the flow sees; 0 skips the overlay and full-screen steps.
+  int sdk = 0;
+  bool overlay = false;
+  bool fsi = false;
 
   bool grantOnRequest = true;
 
@@ -38,7 +45,22 @@ class FakeGateway implements NotificationGateway {
   Future<void> requestExactPermission() async => exactScreensOpened++;
 
   @override
-  Future<bool> requestFullScreenIntentPermission() async => true;
+  Future<bool> requestFullScreenIntentPermission() async {
+    fsiRequests++;
+    return true;
+  }
+
+  @override
+  Future<bool> canDrawOverlays() async => overlay;
+
+  @override
+  Future<void> requestOverlayPermission() async => overlayScreensOpened++;
+
+  @override
+  Future<bool> canUseFullScreenIntent() async => fsi;
+
+  @override
+  Future<int> androidSdkInt() async => sdk;
 
   @override
   Future<void> initialize() async {}

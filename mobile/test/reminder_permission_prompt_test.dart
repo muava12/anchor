@@ -14,6 +14,8 @@ class FakePreferences extends PreferencesRepository {
   FakePreferences() : super(const FlutterSecureStorage());
 
   bool offeredExact = false;
+  bool offeredOverlay = false;
+  bool offeredFullScreen = false;
   bool askedNotifications = false;
 
   @override
@@ -28,6 +30,19 @@ class FakePreferences extends PreferencesRepository {
 
   @override
   Future<void> setExactAlarmsOffered(bool value) async => offeredExact = value;
+
+  @override
+  Future<bool> getOverlayOffered() async => offeredOverlay;
+
+  @override
+  Future<void> setOverlayOffered(bool value) async => offeredOverlay = value;
+
+  @override
+  Future<bool> getFullScreenOffered() async => offeredFullScreen;
+
+  @override
+  Future<void> setFullScreenOffered(bool value) async =>
+      offeredFullScreen = value;
 }
 
 void main() {
@@ -229,4 +244,92 @@ void main() {
     expect(find.byType(Dialog), findsNothing);
     expect(gateway.requests, 0);
   });
+
+  testWidgets(
+    'overlay is offered on Android 10+ once notifications are granted',
+    (tester) async {
+      final gateway = FakeGateway(exact: true)..sdk = 29;
+      await run(tester, gateway, trigger: ReminderPermissionTrigger.userSet);
+
+      expect(find.text('Show reminders over other apps?'), findsOneWidget);
+
+      await tester.tap(find.text('Open settings'));
+      await tester.pumpAndSettle();
+
+      expect(gateway.overlayScreensOpened, 1);
+      expect(prefs.offeredOverlay, isTrue);
+    },
+  );
+
+  testWidgets(
+    'overlay is still offered when exact alarms were offered before',
+    (tester) async {
+      prefs.offeredExact = true;
+      final gateway = FakeGateway()..sdk = 29;
+      await run(tester, gateway, trigger: ReminderPermissionTrigger.userSet);
+
+      expect(find.text('Show reminders over other apps?'), findsOneWidget);
+    },
+  );
+
+  testWidgets('overlay is not offered twice', (tester) async {
+    prefs.offeredOverlay = true;
+    final gateway = FakeGateway()..sdk = 29;
+    await run(tester, gateway, trigger: ReminderPermissionTrigger.userSet);
+
+    expect(find.text('Show reminders over other apps?'), findsNothing);
+  });
+
+  testWidgets('overlay is not offered when already granted', (tester) async {
+    final gateway = FakeGateway()..sdk = 29..overlay = true;
+    await run(tester, gateway, trigger: ReminderPermissionTrigger.userSet);
+
+    expect(find.text('Show reminders over other apps?'), findsNothing);
+  });
+
+  testWidgets('overlay is not offered below Android 10', (tester) async {
+    final gateway = FakeGateway()..sdk = 28;
+    await run(tester, gateway, trigger: ReminderPermissionTrigger.userSet);
+
+    expect(find.text('Show reminders over other apps?'), findsNothing);
+  });
+
+  testWidgets(
+    'full-screen intent is offered on Android 14+ when not allowed',
+    (tester) async {
+      final gateway = FakeGateway(exact: true)..sdk = 34..overlay = true;
+      await run(tester, gateway, trigger: ReminderPermissionTrigger.userSet);
+
+      expect(find.text('Keep reminders visible'), findsOneWidget);
+
+      await tester.tap(find.text('Open settings'));
+      await tester.pumpAndSettle();
+
+      expect(gateway.fsiRequests, 1);
+      expect(prefs.offeredFullScreen, isTrue);
+    },
+  );
+
+  testWidgets(
+    'full-screen intent is not offered on Android 13, when allowed, or twice',
+    (tester) async {
+      final gateway = FakeGateway(exact: true)..sdk = 33..overlay = true;
+
+      // Android 13: the step is gated on SDK 34.
+      await run(tester, gateway, trigger: ReminderPermissionTrigger.userSet);
+      expect(find.text('Keep reminders visible'), findsNothing);
+
+      // Android 14 with the grant already in place.
+      gateway.sdk = 34;
+      gateway.fsi = true;
+      await run(tester, gateway, trigger: ReminderPermissionTrigger.userSet);
+      expect(find.text('Keep reminders visible'), findsNothing);
+
+      // Android 14, not allowed, but already offered once.
+      gateway.fsi = false;
+      prefs.offeredFullScreen = true;
+      await run(tester, gateway, trigger: ReminderPermissionTrigger.userSet);
+      expect(find.text('Keep reminders visible'), findsNothing);
+    },
+  );
 }

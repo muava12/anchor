@@ -12,6 +12,7 @@ import 'package:anchor/features/reminders/data/reminder_actions.dart';
 import 'package:anchor/features/reminders/data/reminder_scheduler.dart';
 import 'package:anchor/features/reminders/domain/reminder_schedule.dart';
 import 'package:anchor/features/reminders/domain/snoozed_occurrences.dart';
+import 'package:anchor/features/tags/data/repository/tags_repository.dart';
 import 'package:anchor/l10n/app_localizations.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -112,6 +113,18 @@ class RecordingGateway implements NotificationGateway {
 
   @override
   Future<bool> requestFullScreenIntentPermission() async => true;
+
+  @override
+  Future<bool> canDrawOverlays() async => true;
+
+  @override
+  Future<void> requestOverlayPermission() async {}
+
+  @override
+  Future<bool> canUseFullScreenIntent() async => true;
+
+  @override
+  Future<int> androidSdkInt() async => 0;
 }
 
 class StubAuthController extends AuthController {
@@ -689,6 +702,7 @@ void main() {
           notesRepositoryProvider.overrideWithValue(
             StubNotesRepository(notes, note: note),
           ),
+          tagsRepositoryProvider.overrideWithValue(TagsRepository.empty()),
           authControllerProvider.overrideWith(StubAuthController.new),
           preferencesRepositoryProvider.overrideWithValue(
             preferences ?? StubPreferences(),

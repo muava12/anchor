@@ -1,6 +1,11 @@
 package moek.anchor.notex.reminders
 
+import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
@@ -16,6 +21,12 @@ import io.flutter.plugin.common.MethodChannel
  *   exact-alarm scheduler so a reminder rings even with the app not running.
  * - [pendingReminders] reports the native pending set, so a reconcile can find
  *   and cancel orphans the way it did for the plugin.
+ * - [canDrawOverlays] / [openOverlaySettings] probe the overlay-permission
+ *   state so the Dart side can explain the escalation permission.
+ * - [canUseFullScreenIntent] reports whether full-screen intents can fire on
+ *   this device; below SDK 34 the OS decides nothing up front, so it reads
+ *   as usable.
+ * - [sdkInt] returns the running Android SDK number.
  */
 class ReminderActionChannel(
     private val context: Context,
@@ -52,6 +63,7 @@ class ReminderActionChannel(
                 val atMillis = call.argument<Long>("atMillis") ?: 0L
                 val snoozeNoteId = call.argument<String>("snoozeNoteId") ?: ""
                 val recurrence = call.argument<String>("recurrence") ?: "none"
+                val tag = call.argument<String>("tag") ?: ""
                 ReminderAlarmStore.upsert(
                     context,
                     mapOf(
@@ -62,21 +74,24 @@ class ReminderActionChannel(
                         "atMillis" to atMillis,
                         "snoozeNoteId" to snoozeNoteId,
                         "recurrence" to recurrence,
+                        "tag" to tag,
                     )
                 )
-                ReminderAlarmScheduler.arm(context, id, noteId, title, body, atMillis, snoozeNoteId, recurrence)
+                ReminderAlarmScheduler.arm(context, id, noteId, title, body, atMillis, snoozeNoteId, recurrence, tag)
                 result.success(true)
             }
 
             "cancelReminder" -> {
                 val id = call.argument<Int>("id") ?: 0
                 ReminderAlarmScheduler.cancel(context, id)
+                FsiEscalationScheduler.cancel(context, id)
                 ReminderAlarmStore.remove(context, id)
                 result.success(true)
             }
 
             "cancelAllReminders" -> {
                 ReminderAlarmScheduler.cancelAll(context)
+                FsiEscalationScheduler.cancelAllActive(context)
                 result.success(true)
             }
 
@@ -86,6 +101,34 @@ class ReminderActionChannel(
                     map[r["id"] as Int] = r["atMillis"] as Long
                 }
                 result.success(map)
+            }
+
+            "canDrawOverlays" -> {
+                result.success(Settings.canDrawOverlays(context))
+            }
+
+            "openOverlaySettings" -> {
+                val intent = Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + context.packageName),
+                )
+                context.startActivity(intent)
+                result.success(true)
+            }
+
+            "canUseFullScreenIntent" -> {
+                val can = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    val notifications =
+                        context.getSystemService(NotificationManager::class.java)
+                    notifications.canUseFullScreenIntent()
+                } else {
+                    true
+                }
+                result.success(can)
+            }
+
+            "sdkInt" -> {
+                result.success(Build.VERSION.SDK_INT)
             }
 
             else -> result.notImplemented()

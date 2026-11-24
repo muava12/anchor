@@ -18,24 +18,34 @@ TagsRepository tagsRepository(Ref ref) {
 
 /// Nothing here talks to the server.
 class TagsRepository {
-  final AppDatabase _db;
+  final AppDatabase? _db;
 
   TagsRepository(this._db);
 
+  /// A data-less instance for tests and empty states: reads return nothing,
+  /// writes throw, so the scheduler can depend on the provider without a
+  /// live database.
+  TagsRepository.empty() : _db = null;
+
   Stream<List<Tag>> watchTags() {
-    return _liveTags().watch().map((rows) => rows.map(_mapToDomain).toList());
+    final db = _db;
+    if (db == null) return const Stream.empty();
+    return _liveTags(db).watch().map((rows) => rows.map(_mapToDomain).toList());
   }
 
   Future<List<Tag>> getTags() async {
-    final rows = await _liveTags().get();
+    final db = _db;
+    if (db == null) return const [];
+    final rows = await _liveTags(db).get();
     return rows.map(_mapToDomain).toList();
   }
 
   Future<Tag> createTag(Tag tag) async {
     final created = tag.copyWith(updatedAt: DateTime.now().toUtc());
 
-    await _db
-        .into(_db.tags)
+    final db = _db!;
+    await db
+        .into(db.tags)
         .insert(
           TagsCompanion.insert(
             id: created.id,
@@ -54,11 +64,12 @@ class TagsRepository {
   }
 
   Future<void> updateTag(Tag tag) async {
-    await _db.transaction(() async {
-      final prior = await _db.tagRow(tag.id);
+    final db = _db!;
+    await db.transaction(() async {
+      final prior = await db.tagRow(tag.id);
       if (prior == null) return;
 
-      await _db.writeTag(
+      await db.writeTag(
         tag.id,
         TagsCompanion(
           name: drift.Value(tag.name),
@@ -75,11 +86,12 @@ class TagsRepository {
 
   // Kept, marked deleted, until the server has been told.
   Future<void> deleteTag(String id) async {
-    await _db.transaction(() async {
-      final prior = await _db.tagRow(id);
+    final db = _db!;
+    await db.transaction(() async {
+      final prior = await db.tagRow(id);
       if (prior == null) return;
 
-      await _db.writeTag(
+      await db.writeTag(
         id,
         TagsCompanion(
           isDeleted: const drift.Value(true),
@@ -88,16 +100,16 @@ class TagsRepository {
           localRev: drift.Value(prior.localRev + 1),
         ),
       );
-      await (_db.delete(
-        _db.noteTags,
+      await (db.delete(
+        db.noteTags,
       )..where((tbl) => tbl.tagId.equals(id))).go();
     });
 
     scheduleAppSync(trigger: 'TagsRepo.deleteTag');
   }
 
-  drift.SimpleSelectStatement<$TagsTable, TagRow> _liveTags() {
-    return _db.select(_db.tags)
+  drift.SimpleSelectStatement<$TagsTable, TagRow> _liveTags(AppDatabase db) {
+    return db.select(db.tags)
       ..where((tbl) => tbl.isDeleted.equals(false))
       ..orderBy([(tbl) => drift.OrderingTerm(expression: tbl.name)]);
   }

@@ -33,6 +33,8 @@ class SnoozeReminderActivity : Activity() {
         const val EXTRA_BODY = "body"
         const val EXTRA_RECURRANCE = "recurrence"
         const val EXTRA_NOTIFICATION_ID = "notification_id"
+        const val EXTRA_AT_MILLIS = "at_millis"
+        const val EXTRA_TAG = "tag"
 
         private const val RECURRANCE_NONE = "none"
         private const val ALPHA_SCRIM_NIGHT = 153 // ~60% black
@@ -40,6 +42,16 @@ class SnoozeReminderActivity : Activity() {
         private const val ALPHA_HANDLE = 97 // fsi_muted @ ~38%
         private const val ALPHA_SUBTLE = 15 // ~6% text on surface
         private const val ALPHA_BORDER = 31 // ~12% text on surface
+    }
+
+    override fun onStart() {
+        super.onStart()
+        ReminderSheetState.shown()
+    }
+
+    override fun onStop() {
+        ReminderSheetState.hidden()
+        super.onStop()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,8 +71,18 @@ class SnoozeReminderActivity : Activity() {
         val recurrence = intent?.getStringExtra(EXTRA_RECURRANCE)
             ?.takeIf { it.isNotBlank() } ?: RECURRANCE_NONE
         val notificationId = intent?.getIntExtra(EXTRA_NOTIFICATION_ID, 0) ?: 0
+        val tag = intent?.getStringExtra(EXTRA_TAG) ?: ""
 
         paintScrimAndOptionBackgrounds()
+
+        // Drag the handle/header zone down to close the sheet (plain
+        // close, like Cancel: no re-scheduling).
+        SheetDragHelper(
+            sheet = findViewById(R.id.snooze_sheet),
+            scrim = findViewById(R.id.snooze_scrim),
+            dragZone = findViewById(R.id.snooze_drag_zone),
+            onDismissed = ::finish,
+        ).attach()
 
         // Subtitle: "<title>" + " · repeats <recurrence>" when it recurs.
         val subtitle = findViewById<TextView>(R.id.snooze_subtitle)
@@ -77,7 +99,7 @@ class SnoozeReminderActivity : Activity() {
         findViewById<View>(R.id.chip_1day).visibility =
             if (recurrence != RECURRANCE_NONE) View.VISIBLE else View.GONE
 
-        wireOptions(noteId, title, body, recurrence, notificationId)
+        wireOptions(noteId, title, body, recurrence, notificationId, tag)
     }
 
     private fun paintScrimAndOptionBackgrounds() {
@@ -116,10 +138,13 @@ class SnoozeReminderActivity : Activity() {
         body: String,
         recurrence: String,
         notificationId: Int,
+        tag: String,
     ) {
         val context = this
         val snooze: (Long) -> Unit = { targetMillis ->
-            SnoozeScheduleHelper.snooze(context, noteId, notificationId, title, body, recurrence, targetMillis)
+            SnoozeScheduleHelper.snooze(
+                context, noteId, notificationId, title, body, recurrence, targetMillis, tag,
+            )
             finish()
         }
 
@@ -171,7 +196,7 @@ class SnoozeReminderActivity : Activity() {
         }
 
         findViewById<View>(R.id.preset_pick).setOnClickListener {
-            pickDateTime(noteId, notificationId, title, body, recurrence)
+            pickDateTime(noteId, notificationId, title, body, recurrence, tag)
         }
 
         // Cancel: close the sheet without rescheduling; the fired reminder
@@ -186,6 +211,7 @@ class SnoozeReminderActivity : Activity() {
         title: String,
         body: String,
         recurrence: String,
+        tag: String,
     ) {
         val prefill = Calendar.getInstance().apply { add(Calendar.HOUR_OF_DAY, 1) }
         DatePickerDialog(
@@ -204,7 +230,7 @@ class SnoozeReminderActivity : Activity() {
                         }
                         SnoozeScheduleHelper.snooze(
                             this@SnoozeReminderActivity, noteId, notificationId, title, body, recurrence,
-                            target.timeInMillis
+                            target.timeInMillis, tag,
                         )
                         finish()
                     },

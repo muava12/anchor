@@ -90,4 +90,19 @@ class ReminderPermissionsController extends _$ReminderPermissionsController {
 
   Future<void> markExactOffered() =>
       ref.read(preferencesRepositoryProvider).setExactAlarmsOffered(true);
+
+  Future<bool> hasOfferedOverlay() =>
+      ref.read(preferencesRepositoryProvider).getOverlayOffered();
+
+  Future<void> markOverlayOffered() =>
+      ref.read(preferencesRepositoryProvider).setOverlayOffered(true);
+
+  Future<bool> hasOfferedFullScreen() =>
+      ref.read(preferencesRepositoryProvider).getFullScreenOffered();
+
+  Future<void> markFullScreenOffered() =>
+      ref.read(preferencesRepositoryProvider).setFullScreenOffered(true);
+
+  Future<void> openOverlaySettings() =>
+      ref.read(notificationGatewayProvider).requestOverlayPermission();
 }

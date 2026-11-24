@@ -56,6 +56,9 @@ class ReminderActionReceiver : android.content.BroadcastReceiver() {
         val notificationId = intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1)
         if (notificationId >= 0) {
             NotificationManagerCompat.from(context).cancel(notificationId)
+            // The user acted on the banner: its escalation alarm must not
+            // fire and re-show the sheet 60 s later.
+            FsiEscalationScheduler.cancel(context, notificationId)
         }
 
         if (type == "done") {

@@ -10,7 +10,9 @@ import android.os.Bundle
 import moek.anchor.notex.backup.BackupFolderPlugin
 import moek.anchor.notex.photos.PhotoConverterPlugin
 import moek.anchor.notex.share.ShareFolderPlugin
+import moek.anchor.notex.reminders.FsiEscalationScheduler
 import moek.anchor.notex.reminders.ReminderActionChannel
+import moek.anchor.notex.reminders.ReminderActionReceiver
 import moek.anchor.notex.widget.NotesWidgetProvider
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import io.flutter.embedding.android.FlutterFragmentActivity
@@ -89,6 +91,12 @@ class MainActivity : FlutterFragmentActivity() {
         val open = intent?.getStringExtra("open_note_id")
         if (!snooze.isNullOrEmpty() || !open.isNullOrEmpty()) {
             LaunchExtrasChannel.stash(this, snooze, open)
+            // The banner tap and the sheet's Open note carry the notification
+            // id; the user acknowledged it, so cancel its escalation alarm.
+            val notificationId = intent.getIntExtra(ReminderActionReceiver.EXTRA_NOTIFICATION_ID, -1)
+            if (notificationId >= 0) {
+                FsiEscalationScheduler.cancel(this, notificationId)
+            }
         }
     }
 

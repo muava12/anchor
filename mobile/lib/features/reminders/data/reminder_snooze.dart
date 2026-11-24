@@ -8,6 +8,8 @@ import '../../../core/storage/preferences_repository.dart';
 import '../../../l10n/l10n.dart';
 import '../../notes/data/repository/notes_repository.dart';
 import '../../notes/domain/note.dart';
+import '../../tags/data/repository/tags_repository.dart';
+import '../../tags/domain/tag.dart';
 import '../domain/reminder_schedule.dart';
 import 'notification_gateway.dart';
 import 'reminder_scheduler.dart';
@@ -40,6 +42,17 @@ List<int> snoozeDurations({required bool recurring}) => [
   if (recurring) snoozeDay,
 ];
 
+/// The note's first tag name (no leading "#"), or '' when it has none.
+String _firstTagNameOf(Note note, List<Tag>? all) {
+  if (all == null || all.isEmpty) return '';
+  final byId = {for (final tag in all) tag.id: tag};
+  for (final id in note.tagIds) {
+    final name = byId[id]?.name;
+    if (name != null && name.isNotEmpty) return name;
+  }
+  return '';
+}
+
 /// Puts the occurrence a snooze press names off by [minutes].
 ///
 /// The note's current card is cancelled and a fresh one is scheduled for
@@ -53,6 +66,7 @@ Future<void> snoozeOccurrence(
   required NotificationGateway gateway,
   required NotesRepository repo,
   PreferencesRepository? preferences,
+  TagsRepository? tags,
   DateTime Function()? clock,
 }) async {
   final now = (clock ?? DateTime.now)();
@@ -85,6 +99,7 @@ Future<void> snoozeOccurrence(
       repeat: null,
       payload: noteId,
       recurrence: reminder.recurrence.name,
+      tag: _firstTagNameOf(note, await tags?.getTags()),
     ),
   );
 

@@ -84,6 +84,30 @@ class PreferencesRepository {
     );
   }
 
+  Future<bool> getOverlayOffered() async {
+    final value = await _storage.read(key: StorageKeys.overlayOffered);
+    return value == 'true';
+  }
+
+  Future<void> setOverlayOffered(bool value) async {
+    await _storage.write(
+      key: StorageKeys.overlayOffered,
+      value: value.toString(),
+    );
+  }
+
+  Future<bool> getFullScreenOffered() async {
+    final value = await _storage.read(key: StorageKeys.fullScreenOffered);
+    return value == 'true';
+  }
+
+  Future<void> setFullScreenOffered(bool value) async {
+    await _storage.write(
+      key: StorageKeys.fullScreenOffered,
+      value: value.toString(),
+    );
+  }
+
   /// The snooze length the person last picked, in minutes.
   Future<int?> getLatestSnoozeMinutes() async => int.tryParse(
     await _storage.read(key: StorageKeys.latestSnoozeMinutes) ?? '',

@@ -39,6 +39,7 @@ class ScheduledNotification {
     required this.payload,
     this.tier = NotificationTier.important,
     this.recurrence = 'none',
+    this.tag,
   });
 
   final int id;
@@ -57,6 +58,10 @@ class ScheduledNotification {
   /// one-off); the native stack keeps it so a snooze of the card can restash
   /// the series correctly.
   final String recurrence;
+
+  /// The note's first tag name (no leading "#") for the native sheet's meta
+  /// line. Null on platforms or paths that don't carry it.
+  final String? tag;
 }
 
 abstract class NotificationGateway {
@@ -85,6 +90,18 @@ abstract class NotificationGateway {
   /// Android 14+ keeps heads-up (full-screen) notifications behind a separate
   /// grant; without it the heads-up auto-dismisses after ~5s.
   Future<bool> requestFullScreenIntentPermission();
+
+  /// Whether the app may draw a full-screen sheet over other apps.
+  Future<bool> canDrawOverlays();
+
+  /// Opens Android's "Display over other apps" screen.
+  Future<void> requestOverlayPermission();
+
+  /// Android 14+: whether a full-screen intent can actually reach the screen.
+  Future<bool> canUseFullScreenIntent();
+
+  /// The running Android SDK number; 0 off Android.
+  Future<int> androidSdkInt();
 }
 
 class LocalNotificationGateway implements NotificationGateway {
@@ -192,7 +209,7 @@ class LocalNotificationGateway implements NotificationGateway {
     final pluginIds =
         (await _plugin.pendingNotificationRequests()).map((request) => request.id);
     final native = (await _nativePendingTimes()).keys;
-    return [...pluginIds, ...native].toSet().toList();
+    return {...pluginIds, ...native}.toList();
   }
 
   @override
@@ -257,6 +274,7 @@ class LocalNotificationGateway implements NotificationGateway {
         'atMillis': notification.at.millisecondsSinceEpoch,
         'snoozeNoteId': notification.payload,
         'recurrence': notification.recurrence,
+        'tag': notification.tag ?? '',
       });
       return true;
     } on PlatformException {
@@ -394,6 +412,58 @@ class LocalNotificationGateway implements NotificationGateway {
         stackTrace: stack,
       );
       return false;
+    }
+  }
+
+  @override
+  Future<bool> canDrawOverlays() async {
+    if (!Platform.isAndroid) return false;
+    try {
+      return await _reminderChannel.invokeMethod<bool>('canDrawOverlays') ??
+          false;
+    } on PlatformException {
+      return false;
+    } on MissingPluginException {
+      return false;
+    }
+  }
+
+  @override
+  Future<void> requestOverlayPermission() async {
+    if (!Platform.isAndroid) return;
+    try {
+      await _reminderChannel.invokeMethod('openOverlaySettings');
+    } on PlatformException {
+      // The native side is absent; there is no overlay screen to open.
+    } on MissingPluginException {
+      // Same.
+    }
+  }
+
+  @override
+  Future<bool> canUseFullScreenIntent() async {
+    if (!Platform.isAndroid) return false;
+    try {
+      return await _reminderChannel.invokeMethod<bool>(
+        'canUseFullScreenIntent',
+      ) ??
+          false;
+    } on PlatformException {
+      return false;
+    } on MissingPluginException {
+      return false;
+    }
+  }
+
+  @override
+  Future<int> androidSdkInt() async {
+    if (!Platform.isAndroid) return 0;
+    try {
+      return await _reminderChannel.invokeMethod<int>('sdkInt') ?? 0;
+    } on PlatformException {
+      return 0;
+    } on MissingPluginException {
+      return 0;
     }
   }
 }

@@ -30,28 +30,28 @@ object ReminderNotificationBuilder {
         body: String,
         snoozeNoteId: String,
         recurrence: String,
-    ) {
+        atMillis: Long = 0L,
+        tag: String = "",
+    ): Long {
         ensureChannel(context)
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val flags = pendingFlags()
+        val whenMs = System.currentTimeMillis()
 
-        // A plain tap opens the note in the app.
+        // A plain tap opens the note in the app; the notification id lets
+        // MainActivity cancel this occurrence's escalation alarm.
         val tap = Intent(context, MainActivity::class.java).apply {
             putExtra("open_note_id", noteId)
+            putExtra(ReminderActionReceiver.EXTRA_NOTIFICATION_ID, id)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         }
         val content = PendingIntent.getActivity(context, id, tap, flags)
 
         // Full-screen intent: the reminder sheet, so a heads-up lands on the
         // lock screen and home screen instead of just the shade.
-        val sheet = Intent(context, FullScreenReminderActivity::class.java).apply {
-            putExtra(FullScreenReminderActivity.EXTRA_NOTE_ID, noteId)
-            putExtra(FullScreenReminderActivity.EXTRA_TITLE, title)
-            putExtra(FullScreenReminderActivity.EXTRA_BODY, body)
-            putExtra(ReminderActionReceiver.EXTRA_NOTIFICATION_ID, id)
-            putExtra(SnoozeReminderActivity.EXTRA_RECURRANCE, recurrence)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
+        val sheet = FullScreenReminderActivity.buildIntent(
+            context, noteId, title, body, id, recurrence, atMillis, tag,
+        )
         val fullScreen = PendingIntent.getActivity(context, id * 2 + 1, sheet, flags)
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
@@ -62,7 +62,7 @@ object ReminderNotificationBuilder {
             .setOngoing(true)
             .setAutoCancel(false)
             .setShowWhen(true)
-            .setWhen(System.currentTimeMillis())
+            .setWhen(whenMs)
             .setContentIntent(content)
             .setFullScreenIntent(fullScreen, true)
             .addAction(
@@ -72,11 +72,14 @@ object ReminderNotificationBuilder {
                 dismissAction(context, id * 3 + 2, noteId, id)
             )
             .addAction(
-                snoozeAction(context, id * 3 + 3, noteId, title, body, recurrence, id)
+                snoozeAction(context, id * 3 + 3, noteId, title, body, recurrence, id, atMillis, tag)
             )
             .build()
 
         nm.notify(id, notification)
+        // The `setWhen` value: callers (Task 3 escalation) can tell when
+        // this occurrence fired.
+        return whenMs
     }
 
     private fun doneAction(context: Context, code: Int, noteId: String, notificationId: Int): NotificationCompat.Action {
@@ -107,6 +110,8 @@ object ReminderNotificationBuilder {
         body: String,
         recurrence: String,
         notificationId: Int,
+        atMillis: Long,
+        tag: String,
     ): NotificationCompat.Action {
         // The standalone sheet re-arms the reminder natively; the extras it
         // needs (incl. notification_id) come straight off this occurrence.
@@ -116,6 +121,8 @@ object ReminderNotificationBuilder {
             putExtra(SnoozeReminderActivity.EXTRA_BODY, body)
             putExtra(SnoozeReminderActivity.EXTRA_RECURRANCE, recurrence)
             putExtra(SnoozeReminderActivity.EXTRA_NOTIFICATION_ID, notificationId)
+            putExtra(SnoozeReminderActivity.EXTRA_AT_MILLIS, atMillis)
+            putExtra(SnoozeReminderActivity.EXTRA_TAG, tag)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         val pi = PendingIntent.getActivity(context, code, intent, pendingFlags())
