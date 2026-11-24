@@ -52,7 +52,10 @@ void main() {
   testWidgets('the top bar shows the journal label with a chevron', (tester) async {
     await pump(tester, [entry('a', 'Morning pages', 'good')]);
     expect(find.text('Journal'), findsWidgets);
-    expect(find.byIcon(LucideIcons500.chevronDown), findsOneWidget);
+    // The header is aligned with the list pages: a large collapsible title
+    // and a compact bar title are both in the tree, each with its own menu
+    // chevron (the large one shows at the top, the bar one when collapsed).
+    expect(find.byIcon(LucideIcons500.chevronDown), findsNWidgets(2));
   });
 
   testWidgets('the bottom bar goes compact when the timeline scrolls', (tester) async {
