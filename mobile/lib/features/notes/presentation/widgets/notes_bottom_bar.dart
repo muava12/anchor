@@ -76,7 +76,10 @@ class _NotesBottomBarState extends State<NotesBottomBar> {
     final colors = context.anchor;
     final control = context.density.control;
     final compact = widget.compact && !widget.searching;
-    final duration = context.motion(Spring.snappy.duration);
+    // The bar keeps the Normal feel even at the Fast setting: it is the one
+    // animation the owner asked to exempt, because the shrink is easy to miss
+    // when it runs at 96 ms. Off still means no time at all.
+    final duration = context.motionNormal(Spring.snappy.durationNormal);
     final search = Pressable(
       style: PressStyle.button,
       onTap: widget.searching ? null : widget.onStartSearch,
@@ -173,7 +176,7 @@ class _NotesBottomBarState extends State<NotesBottomBar> {
         Flexible(
           child: AnimatedContainer(
             duration: duration,
-            curve: Spring.snappy.curve,
+            curve: Spring.snappy.curveNormal,
             width: compact ? control : _fieldWidth(context),
             child: search,
           ),
