@@ -1,0 +1,63 @@
+# Regenerates the journal golden images on a GitHub runner and commits them
+# back to the branch.
+#
+# Golden tests compare against pixel-exact reference images, so they must be
+# generated in the same environment that runs them. The journal goldens were
+# generated on the local dev box, where font rasterization differs by a few
+# hundred pixels from this runner, so the stats-row tests fail here.
+#
+# Trigger manually (gh workflow run update-journal-goldens.yml) after the
+# journal UI changes are otherwise green; the run commits the regenerated
+# goldens so the normal CI passes.
+name: Update journal goldens
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch to regenerate the goldens on"
+        required: true
+        default: "feat/journal-v5-calendar-v2"
+
+permissions:
+  contents: write
+
+jobs:
+  update-goldens:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: 3.47.9
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Regenerate the journal stats goldens
+        run: |
+          flutter test --update-goldens test/journal_v2_golden_test.dart \
+            --plain-name "journal stats row"
+
+      - name: Commit and push the regenerated goldens
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add mobile/test/goldens/
+          if git diff --staged --quiet; then
+            echo "No golden changes; nothing to commit."
+          else
+            git commit -m "test(mobile): regenerate the journal stats goldens on CI"
+            git push origin HEAD:${{ inputs.ref }}
+          fi
