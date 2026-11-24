@@ -41,7 +41,7 @@ object FsiEscalationScheduler {
 
     /**
      * Arms a one-shot escalation alarm for this occurrence, but only
-     * while the screen is on and unlocked — otherwise the full-screen
+     * while the screen is on and unlocked. Otherwise the full-screen
      * intent already shows the sheet and escalation would double it.
      */
     fun scheduleIfUnlocked(

@@ -1,4 +1,4 @@
-# Reminder notifikasi ala Taskito — design
+# Reminder notifikasi ala Taskito: design
 
 Repo: `anchorx` (mobile/ = Flutter offline notes app). Tanggal 2026-11-19.
 
@@ -11,15 +11,15 @@ kalau belum di-action, notif **individual tak grouping + expanded**, ada
 (offline-first, tak sentuh `server/`).
 
 ## Scope (6 item, semua dikonfirmasi owner)
-1. **Tier importance + channel terpisah** — reminder = importance MAX (bunyi +
+1. **Tier importance + channel terpisah**: reminder = importance MAX (bunyi +
    status bar); pinned/silent = MIN (sunyi, shade only).
-2. **Full-screen head's-up** — reminder penting: layar nyala + unlock + UI
+2. **Full-screen head's-up**: reminder penting, layar nyala + unlock + UI
    alarm (Done/Snooze/Dismiss), tak terlewat.
-3. **Snooze** di notif — 10m/30m/1j/4j (+1h utk repeating), simpan durasi
+3. **Snooze** di notif: 10m/30m/1j/4j (+1h utk repeating), simpan durasi
    terakhir.
-4. **Re-notif** — reminder belum di-action → bunyi lagi sampai di-action.
-5. **Quick menu** (tap-tahan icon) — New note / Journal / Reminder.
-6. **Boot-reschedule** — re-arm semua alarm saat device restart.
+4. **Re-notif**: reminder belum di-action → bunyi lagi sampai di-action.
+5. **Quick menu** (tap-tahan icon): New note / Journal / Reminder.
+6. **Boot-reschedule**: re-arm semua alarm saat device restart.
 
 Non-goal: iOS parity dulu (fokus Android; iOS pakai `UNUserNotification`
 nanti). Tak ubah `server/`. Tak ubah format data note (reminder sudah ada di
@@ -29,12 +29,12 @@ nanti). Tak ubah `server/`. Tak ubah format data note (reminder sudah ada di
 - Flutter `flutter_local_notifications` (FLLP) untuk channel/importance/zoned
   schedule/action. **Tak ada API bersih di FLLP untuk full-screen intent +
   screen-on** → 2 bagian native Android kecil (item #2 + #5).
-- Android exact-alarm: `SCHEDULE_EXACT_ALARM` (Android 14+) — sudah ada
+- Android exact-alarm: `SCHEDULE_EXACT_ALARM` (Android 14+), sudah ada
   `requestExactPermission` di gateway sekarang.
 - Quick menu = `res/xml/shortcuts.xml` + activity wrapper + deep-link ke
   Flutter (native).
 
-## Approach (dipilih — final)
+## Approach (dipilih: final)
 - **Re-notif = FIRE-ONCE (bukan re-post, bukan sound loop).** Taskito (verified di
   smali) fire reminder **1×**: single = 1× total; repeating = 1× per period
   (`setInexactRepeating`). Suara 1× (SoundPool `play` loop=0). **Tak ada**
@@ -61,7 +61,7 @@ nanti). Tak ubah `server/`. Tak ubah format data note (reminder sudah ada di
 
 ## Desain (Doop)
 - Full-screen head's-up: frame `Z6ZCF2UPBd`
-  (https://doop.design/c/-IAXF4NORn?frame=Z6ZCF2UPBd) — statusbar → header
+  (https://doop.design/c/-IAXF4NORn?frame=Z6ZCF2UPBd): statusbar ke header
   (ikon lonceng + "REMINDER" + judul note + jam) → tengah (isi note) → 3
   tombol full-width Done/Snooze/Dismiss. Dark (muncul di lockscreen).
 - Varian bottom-sheet: frame `JTLvS1ykNh`.
@@ -84,7 +84,7 @@ nanti). Tak ubah `server/`. Tak ubah format data note (reminder sudah ada di
 | no-group + expanded | FLLP config (tak setGroup, isi penuh) |
 
 ## Yang ditinggalkan untuk builder
-- Interval re-notif X + cap (default 5m, cap esok hari / max 8x) — konfirmasi.
+- Interval re-notif X + cap (default 5m, cap esok hari / max 8x). Konfirmasi.
 - Mapping action button → handler (Done tandai reminder done + cancel loop;
   Snooze reschedule; Dismiss = senyapkan doang).
 - Platform hook `setFullScreenIntent` (FLLP tak expose; perlu

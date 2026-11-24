@@ -59,7 +59,7 @@ describe('NotesService tag reconciliation (shared notes)', () => {
   const pair = (noteId: string, tagId: string) => `${noteId}:${tagId}`;
 
   const tagFindMany = ({ where }: { where: TagWhere }): Promise<TagRef[]> => {
-    // Shape 1: ownable tags for the caller — { id: { in }, userId, isDeleted }
+    // Shape 1: ownable tags for the caller, { id: { in }, userId, isDeleted }
     if (where.id?.in) {
       return Promise.resolve(
         tags
@@ -72,7 +72,7 @@ describe('NotesService tag reconciliation (shared notes)', () => {
           .map((t) => ({ id: t.id })),
       );
     }
-    // Shape 2: caller's tags attached to a note — { userId, notes: { some } }
+    // Shape 2: caller's tags attached to a note, { userId, notes: { some } }
     const noteId = where.notes!.some.id;
     return Promise.resolve(
       tags

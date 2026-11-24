@@ -1,22 +1,22 @@
 # Anchor Web
 
-A modern, feature-rich note-taking web application built with Next.js, React, and TypeScript. Anchor provides a clean and intuitive interface for creating, organizing, and managing notes with rich text editing, tags, backgrounds, and more.
+A note-taking web application built with Next.js, React, and TypeScript. Anchor gives you an interface to create, organize, and manage notes with rich text editing, tags, and backgrounds.
 
 ## Features
 
-- **Rich Text Editor** - Create and edit notes with a powerful Quill-based editor
-- **Tags System** - Organize notes with custom tags and colors
-- **Note Backgrounds** - Customize notes with solid colors and patterns
-- **Pin Notes** - Pin important notes for quick access
-- **Archive Notes** - Archive notes for later reference
-- **Attachments** - Attach images and audio to notes with drag & drop
-- **Import & Export** - Bring notes in from another Anchor instance or Google Keep and export your full library
-- **Search** - Quickly find notes by title or content
-- **Trash** - Soft delete notes with 30-day recovery period
-- **Dark Mode** - Beautiful dark and light themes
-- **Responsive Design** - Works seamlessly on desktop and mobile devices
-- **Authentication** - Secure user authentication and session management
-- **Admin Panel** - User management, registration control, and system statistics
+- **Rich Text Editor**: Create and edit notes with a Quill-based editor
+- **Tags System**: Organize notes with custom tags and colors
+- **Note Backgrounds**: Set solid colors and patterns on a note
+- **Pin Notes**: Keep important notes at the top of the list
+- **Archive Notes**: Move notes out of the list and keep them for later
+- **Attachments**: Add images and audio to a note by drag and drop
+- **Import & Export**: Import notes from another Anchor instance or from Google Keep, and export your full library
+- **Search**: Find notes by title or content
+- **Trash**: Delete a note and recover it for 30 days
+- **Dark Mode**: Switch between a light and a dark theme
+- **Responsive Design**: The layout adapts to desktop and mobile screens
+- **Authentication**: User sign-in with session management
+- **Admin Panel**: Manage users, registration, and system statistics
 
 ## Tech Stack
 
@@ -60,7 +60,7 @@ docker compose -f docker-compose.dev.yml up -d
 pnpm install
 ```
 
-3. Set up environment variables (optional):
+4. Set up environment variables (optional):
    The web app uses Next.js rewrites to proxy API requests. For development, you can optionally set:
 
 ```bash
@@ -146,10 +146,10 @@ web/
 
 1. Create a new folder in `features/[feature-name]/`
 2. Add the following files:
-   - `api.ts` - API calls
-   - `types.ts` - TypeScript interfaces
-   - `index.ts` - Public exports
-3. Add `components/` folder for feature-specific UI
+   - `api.ts`: API calls
+   - `types.ts`: TypeScript interfaces
+   - `index.ts`: Public exports
+3. Add a `components/` folder for feature-specific UI
 4. Add `store.ts` if state management is needed
 5. Export everything through `index.ts`
 

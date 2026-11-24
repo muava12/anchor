@@ -114,7 +114,7 @@ class FullScreenReminderActivity : Activity() {
             slideDownAndFinish()
         }
         findViewById<View>(R.id.btn_snooze).setOnClickListener {
-            // Snooze: the standalone snooze sheet — no app launch.
+            // Snooze: open the standalone snooze sheet without launching the app.
             val snoozeIntent = Intent(this, SnoozeReminderActivity::class.java).apply {
                 putExtra(SnoozeReminderActivity.EXTRA_NOTE_ID, noteId)
                 putExtra(SnoozeReminderActivity.EXTRA_TITLE, title)

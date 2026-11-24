@@ -119,8 +119,8 @@ describe('SyncFeedService', () => {
 
     const page = await service.pull(USER, undefined, 10);
 
-    // Nothing to snapshot, so the cursor lands directly on the delta feed —
-    // but hasMore stays true until that delta pull drains.
+    // Nothing to snapshot, so the cursor lands directly on the delta feed.
+    // hasMore stays true until that delta pull drains.
     expect(page.entries).toEqual([]);
     expect(page.hasMore).toBe(true);
     expect(decodeCursor(page.nextCursor!)).toEqual({ mode: 'delta', seq: 42n });

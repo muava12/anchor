@@ -104,8 +104,8 @@ describe('AuthService', () => {
             id: `user-${users.size + 1}`,
             ...data,
           });
-          // Honor `select` like Prisma does — the caller must not see
-          // unselected fields (e.g. the password hash).
+          // Honor `select` like Prisma does. The caller must not see
+          // unselected fields, such as the password hash.
           if (!select) return Promise.resolve(user);
           return Promise.resolve(
             Object.fromEntries(

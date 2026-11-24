@@ -1,4 +1,4 @@
-# Checklist parent toggle — design
+# Checklist parent toggle: design
 
 ## Intent
 

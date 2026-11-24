@@ -1,4 +1,4 @@
-# Note text size slider — design
+# Note text size slider: design
 
 Date: 2026-11-13
 Status: approved for planning

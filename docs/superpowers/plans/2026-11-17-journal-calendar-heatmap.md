@@ -1,4 +1,4 @@
-# Journal calendar v2 — heat map and richer day cards
+# Journal calendar v2: heat map and richer day cards
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -59,7 +59,7 @@ Each is pinned to the owning task's test.
 `heatLevelOf` returns 0 for 0, 1 for 1, 2 for 2 and 3, 3 for 4 and 10.
 `journalEntryCounts` maps each day to its entry count from a `List<JournalDay>`.
 
-- [ ] **Step 2: Run to confirm it fails** — `cd mobile && rflutter test test/journal_day_test.dart`.
+- [ ] **Step 2: Run to confirm it fails**: `cd mobile && rflutter test test/journal_day_test.dart`.
 
 - [ ] **Step 3: Implement** `heatLevelOf` and `journalEntryCounts` in
 `journal_day.dart`; add `journalEntryCountsProvider` in `journal_providers.dart`
@@ -67,7 +67,7 @@ as `journalEntryCounts(groupJournalDays(ref.watch(journalNotesProvider).value ??
 
 - [ ] **Step 4: Run to confirm it passes.**
 
-- [ ] **Step 5: Commit** — `feat(journal): heat buckets and unfiltered entry counts`.
+- [ ] **Step 5: Commit**: `feat(journal): heat buckets and unfiltered entry counts`.
 
 ### Task 2: Footer and legend strings
 
@@ -91,7 +91,7 @@ method to `app_localizations.dart` and its implementation to
 confirm the "every message tells translators where it shows" test still passes
 (descriptions present).
 
-- [ ] **Step 3: Commit** — `feat(journal): month-footer and legend strings`.
+- [ ] **Step 3: Commit**: `feat(journal): month-footer and legend strings`.
 
 ### Task 3: Heat-shaded cells, month footer, legend; drop the dot
 
@@ -126,7 +126,7 @@ three `accentStrong` swatches (0.14 / 0.30 / 0.55) labelled with
 - [ ] **Step 4: Wire** `entryCounts: ref.watch(journalEntryCountsProvider)` in
 `journal_screen.dart`.
 
-- [ ] **Step 5: Run to confirm it passes**, then **commit** —
+- [ ] **Step 5: Run to confirm it passes**, then **commit**:
 `feat(journal): heat-shaded calendar cells, footer and legend`.
 
 ### Task 4: "TODAY" pill on the day header
@@ -146,7 +146,7 @@ present; for a past day assert it is absent.
 - [ ] **Step 3: In `_DayHeader`,** when the day is today add a small
 accent-tint pill (`l10n.commonToday`, uppercased, `accentStrong` text) between
 the label and the entry count.
-- [ ] **Step 4: Run to confirm it passes**, then **commit** —
+- [ ] **Step 4: Run to confirm it passes**, then **commit**:
 `feat(journal): TODAY pill on the day header`.
 
 ### Task 5: Card mood and non-journal tag chip
@@ -172,7 +172,7 @@ a note with no mood shows the time with no gap.
 `note.tagIds` entry that is not the journal tag (via `tagsByName`) and render
 it as a small `TagChip`-style chip; show `mood.emoji` in the meta row when set.
 - [ ] **Step 4: Run to confirm they pass** (with `tagsControllerProvider`
-overridden in the test), then **commit** —
+overridden in the test), then **commit**:
 `feat(journal): mood and tag chip on the day card`.
 
 ---

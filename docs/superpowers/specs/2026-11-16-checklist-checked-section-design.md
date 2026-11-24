@@ -1,4 +1,4 @@
-# Checklist checked section — design
+# Checklist checked section: design
 
 ## Intent
 

@@ -1,4 +1,4 @@
-# Motion speed setting — design
+# Motion speed setting: design
 
 Date: 2026-11-13
 Status: approved for planning

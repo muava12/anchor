@@ -190,8 +190,8 @@ App membuat 5 channel utama + 2 channel silent twin di `ReflogApp.onCreate()` vi
   padding vertikal 16dp, wrap-content (bukan height penuh).
 - Isi (`full_screen_notification_bottomsheet_layout`):
   1. Header row: `@string/app_name` + "•" + `@id/item_summary` (gaya `BottomSheetHeaderStyle.Small`).
-  2. `@id/item_title` — `Text.Primary.Medium.Large`, max 3 baris, ellipsize.
-  3. `@id/item_desc` — `Text.Secondary`, max 3 baris, ellipsize.
+  2. `@id/item_title`: `Text.Primary.Medium.Large`, max 3 baris, ellipsize.
+  3. `@id/item_desc`: `Text.Secondary`, max 3 baris, ellipsize.
   4. Spacer 16dp.
   5. 5 baris aksi (gaya `NoteActionStyle`, teks+ikon):
      - `option_show_details` → "Show details" (`generic_show_details`)
@@ -237,7 +237,7 @@ paling atas shade + sheet FSI; ketiganya hidup bersamaan saat importance MAX.
   6. `true` -> `x(soundId, c)` (putar) + return.
 - Tidak ada loop di `p()`. Tidak ada caller lain yang meng-loop `p()`/`x()`.
 
-### `k(int, dj/d;)` — gate "siap", bukan loop (`SonificationManager.smali:638`)
+### `k(int, dj/d;)`: gate "siap", bukan loop (`SonificationManager.smali:638`)
 ```
 p2 = h.contains(soundId)      # keyset "ready"
 if p2 != 0 (sudah ready): return true

@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft — 2026-11-18
+Draft, 2026-11-18
 
 ## Context
 
@@ -20,7 +20,7 @@ date, and editor fixes for long-press selection and Backspace.
 | `c8ab5b7` | Web: theme installed app title bar, fit tall pictures | Yes |
 | `b230160` | Mobile: sort notes by date created | Yes |
 | `16b05b9` | Mobile: fix long-press, margin taps, Backspace at line start | Yes |
-| `2e66c80` | Build: bump version to 0.18.1 | Skip — fork is 0.24.3+34 |
+| `2e66c80` | Build: bump version to 0.18.1 | Skip, fork is 0.24.3+34 |
 
 ## Key Decisions
 
@@ -86,5 +86,5 @@ Fork version is already higher than upstream 0.18.1. Do not downgrade.
 
 - **ADR 0002** (upstream sync scope): This sync follows the same pattern.
   No new ADR needed.
-- **ADR 0001** (visual check size): No impact — editor fix does not change
+- **ADR 0001** (visual check size): No impact. The editor fix does not change
   checkbox sizing.

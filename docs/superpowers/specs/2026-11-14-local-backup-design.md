@@ -1,4 +1,4 @@
-# Local backup and restore — design
+# Local backup and restore: design
 
 Date: 2026-11-14
 Status: approved for planning
@@ -38,7 +38,7 @@ From `server/src/sync/sync-apply.service.ts`, `applyNote`:
 | Note id on server | `baseVersion` sent | Result |
 | --- | --- | --- |
 | no | absent | created |
-| no | present | `denied` — a purged note is not resurrected |
+| no | present | `denied`: a purged note is not resurrected |
 | yes | absent | `conflict` |
 | yes | different from `version` | `conflict` |
 | yes | equal to `version` | applied |
@@ -130,13 +130,13 @@ knows.
 Two modes, chosen by the person on the restore screen. The file does not say
 which account it came from, so the app cannot choose.
 
-**Pulihkan** — the same account. Ids and `version` are kept. The server's own
+**Pulihkan**: the same account. Ids and `version` are kept. The server's own
 rules then decide: an unchanged note applies, a note edited after the backup
 conflicts and the server copy wins, a note deleted on the server stays deleted.
 A note the server has never seen is `denied` and dropped, because a kept
 `version` says the server once had it.
 
-**Impor salinan** — any account, any server. Every note and attachment gets a
+**Impor salinan**: any account, any server. Every note and attachment gets a
 fresh UUID and `version` is cleared, so the server creates them. Nothing can
 collide, and nothing is denied.
 
@@ -211,11 +211,11 @@ Dart dependency.
 
 A new **Backup** section:
 
-- `Backup sekarang` — spinner in the row while it runs.
-- `Pulihkan` — file picker, then a mode choice, then a confirmation.
+- `Backup sekarang`: spinner in the row while it runs.
+- `Pulihkan`: file picker, then a mode choice, then a confirmation.
 - `Backup otomatis` toggle, period, kept files.
-- `Password` — optional, with a confirm field.
-- `Folder` — shows the chosen folder, tap to change.
+- `Password`: optional, with a confirm field.
+- `Folder`: shows the chosen folder, tap to change.
 - The newest local backups, each with a share button.
 
 ## Testing
@@ -231,12 +231,12 @@ A new **Backup** section:
 
 ## Dependencies
 
-- `archive` — already present transitively, promoted to a direct dependency.
-- `cryptography` — new, pure Dart, used only when a password is set.
+- `archive`: already present transitively, promoted to a direct dependency.
+- `cryptography`: new, pure Dart, used only when a password is set.
 
 ## Out of scope
 
 - Backing up note revisions.
 - Restoring into a server that already holds notes with the same ids under
-  another account — "Impor salinan" covers it by using new ids.
+  another account. "Impor salinan" covers it by using new ids.
 - Surviving an app kill during a manual backup.

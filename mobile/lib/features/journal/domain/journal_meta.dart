@@ -57,7 +57,7 @@ class JournalMeta {
   bool get isEmpty =>
       mood == null && entryAt == null && tzOffset == null && extras.isEmpty;
 
-  /// A copy with the given values, keeping the ones left out.
+  /// A copy with the given values. Fields left out keep their value.
   ///
   /// A null [mood] keeps the current mood, so clearing one needs
   /// [clearMood].

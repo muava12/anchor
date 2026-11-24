@@ -1,7 +1,7 @@
-# FSI Escalation (60 s) + Draggable Snooze Sheet — Design
+# FSI Escalation (60 s) + Draggable Snooze Sheet: Design
 
 **Date:** 2026-11-23 · **Status:** approved in conversation · **Author:** Claude
-**Supersedes (in part):** `2026-11-22-standalone-reminder-sheet-design.md` §Constraints ("a background app cannot be forced to full-screen over another app when awake") — this change does exactly that, with the user's "Display over other apps" grant.
+**Supersedes (in part):** `2026-11-22-standalone-reminder-sheet-design.md` §Constraints ("a background app cannot be forced to full-screen over another app when awake"). This change does exactly that, with the user's "Display over other apps" grant.
 
 ## Intent / why
 A fired reminder must not be missed. While the phone is **unlocked**, the reminder currently shows only as a heads-up banner. The banner already persists (>1 min) because `USE_FULL_SCREEN_INTENT` is declared and granted (AOSP FSI limits: persistent HUN when granted; 60 s when denied). The owner still wants a stronger nudge: if nobody acts on the banner for **60 s**, the reminder sheet (`FullScreenReminderActivity`) appears over whatever app is open.
@@ -21,10 +21,10 @@ Separately, the snooze sheet's top area does not drag like a normal bottom sheet
 - Kotlin is verified by CI job `mobile-android` (`flutter build apk --debug`); there are no Kotlin unit tests. Device check is the gate.
 - Notification is `ongoing`, not auto-cancel; a banner tap goes straight to `MainActivity` (Android 12+ forbids notification trampolines), so cancelling on tap must happen in `MainActivity`.
 - `FullScreenReminderActivity` is `singleInstance` and has no `onNewIntent` (pre-existing); escalation makes a stale-content bug likelier, so it is fixed here.
-- The Dart FSI prompt gates on `int.tryParse(Platform.operatingSystemVersion) >= 14`, which very likely evaluates to 0 on Android (unverified) — replaced by an SDK value from native.
+- The Dart FSI prompt gates on `int.tryParse(Platform.operatingSystemVersion) >= 14`, which very likely evaluates to 0 on Android (unverified), replaced by an SDK value from native.
 
 ## Approaches
-1. **Alarm + receiver + `startActivity(FullScreenReminderActivity)` under SYSTEM_ALERT_WINDOW — chosen.** Reuses the existing sheet; permission is documented as exempting background launches.
+1. **Alarm + receiver + `startActivity(FullScreenReminderActivity)` under SYSTEM_ALERT_WINDOW: chosen.** Reuses the existing sheet; permission is documented as exempting background launches.
 2. Overlay window via `WindowManager` (`TYPE_APPLICATION_OVERLAY`): needs the same permission and duplicates the sheet UI. Rejected.
 3. Re-post the notification only: no sheet. Used only as the **fallback** when the overlay grant is missing.
 4. Prolong the heads-up by tricks: rejected (see non-goals).

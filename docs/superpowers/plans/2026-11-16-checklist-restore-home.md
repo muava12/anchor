@@ -1,4 +1,4 @@
-# P2 Plan — checklist restore-home (check uncheck anak → balik ke induk)
+# P2 Plan: checklist restore-home (check uncheck anak → balik ke induk)
 
 **Spec:** `docs/superpowers/specs/2026-11-16-checklist-restore-home-design.md` (approved)
 **Scope:** `mobile/` only. No server/web changes.
@@ -7,7 +7,7 @@
 
 - Keys: `anchor-id`, `anchor-home` (prefixed, no Quill clash).
 - `anchor-id`: short random base36, written to every checklist line in the
-  group that lacks one, at sort time (not at line-creation time — fewer
+  group that lacks one, at sort time (not at line-creation time, so there are fewer
   touch points).
 - `anchor-home` (on a block head only): `"{parentId}|{indentAtMove}"`.
   Written when a fully-checked block moves to the checked section. Cleared
