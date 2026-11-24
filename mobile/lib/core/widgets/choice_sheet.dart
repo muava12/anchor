@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_typography.dart';
 import '../theme/context_extensions.dart';
 import 'anchor_sheet.dart';
 import 'grouped_list.dart';
@@ -35,6 +36,7 @@ Future<T?> showChoiceSheet<T>(
   String? title,
   String? subtitle,
   String? semanticLabel,
+  String? footer,
 }) {
   final groups = <List<SheetChoice<T>>>[[]];
   for (final choice in choices) {
@@ -82,6 +84,17 @@ Future<T?> showChoiceSheet<T>(
             ],
           ),
         ),
+        if (footer != null)
+          Padding(
+            padding: EdgeInsets.fromLTRB(16, sheet.density.space8, 16, 0),
+            child: Text(
+              footer,
+              textAlign: TextAlign.center,
+              style: AppTypography.footnote.copyWith(
+                color: context.anchor.appMuted,
+              ),
+            ),
+          ),
         const SheetBottomSpace(),
       ],
     ),

@@ -229,4 +229,38 @@ void main() {
       expect(_english.historyLimit(historyDays), contains('$historyDays days'));
     });
   });
+
+  group('created', () {
+    test('the caption names the day the note was created', () {
+      expect(
+        createdDayLabel(
+          DateTime(2026, 3, 4, 9),
+          _english,
+          now: DateTime(2026, 3, 5, 9),
+        ),
+        'Created Mar 4',
+      );
+    });
+
+    test('a created date in another year carries the year', () {
+      expect(
+        createdDayLabel(
+          DateTime(2025, 3, 4),
+          _english,
+          now: DateTime(2026, 3, 5),
+        ),
+        'Created Mar 4, 2025',
+      );
+    });
+
+    test('a server instant reads in the local day', () {
+      final at = DateTime.utc(2026, 3, 4, 23, 30);
+      final day = DateFormat.MMMd(dateLocale).format(at.toLocal());
+
+      expect(
+        createdDayLabel(at, _english, now: DateTime(2026, 3, 5)),
+        'Created $day',
+      );
+    });
+  });
 }

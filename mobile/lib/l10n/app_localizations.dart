@@ -2566,6 +2566,12 @@ abstract class AppLocalizations {
   /// **'Edited {date}'**
   String editedOn(String date);
 
+  /// When the note was created, at the bottom of its more sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Created {date}'**
+  String noteCreatedOn(String date);
+
   /// When the current version last changed, in version history.
   ///
   /// In en, this message translates to:

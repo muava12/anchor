@@ -424,6 +424,7 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
       isArchived: note.isArchived,
       canSeeHistory: !_draft.isViewOnly,
       shareCount: note.shareIds?.length ?? 0,
+      createdAt: note.createdAt,
       hasChecklist: (checklist?.items ?? 0) > 0,
       hasCheckedItems: (checklist?.checked ?? 0) > 0,
     );
