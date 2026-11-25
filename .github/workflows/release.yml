@@ -39,10 +39,22 @@ jobs:
       # The in-app version (Settings -> About) comes from pubspec, which the
       # release tag does not bump. Set it from the tag so the built APK shows
       # the released version instead of a stale pubspec value.
+      #
+      # The build number after "+" becomes the Android versionCode, and Android
+      # refuses to install a lower one than the phone already has. Writing the
+      # tag alone left no build number, so every release shipped versionCode 1
+      # and could not install over a test APK. Derive it from the tag instead,
+      # so it rises with every release: 0.31.0 becomes 3100.
       - name: Set the app version from the tag
         run: |
           VERSION="${GITHUB_REF#refs/tags/v}"
-          sed -i "s/^version:.*/version: ${VERSION}/" pubspec.yaml
+          CORE="${VERSION%%-*}"
+          MAJOR="$(echo "$CORE" | cut -d. -f1)"
+          MINOR="$(echo "$CORE" | cut -d. -f2)"
+          PATCH="$(echo "$CORE" | cut -d. -f3)"
+          PATCH="${PATCH:-0}"
+          CODE=$(( 10#$MAJOR * 10000 + 10#$MINOR * 100 + 10#$PATCH ))
+          sed -i "s/^version:.*/version: ${VERSION}+${CODE}/" pubspec.yaml
           grep '^version:' pubspec.yaml
 
       # A fork without the release keystore still needs an installable APK, so
